@@ -31,8 +31,8 @@ export const AlertTriangleIcon: React.FC<{ className?: string }> = ({ className 
   </svg>
 );
 
-export const StarIconFilled: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+export const StarIconFilled: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-5 h-5", style }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
     <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.116 3.986 1.242 5.493c.269 1.192-.986 2.125-2.056 1.526L12 18.22l-4.994 2.795c-1.07.6-2.325-.334-2.056-1.526l1.242-5.493-4.116-3.986c-.887-.76-.415-2.212.749-2.305l5.404-.434L10.788 3.21Z" clipRule="evenodd" />
   </svg>
 );

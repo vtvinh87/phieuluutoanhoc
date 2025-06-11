@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState } from '../types';
+import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, PreloadedIslandDifficulties, PreloadedQuestionSet } from '../types';
 import { 
   MAX_PLAYER_LIVES,
   API_KEY_ERROR_MESSAGE,
@@ -11,8 +11,10 @@ import {
   QUESTIONS_PER_ISLAND,
   ISLANDS_PER_GRADE,
   GRADE_LEVEL_TEXT_MAP,
+  ISLAND_DIFFICULTY_TEXT_MAP,
   CHOOSE_GRADE_TEXT,
   CHOOSE_ISLAND_TEXT,
+  CHOOSE_ISLAND_DIFFICULTY_TEXT,
   ISLAND_TEXT,
   QUESTION_TEXT,
   SCORE_TEXT,
@@ -22,6 +24,7 @@ import {
   LOCKED_ISLAND_TEXT,
   ISLAND_LOADING_MESSAGE_DETAIL,
   ISLAND_PREPARING_MESSAGE,
+  STARTING_ISLAND_TEXT,
   PLAY_AGAIN_TEXT,
   CHOOSE_ANOTHER_GRADE_TEXT,
   PLAY_THIS_GRADE_AGAIN_TEXT,
@@ -31,6 +34,9 @@ import {
   UPDATING_MAP_TEXT,
   RETURN_TO_GRADE_SELECTION_TEXT,
   NEXT_ISLAND_BUTTON_TEXT,
+  REWARD_TEXT_EASY_PERFECT,
+  REWARD_TEXT_MEDIUM_PERFECT,
+  REWARD_TEXT_HARD_PERFECT,
   ISLAND_STAR_RATINGS_KEY_PREFIX,
   LOCAL_STORAGE_PREFIX,
   LAST_SELECTED_GRADE_KEY,
@@ -44,14 +50,16 @@ import {
   CORRECT_ANSWER_SOUND_URL,
   INCORRECT_ANSWER_SOUND_URL,
   VICTORY_FANFARE_SOUND_URL,
-  BUTTON_CLICK_SOUND_URL
+  BUTTON_CLICK_SOUND_URL,
+  // PRELOADED_QUESTIONS_CACHE_KEY_PREFIX // Decided to keep preload in-memory for simplicity
 } from '../constants';
-import { getMathHint, generateMathQuestion } from '../services/geminiService';
+import { getMathHint, generateMathQuestion, delay as apiDelay } from '../services/geminiService'; // Import delay
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
 import FeedbackIndicator from './FeedbackIndicator';
 import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
+import DifficultySelectionModal from './DifficultySelectionModal';
 import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline } from './icons';
 import confetti from 'canvas-confetti';
 
@@ -63,6 +71,8 @@ interface TransitionDetails {
   onComplete: () => void;
 }
 
+const QUESTION_FETCH_DELAY_MS = 1100; // Delay between individual question fetches, increased from 750ms
+
 const GameScreen: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('GradeSelection');
   const [transitionDetails, setTransitionDetails] = useState<TransitionDetails | null>(null);
@@ -70,6 +80,8 @@ const GameScreen: React.FC = () => {
   const [islandProgress, setIslandProgress] = useState<IslandProgressState>({});
   const [islandStarRatings, setIslandStarRatings] = useState<IslandStarRatingsState>({});
   const [currentIslandId, setCurrentIslandId] = useState<string | null>(null);
+  const [selectedIslandDifficulty, setSelectedIslandDifficulty] = useState<IslandDifficulty | null>(null);
+  const [showDifficultySelectionModalForIslandId, setShowDifficultySelectionModalForIslandId] = useState<string | null>(null);
   
   const [questionsForCurrentIsland, setQuestionsForCurrentIsland] = useState<Question[]>([]);
   const [currentQuestionIndexInIsland, setCurrentQuestionIndexInIsland] = useState(0);
@@ -96,52 +108,53 @@ const GameScreen: React.FC = () => {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const audioCache = useRef<Record<string, HTMLAudioElement>>({});
 
-  const [preloadedIslandQuestions, setPreloadedIslandQuestions] = useState<Record<string, Question[]>>({});
+  const [preloadedQuestionsCache, setPreloadedQuestionsCache] = useState<PreloadedQuestionsCache>({});
 
   const unlockAudioContext = useCallback(() => {
     if (!audioUnlocked) {
       setAudioUnlocked(true);
+      const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+      silentAudio.volume = 0;
+      silentAudio.play().catch(() => {});
     }
   }, [audioUnlocked]);
 
   const playSound = useCallback((soundUrl: string, volume: number = 0.5) => {
-    if (!audioUnlocked) {
-      return;
-    }
-    if (!soundUrl || soundUrl.startsWith("YOUR_") || soundUrl.endsWith("_HERE")) {
-        return;
-    }
+    if (!audioUnlocked) return;
+    if (!soundUrl || soundUrl.startsWith("YOUR_") || soundUrl.endsWith("_HERE")) return;
 
     try {
       let audio = audioCache.current[soundUrl];
       if (!audio) {
         audio = new Audio(soundUrl);
         audio.volume = volume;
-        audio.onerror = null; 
-        audio.onerror = (_e) => {
-          // console.error(`Error loading audio source: ${soundUrl}`, e);
-        };
+        audio.onerror = () => { delete audioCache.current[soundUrl]; };
         audioCache.current[soundUrl] = audio;
       }
-      audio.currentTime = 0; 
-      audio.play().catch(_e => {}); // console.warn(`Audio play() promise rejected for ${soundUrl}:`, e));
-    } catch (error) {
-      // console.warn(`General error playing sound ${soundUrl}:`, error);
-    }
+      
+      if (audio.readyState >= 2) { // HTMLMediaElement.HAVE_CURRENT_DATA or higher
+        audio.currentTime = 0; 
+        audio.play().catch(_e => {});
+      } else {
+        const playWhenReady = () => {
+            audio.currentTime = 0;
+            audio.play().catch(_e => {});
+            audio.removeEventListener('canplaythrough', playWhenReady);
+        };
+        audio.addEventListener('canplaythrough', playWhenReady);
+        audio.load(); 
+      }
+    } catch (error) {}
   }, [audioUnlocked, audioCache]);
 
 
-  // localStorage Helpers
   const loadLastSelectedGrade = (): GradeLevel | null => {
     const savedGrade = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
     return savedGrade ? parseInt(savedGrade) as GradeLevel : null;
   };
   const saveLastSelectedGrade = (grade: GradeLevel | null) => {
-    if (grade) {
-      localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade.toString());
-    } else {
-      localStorage.removeItem(LAST_SELECTED_GRADE_KEY);
-    }
+    if (grade) localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade.toString());
+    else localStorage.removeItem(LAST_SELECTED_GRADE_KEY);
   };
   const loadIslandProgressFromStorage = (grade: GradeLevel): IslandProgressState | null => {
     const savedProgress = localStorage.getItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`);
@@ -165,7 +178,6 @@ const GameScreen: React.FC = () => {
     localStorage.setItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, JSON.stringify(ratings));
   };
 
-
   useEffect(() => {
     if (!process.env.API_KEY) {
       setApiKeyMissing(true);
@@ -173,15 +185,14 @@ const GameScreen: React.FC = () => {
       setLoadingError(API_KEY_ERROR_MESSAGE);
       return; 
     }
-
     const lastGrade = loadLastSelectedGrade();
-    if (lastGrade) {
-      handleGradeSelect(lastGrade, true); 
-    } else {
-      setGameState('GradeSelection'); 
-    }
+    if (lastGrade) handleGradeSelect(lastGrade, true); 
+    else setGameState('GradeSelection'); 
+    
+    document.addEventListener('click', unlockAudioContext, { once: true });
+    return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [unlockAudioContext]); 
 
 
   const islandsForCurrentGrade = useMemo(() => {
@@ -195,38 +206,98 @@ const GameScreen: React.FC = () => {
     if (gameState === 'Transitioning' && transitionDetails) {
       const timer = setTimeout(() => {
         const callback = transitionDetails.onComplete;
+        setTransitionDetails(null); 
         callback();
       }, transitionDetails.duration || 1500);
       return () => clearTimeout(timer);
     }
   }, [gameState, transitionDetails]);
 
-  useEffect(() => {
-    let animationInterval: number | undefined;
-    if (gameState === 'IslandComplete') {
-      if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
-      const duration = 2 * 1000; 
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+  const triggerConfettiStars = useCallback(() => { // Paper confetti
+    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
+    const duration = 2 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
+    }, 250);
+  }, [playSound, audioUnlocked]);
 
-      animationInterval = window.setInterval(() => {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) {
-          return clearInterval(animationInterval);
-        }
-        const particleCount = 50 * (timeLeft / duration);
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-      }, 250);
+  const triggerStarRainEffect = useCallback(() => {
+    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+
+      confetti({
+        particleCount: 3,
+        startVelocity: 0,
+        ticks: 300 + Math.random() * 200, 
+        origin: { x: Math.random(), y: Math.random() * 0.4 - 0.2 }, 
+        colors: ['#FFD700', '#FFFFE0', '#FFFACD', '#F0E68C'],
+        shapes: ['star'],
+        gravity: 0.2 + Math.random() * 0.2, 
+        scalar: Math.random() * 0.5 + 0.5,
+        drift: Math.random() * 0.5 - 0.25,
+        zIndex: 1000,
+      });
+    }, 100);
+  }, [playSound, audioUnlocked]);
+
+  const triggerFireworksEffect = useCallback(() => {
+    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.8); 
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 25, spread: 360, ticks: 100, zIndex: 1000, gravity: 0.6 };
+
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti(Object.assign({}, defaults, opts, {
+        particleCount: Math.floor(200 * particleRatio)
+      }));
     }
-    return () => {
-      if (animationInterval) {
-        clearInterval(animationInterval);
-      }
-    };
-  }, [gameState, playSound, audioUnlocked]);
+    
+    const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <=0) return clearInterval(interval);
+        const randomX = () => Math.random();
+        const randomY = () => Math.random() * 0.5 + 0.1; // Launch higher
+
+        fire(0.25, { spread: 26, startVelocity: 55, origin: { x: randomX(), y: randomY() } });
+        fire(0.2, { spread: 60, origin: { x: randomX(), y: randomY() } });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: randomX(), y: randomY() } });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, origin: { x: randomX(), y: randomY() } });
+        fire(0.1, { spread: 120, startVelocity: 45, origin: { x: randomX(), y: randomY() } });
+    }, 400);
+
+  }, [playSound, audioUnlocked]);
+
+  useEffect(() => {
+    if (gameState === 'IslandComplete' && currentIslandId && selectedIslandDifficulty) {
+        const starsAchievedForEffect = islandStarRatings[currentIslandId] || 0;
+        const perfectRun = starsAchievedForEffect === 5;
+
+        if (perfectRun) {
+            if (selectedIslandDifficulty === IslandDifficulty.HARD) {
+                triggerFireworksEffect();
+            } else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) {
+                triggerStarRainEffect();
+            } else { // EASY
+                triggerConfettiStars(); 
+            }
+        } else {
+            if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6); 
+        }
+    }
+  }, [gameState, selectedIslandDifficulty, triggerConfettiStars, triggerStarRainEffect, triggerFireworksEffect, playSound, audioUnlocked, islandStarRatings, currentIslandId]);
 
 
   const currentIslandConfig = currentIslandId ? islandsForCurrentGrade.find(island => island.islandId === currentIslandId) : null;
@@ -243,6 +314,7 @@ const GameScreen: React.FC = () => {
   
   const resetForNewIslandPlay = useCallback(() => {
     resetForNewQuestion();
+    setCurrentQuestionIndexInIsland(0); // Ensure island starts from the first question
     setPlayerLives(MAX_PLAYER_LIVES);
     setIslandScore(0);
   }, [resetForNewQuestion]);
@@ -250,19 +322,234 @@ const GameScreen: React.FC = () => {
   const resetForNewGradeJourney = useCallback(() => {
     resetForNewIslandPlay(); 
     setQuestionsForCurrentIsland([]);
-    setCurrentQuestionIndexInIsland(0);
+    // setCurrentQuestionIndexInIsland(0); // This is now handled by resetForNewIslandPlay
     setCurrentIslandId(null);
+    setSelectedIslandDifficulty(null);
+    setShowDifficultySelectionModalForIslandId(null);
     setLoadingError(null);
     setOverallScore(0); 
     setIslandProgress({}); 
     setIslandStarRatings({});
+    setPreloadedQuestionsCache({}); // Clear preload cache for new grade
     setTransitionDetails(null); 
-    setPreloadedIslandQuestions({});
   }, [resetForNewIslandPlay]);
+
+
+  // Helper to fetch a full set of 5 questions for a given island and difficulty
+  const _fetchFullQuestionSet = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty): Promise<Question[]> => {
+    const fetchedQuestionSet: Question[] = [];
+    let fetchSuccessful = true;
+    for (let i = 0; i < QUESTIONS_PER_ISLAND; i++) {
+        // For on-demand fetching, show detailed progress
+        if (isIslandLoading && gameState !== 'IslandMap' && gameState !== 'IslandPlaying') { // gameState check to not show this for background preload
+             setIslandLoadingProgressMessage(ISLAND_LOADING_MESSAGE_DETAIL(islandConfig.name, i + 1, QUESTIONS_PER_ISLAND));
+        }
+        
+        const newQuestion = await generateMathQuestion(
+            islandConfig.targetGradeLevel,
+            islandConfig.topics,
+            islandConfig.name,
+            islandConfig.islandId,
+            i, // questionIndexInIsland
+            difficulty
+        );
+
+        if (newQuestion) {
+            fetchedQuestionSet.push(newQuestion);
+        } else {
+            console.error(`Failed to generate question ${i+1} for ${islandConfig.name} (${difficulty}). Will result in an incomplete set.`);
+            fetchSuccessful = false; 
+            // We could break here, or try to get as many as possible.
+            // For now, let's continue to see if other questions can be fetched, but the set will be incomplete.
+            // The caller will handle the incomplete set.
+        }
+        // Add delay only if not the last question to avoid unnecessary wait after the loop
+        if (i < QUESTIONS_PER_ISLAND - 1) {
+            await apiDelay(QUESTION_FETCH_DELAY_MS); 
+        }
+    }
+
+    if (fetchedQuestionSet.length === QUESTIONS_PER_ISLAND && fetchSuccessful) {
+        return fetchedQuestionSet;
+    } else {
+        // This specific error message will be shown to the user if fetching on demand.
+        // It reflects that not all questions could be loaded.
+        console.error(`_fetchFullQuestionSet for ${islandConfig.name} (${difficulty}) resulted in ${fetchedQuestionSet.length}/${QUESTIONS_PER_ISLAND} questions.`);
+        throw new Error(QUESTION_GENERATION_ERROR_MESSAGE); 
+    }
+  }, [isIslandLoading, gameState]); 
+
+  // Main function to get questions for an island: uses cache or fetches on demand
+  const fetchAndSetQuestionsForIsland = useCallback(async (islandIdToLoad: string, difficulty: IslandDifficulty) => {
+    if (apiKeyMissing || !selectedGrade) {
+        setGameState('Error');
+        setLoadingError(apiKeyMissing ? API_KEY_ERROR_MESSAGE : "Vui lòng chọn lớp trước.");
+        setTransitionDetails(null);
+        return;
+    }
+
+    const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandIdToLoad);
+    if (!islandConfig) {
+        setGameState('Error');
+        setLoadingError("Không tìm thấy cấu hình cho hòn đảo này.");
+        setTransitionDetails(null);
+        return;
+    }
+    
+    const cachedData = preloadedQuestionsCache[islandIdToLoad]?.[difficulty];
+
+    if (Array.isArray(cachedData)) { // Questions are preloaded and are an array
+        setQuestionsForCurrentIsland(cachedData);
+        setCurrentIslandId(islandIdToLoad);
+        setSelectedIslandDifficulty(difficulty);
+        resetForNewIslandPlay();
+        setTransitionDetails({
+             message: STARTING_ISLAND_TEXT(islandConfig.name, ISLAND_DIFFICULTY_TEXT_MAP[difficulty]),
+             duration: 700,
+             onComplete: () => setGameState('IslandPlaying')
+        });
+        setGameState('Transitioning');
+        return;
+    }
+
+    // If not cached, or cache shows 'loading', 'error', or 'pending', proceed to fetch
+    setIsIslandLoading(true);
+    setLoadingError(null);
+    setIslandLoadingProgressMessage(ISLAND_PREPARING_MESSAGE(islandConfig.name));
+    setTransitionDetails(null); // Clear any previous transition
+
+    try {
+        const fetchedQuestions = await _fetchFullQuestionSet(islandConfig, difficulty);
+        
+        setPreloadedQuestionsCache(prev => ({
+            ...prev,
+            [islandIdToLoad]: {
+                ...(prev[islandIdToLoad] || {}),
+                [difficulty]: fetchedQuestions
+            }
+        }));
+        setQuestionsForCurrentIsland(fetchedQuestions);
+        setCurrentIslandId(islandIdToLoad);
+        setSelectedIslandDifficulty(difficulty);
+        resetForNewIslandPlay();
+        setGameState('IslandPlaying');
+
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : QUESTION_GENERATION_ERROR_MESSAGE;
+        console.error(`Error in fetchAndSetQuestionsForIsland for ${islandConfig.name} (${difficulty}):`, errorMessage);
+        setLoadingError(errorMessage); // This will show QUESTION_GENERATION_ERROR_MESSAGE to the user
+        setGameState('Error');
+        setPreloadedQuestionsCache(prev => ({
+            ...prev,
+            [islandIdToLoad]: {
+                ...(prev[islandIdToLoad] || {}),
+                [difficulty]: 'error'
+            }
+        }));
+    } finally {
+        setIsIslandLoading(false);
+        setIslandLoadingProgressMessage(null);
+    }
+  }, [apiKeyMissing, selectedGrade, islandsForCurrentGrade, resetForNewIslandPlay, preloadedQuestionsCache, _fetchFullQuestionSet]);
+
+
+  // Background preloader for a specific island and difficulty
+  const backgroundPreloadIslandDifficulty = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty) => {
+    if (apiKeyMissing || !selectedGrade) return;
+
+    const currentCacheEntry = preloadedQuestionsCache[islandConfig.islandId]?.[difficulty];
+    if (Array.isArray(currentCacheEntry) || currentCacheEntry === 'loading' || currentCacheEntry === 'error') {
+        return; 
+    }
+
+    setPreloadedQuestionsCache(prev => ({
+        ...prev,
+        [islandConfig.islandId]: {
+            ...(prev[islandConfig.islandId] || {}),
+            [difficulty]: 'loading'
+        }
+    }));
+
+    try {
+        // console.log(`Background Preloading: START - ${islandConfig.name} (${difficulty})`);
+        await apiDelay(QUESTION_FETCH_DELAY_MS / 2); // Stagger start of batch
+        
+        const fetchedQuestions = await _fetchFullQuestionSet(islandConfig, difficulty);
+        setPreloadedQuestionsCache(prev => ({
+            ...prev,
+            [islandConfig.islandId]: {
+                ...(prev[islandConfig.islandId] || {}),
+                [difficulty]: fetchedQuestions
+            }
+        }));
+        // console.log(`Background Preloading: SUCCESS - ${islandConfig.name} (${difficulty})`);
+    } catch (error) {
+        // console.warn(`Background Preloading: ERROR - ${islandConfig.name} (${difficulty}):`, error);
+        setPreloadedQuestionsCache(prev => ({
+            ...prev,
+            [islandConfig.islandId]: {
+                ...(prev[islandConfig.islandId] || {}),
+                [difficulty]: 'error'
+            }
+        }));
+    }
+  }, [apiKeyMissing, selectedGrade, preloadedQuestionsCache, _fetchFullQuestionSet]);
+
+  // Effect to trigger background preloading for UNLOCKED/COMPLETED islands when on IslandMap
+  useEffect(() => {
+    if (gameState === 'IslandMap' && selectedGrade) {
+        let preloadChain = Promise.resolve();
+        islandsForCurrentGrade.forEach(islandConfig => {
+            if (islandProgress[islandConfig.islandId] === 'unlocked' || islandProgress[islandConfig.islandId] === 'completed') {
+                Object.values(IslandDifficulty).forEach(diffKey => {
+                    const difficulty = diffKey as IslandDifficulty;
+                    const cacheEntry = preloadedQuestionsCache[islandConfig.islandId]?.[difficulty];
+                    if (!cacheEntry || cacheEntry === 'pending') {
+                         preloadChain = preloadChain.then(() => backgroundPreloadIslandDifficulty(islandConfig, difficulty));
+                    }
+                });
+            }
+        });
+        preloadChain.catch(err => console.error("Error in IslandMap background preload chain:", err));
+    }
+  }, [gameState, selectedGrade, islandsForCurrentGrade, islandProgress, backgroundPreloadIslandDifficulty, preloadedQuestionsCache]);
+
+  // Effect to trigger background preloading for THE NEXT island (N+1) when PLAYING an island (N)
+  useEffect(() => {
+    if (gameState === 'IslandPlaying' && currentIslandId && selectedGrade && islandsForCurrentGrade.length > 0) {
+      const currentIndex = islandsForCurrentGrade.findIndex(island => island.islandId === currentIslandId);
+      
+      if (currentIndex !== -1 && currentIndex < islandsForCurrentGrade.length - 1) {
+        const nextIslandConfig = islandsForCurrentGrade[currentIndex + 1];
+        let preloadChainForNextIsland = Promise.resolve();
+
+        Object.values(IslandDifficulty).forEach(diffKey => {
+          const difficulty = diffKey as IslandDifficulty;
+          const cacheEntry = preloadedQuestionsCache[nextIslandConfig.islandId]?.[difficulty];
+          
+          if (!cacheEntry || cacheEntry === 'pending') {
+            // console.log(`Queueing N+1 preload for ${nextIslandConfig.name} (${difficulty})`);
+            preloadChainForNextIsland = preloadChainForNextIsland.then(() => 
+              backgroundPreloadIslandDifficulty(nextIslandConfig, difficulty)
+            );
+          }
+        });
+        preloadChainForNextIsland.catch(err => console.error(`Error in N+1 preload chain for ${nextIslandConfig.name}:`, err));
+      }
+    }
+  }, [
+    gameState, 
+    currentIslandId, 
+    selectedGrade, 
+    islandsForCurrentGrade, 
+    preloadedQuestionsCache, 
+    backgroundPreloadIslandDifficulty
+  ]);
+
 
   const handleGradeSelect = (grade: GradeLevel, isAutoLoading = false) => {
     if (!isAutoLoading) { 
-        unlockAudioContext();
+        unlockAudioContext(); 
         playSound(GRADE_SELECT_SOUND_URL, 0.7);
     }
     resetForNewGradeJourney(); 
@@ -289,19 +576,11 @@ const GameScreen: React.FC = () => {
         saveIslandProgressToStorage(grade, initialProgress); 
       }
 
-      if (savedScore !== null) {
-        setOverallScore(savedScore);
-      } else {
-        setOverallScore(0);
-        saveOverallScoreToStorage(grade, 0); 
-      }
+      if (savedScore !== null) setOverallScore(savedScore);
+      else { setOverallScore(0); saveOverallScoreToStorage(grade, 0); }
 
-      if (savedStarRatings) {
-        setIslandStarRatings(savedStarRatings);
-      } else {
-        setIslandStarRatings({});
-        saveIslandStarRatingsToStorage(grade, {});
-      }
+      if (savedStarRatings) setIslandStarRatings(savedStarRatings);
+      else { setIslandStarRatings({}); saveIslandStarRatingsToStorage(grade, {}); }
       
       setGameState('IslandMap'); 
       
@@ -311,126 +590,6 @@ const GameScreen: React.FC = () => {
     }
   };
 
-  const initiatePreloadForNextIsland = useCallback(async (currentLoadedIslandId: string) => {
-    if (!selectedGrade || apiKeyMissing) {
-        return;
-    }
-
-    const currentIslandIndex = islandsForCurrentGrade.findIndex(i => i.islandId === currentLoadedIslandId);
-    if (currentIslandIndex === -1) {
-        return; 
-    }
-    if (currentIslandIndex >= islandsForCurrentGrade.length - 1) {
-        return;
-    }
-
-    const nextIslandToPreload = islandsForCurrentGrade[currentIslandIndex + 1];
-    if (!nextIslandToPreload) {
-        return;
-    }
-    if (preloadedIslandQuestions[nextIslandToPreload.islandId]) {
-        return;
-    }
-    
-    const questionPromises: Promise<Question | null>[] = [];
-    for (let i = 0; i < QUESTIONS_PER_ISLAND; i++) {
-        questionPromises.push(
-            generateMathQuestion(
-                nextIslandToPreload.targetGradeLevel,
-                nextIslandToPreload.topics,
-                nextIslandToPreload.name 
-            ).then(q => q ? { ...q, islandId: nextIslandToPreload.islandId, islandName: nextIslandToPreload.name } : null)
-        );
-    }
-
-    try {
-        const results = await Promise.all(questionPromises);
-        const successfullyFetchedQuestions = results.filter(q => q !== null) as Question[];
-
-        if (successfullyFetchedQuestions.length === QUESTIONS_PER_ISLAND) {
-             setPreloadedIslandQuestions(prev => ({
-                ...prev,
-                [nextIslandToPreload.islandId]: successfullyFetchedQuestions
-            }));
-        } else {
-            // Silently fail preload if not all questions are fetched. Game will fetch normally later.
-        }
-    } catch (error) {
-        // Silently fail preload on critical error. Game will fetch normally later.
-    }
-  }, [selectedGrade, islandsForCurrentGrade, preloadedIslandQuestions, apiKeyMissing]);
-
-
-  const fetchQuestionsForIsland = useCallback(async (islandIdToLoad: string) => {
-    if (apiKeyMissing || !selectedGrade) {
-      setGameState('Error');
-      setLoadingError(apiKeyMissing ? API_KEY_ERROR_MESSAGE : "Vui lòng chọn lớp trước.");
-      setTransitionDetails(null); 
-      return;
-    }
-    
-    const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandIdToLoad);
-    if (!islandConfig) {
-      setGameState('Error');
-      setLoadingError("Không tìm thấy cấu hình cho hòn đảo này.");
-      setTransitionDetails(null);
-      return;
-    }
-
-    if (preloadedIslandQuestions[islandIdToLoad]) {
-        setQuestionsForCurrentIsland(preloadedIslandQuestions[islandIdToLoad]);
-        setCurrentIslandId(islandIdToLoad);
-        resetForNewIslandPlay();
-        setGameState('IslandPlaying');
-        setIsIslandLoading(false); 
-        setIslandLoadingProgressMessage(null); 
-        
-        setPreloadedIslandQuestions(prev => {
-            const newPreloaded = { ...prev };
-            delete newPreloaded[islandIdToLoad];
-            return newPreloaded;
-        });
-        initiatePreloadForNextIsland(islandIdToLoad); 
-        return;
-    }
-    
-    setIsIslandLoading(true); 
-    setLoadingError(null);
-    setIslandLoadingProgressMessage(ISLAND_PREPARING_MESSAGE(islandConfig.name)); 
-    setTransitionDetails(null); 
-    const fetchedQuestions: Question[] = [];
-
-    try {
-      for (let i = 0; i < QUESTIONS_PER_ISLAND; i++) {
-        setIslandLoadingProgressMessage(ISLAND_LOADING_MESSAGE_DETAIL(islandConfig.name, i + 1, QUESTIONS_PER_ISLAND));
-        const newQuestion = await generateMathQuestion(islandConfig.targetGradeLevel, islandConfig.topics, islandConfig.name);
-        if (newQuestion) {
-          fetchedQuestions.push({...newQuestion, islandId: islandConfig.islandId, islandName: islandConfig.name });
-        } else {
-          throw new Error(`${QUESTION_GENERATION_ERROR_MESSAGE} (Câu hỏi ${i + 1} cho ${islandConfig.name})`);
-        }
-      }
-      
-      if (fetchedQuestions.length === QUESTIONS_PER_ISLAND) {
-          setQuestionsForCurrentIsland(fetchedQuestions);
-          setCurrentIslandId(islandIdToLoad); 
-          resetForNewIslandPlay(); 
-          setGameState('IslandPlaying');
-          initiatePreloadForNextIsland(islandIdToLoad); 
-      } else {
-        throw new Error(`Không thể tải đủ ${QUESTIONS_PER_ISLAND} câu hỏi cho ${islandConfig.name}.`);
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : QUESTION_GENERATION_ERROR_MESSAGE;
-      setLoadingError(errorMessage);
-      setGameState('Error');
-    } finally {
-      setIsIslandLoading(false);
-      setIslandLoadingProgressMessage(null);
-    }
-  }, [apiKeyMissing, selectedGrade, islandsForCurrentGrade, resetForNewIslandPlay, preloadedIslandQuestions, initiatePreloadForNextIsland]);
-
   const handleIslandSelect = (islandId: string) => {
     unlockAudioContext(); 
     const status = islandProgress[islandId];
@@ -438,31 +597,42 @@ const GameScreen: React.FC = () => {
 
     if (islandConfig && (status === 'unlocked' || status === 'completed')) {
         playSound(ISLAND_SELECT_SOUND_URL, 0.6);
-        setQuestionsForCurrentIsland([]); 
-        setCurrentQuestionIndexInIsland(0); 
-        setLoadingError(null);
-        
-        setTransitionDetails({
-            message: TRAVELLING_TO_ISLAND_TEXT(islandConfig.name),
-            duration: 1800, 
-            onComplete: () => fetchQuestionsForIsland(islandId)
-        });
-        setGameState('Transitioning');
+        setCurrentIslandId(islandId); 
+        setShowDifficultySelectionModalForIslandId(islandId);
     } else {
         playSound(INCORRECT_ANSWER_SOUND_URL, 0.3);
         alert(LOCKED_ISLAND_TEXT); 
     }
   };
 
-  const restartCurrentIsland = () => {
+  const handleDifficultySelected = (difficulty: IslandDifficulty) => {
     unlockAudioContext();
     playSound(BUTTON_CLICK_SOUND_URL);
-    setPlayerLives(MAX_PLAYER_LIVES);
-    setCurrentQuestionIndexInIsland(0);
-    setIslandScore(0); 
-    resetForNewQuestion(); 
-    setFeedback({ isCorrect: null, message: `Bắt đầu lại ${currentIslandConfig?.name || 'hòn đảo'}!`});
+    if (!currentIslandId) return; 
+    
+    const islandConfigToLoad = islandsForCurrentGrade.find(i => i.islandId === currentIslandId);
+    if (!islandConfigToLoad) {
+        setGameState('Error');
+        setLoadingError("Lỗi: Không tìm thấy đảo để tải sau khi chọn độ khó.");
+        setShowDifficultySelectionModalForIslandId(null);
+        return;
+    }
+
+    setShowDifficultySelectionModalForIslandId(null); 
+    
+    const cachedData = preloadedQuestionsCache[currentIslandId]?.[difficulty];
+    if (Array.isArray(cachedData) && cachedData.length === QUESTIONS_PER_ISLAND) { // Check if full set is cached
+        fetchAndSetQuestionsForIsland(currentIslandId, difficulty); 
+    } else {
+        setTransitionDetails({
+            message: TRAVELLING_TO_ISLAND_TEXT(islandConfigToLoad.name),
+            duration: 1800, 
+            onComplete: () => fetchAndSetQuestionsForIsland(currentIslandId, difficulty)
+        });
+        setGameState('Transitioning');
+    }
   };
+
 
   const handleNextQuestionInIsland = useCallback(() => {
     if (!selectedGrade || !currentIslandId) return; 
@@ -472,11 +642,16 @@ const GameScreen: React.FC = () => {
       setCurrentQuestionIndexInIsland(prev => prev + 1);
     } else {
       const completedIslandId = currentIslandId;
-      let starsEarned = 0;
-      if (playerLives === MAX_PLAYER_LIVES) starsEarned = 5;
-      else if (playerLives === MAX_PLAYER_LIVES - 1) starsEarned = 4;
-      else if (playerLives >= MAX_PLAYER_LIVES - 2) starsEarned = 3;
-      else starsEarned = 3; 
+      let starsEarned = 0; 
+      
+      const livesAtCompletion = playerLives; 
+
+      if (livesAtCompletion === MAX_PLAYER_LIVES) starsEarned = 5;
+      else if (livesAtCompletion === MAX_PLAYER_LIVES - 1) starsEarned = 4;
+      else if (livesAtCompletion === MAX_PLAYER_LIVES - 2 && livesAtCompletion > 0) starsEarned = 3; 
+      else if (livesAtCompletion === 0) starsEarned = 2; // Failed the island
+      else starsEarned = 3; // Should ideally not happen if logic is tight, but as a fallback.
+
 
       const updatedStarRatings = { ...islandStarRatings, [completedIslandId]: Math.max(islandStarRatings[completedIslandId] || 0, starsEarned) }; 
       setIslandStarRatings(updatedStarRatings);
@@ -491,6 +666,14 @@ const GameScreen: React.FC = () => {
         const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1];
         if (nextIslandInGrade) {
             updatedProgress[nextIslandInGrade.islandId] = 'unlocked';
+            // Preloading for N+2 (the island after the newly unlocked one)
+            // will be handled by the 'IslandPlaying' useEffect if the user starts playing N+1
+            // or by the 'IslandMap' useEffect if they return to map.
+            // However, we can initiate a preload for N+1's difficulties here as well if not already started
+            // because they've just *unlocked* it.
+            Object.values(IslandDifficulty).forEach(diff => {
+                backgroundPreloadIslandDifficulty(nextIslandInGrade, diff as IslandDifficulty);
+            });
         }
       }
       setIslandProgress(updatedProgress);
@@ -504,7 +687,7 @@ const GameScreen: React.FC = () => {
           setGameState('IslandComplete');
       }
     }
-  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings]);
+  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, backgroundPreloadIslandDifficulty]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
@@ -556,15 +739,15 @@ const GameScreen: React.FC = () => {
     const allGradeIslandsCompleted = islandsForCurrentGrade.every(island => islandProgress[island.islandId] === 'completed');
     
     setCurrentIslandId(null);
+    setSelectedIslandDifficulty(null);
     setQuestionsForCurrentIsland([]);
-    setCurrentQuestionIndexInIsland(0);
+    setCurrentQuestionIndexInIsland(0); // Reset index when going back to map
     resetForNewQuestion();
 
     setTransitionDetails({
         message: UPDATING_MAP_TEXT,
         duration: 1000, 
         onComplete: () => {
-            setTransitionDetails(null); 
             if (allGradeIslandsCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
                 setGameState('GradeComplete');
             } else {
@@ -586,7 +769,7 @@ const GameScreen: React.FC = () => {
       });
       saveIslandProgressToStorage(selectedGrade, initialProgressForGrade);
       saveIslandStarRatingsToStorage(selectedGrade, {}); 
-      
+      setPreloadedQuestionsCache({}); 
       handleGradeSelect(selectedGrade); 
     }
   };
@@ -612,14 +795,23 @@ const GameScreen: React.FC = () => {
   const handleRetryFetchIsland = () => {
     unlockAudioContext();
     playSound(BUTTON_CLICK_SOUND_URL);
-    if (currentIslandId && selectedGrade) { 
-        fetchQuestionsForIsland(currentIslandId);
+    if (currentIslandId && selectedGrade && selectedIslandDifficulty) { 
+        // Reset the error state for this specific cache entry to allow retry
+        setPreloadedQuestionsCache(prev => ({
+            ...prev,
+            [currentIslandId]: {
+                ...(prev[currentIslandId] || {}),
+                [selectedIslandDifficulty]: 'pending' // Mark as pending to allow fetch
+            }
+        }));
+        fetchAndSetQuestionsForIsland(currentIslandId, selectedIslandDifficulty);
     } else if (selectedGrade) { 
         const firstUnlockedIslandForGrade = islandsForCurrentGrade.find(i => islandProgress[i.islandId] === 'unlocked');
         if (firstUnlockedIslandForGrade) {
-            fetchQuestionsForIsland(firstUnlockedIslandForGrade.islandId);
+            setCurrentIslandId(firstUnlockedIslandForGrade.islandId);
+            setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
         } else {
-            setGameState(islandsForCurrentGrade.length > 0 ? 'IslandMap' : 'GradeSelection');
+             setGameState(islandsForCurrentGrade.length > 0 ? 'IslandMap' : 'GradeSelection');
         }
     } else { 
         setGameState('GradeSelection');
@@ -687,7 +879,7 @@ const GameScreen: React.FC = () => {
     );
   }
 
-  if (isIslandLoading) { 
+  if (isIslandLoading && gameState !== 'Transitioning' && gameState !== 'IslandPlaying') { // Don't show global load if playing & N+1 preloading
      return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
         <LoadingSpinner text={islandLoadingProgressMessage || `Đang tải hòn đảo...`} size="w-20 h-20" />
@@ -745,6 +937,26 @@ const GameScreen: React.FC = () => {
       </div>
     );
   }
+
+  const islandForDifficultyModal = showDifficultySelectionModalForIslandId 
+    ? islandsForCurrentGrade.find(i => i.islandId === showDifficultySelectionModalForIslandId)
+    : null;
+
+  if (showDifficultySelectionModalForIslandId && islandForDifficultyModal) {
+    return (
+        <DifficultySelectionModal
+            isOpen={true}
+            islandName={islandForDifficultyModal.name}
+            onClose={() => {
+                unlockAudioContext();
+                playSound(BUTTON_CLICK_SOUND_URL);
+                setShowDifficultySelectionModalForIslandId(null);
+            }}
+            onSelectDifficulty={handleDifficultySelected}
+        />
+    );
+  }
+
 
   if (gameState === 'IslandMap' && selectedGrade) {
     if (islandsForCurrentGrade.length === 0 || islandsForCurrentGrade.length < ISLANDS_PER_GRADE) { 
@@ -807,9 +1019,10 @@ const GameScreen: React.FC = () => {
                 onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_URL, 0.2)}
                 disabled={isDisabled}
                 className={`p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${bgColor} ${textColor} min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ${ringColor} ${isDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+                aria-label={`${island.name}${isDisabled ? ' (Đã khoá)' : ''}`}
               >
                 <div className="flex-grow flex flex-col items-center justify-center">
-                  <span className="text-3xl mb-1">{island.mapIcon}</span>
+                  <span className="text-3xl mb-1" aria-hidden="true">{island.mapIcon}</span>
                   <h2 className="text-lg font-bold leading-tight">{island.name}</h2>
                   <p className="text-xs mt-1 px-1 opacity-90">{island.description}</p>
                 </div>
@@ -826,24 +1039,49 @@ const GameScreen: React.FC = () => {
     );
   }
   
-  if (gameState === 'IslandComplete' && currentIslandConfig && selectedGrade) {
+  if (gameState === 'IslandComplete' && currentIslandConfig && selectedGrade && selectedIslandDifficulty && currentIslandId) {
     const currentCompletedIslandIndex = islandsForCurrentGrade.findIndex(i => i.islandId === currentIslandId);
     const nextIsland = (currentCompletedIslandIndex !== -1 && currentCompletedIslandIndex < islandsForCurrentGrade.length - 1)
                         ? islandsForCurrentGrade[currentCompletedIslandIndex + 1]
                         : null;
     const canGoToNextIsland = nextIsland && islandProgress[nextIsland.islandId] === 'unlocked';
-    const starsAchieved = islandStarRatings[currentIslandConfig.islandId] || 0;
+    const starsAchievedForThisIsland = islandStarRatings[currentIslandId] || 0;
+    const isPerfectRun = starsAchievedForThisIsland === 5;
+
+    let specialCelebrationText = "";
+    let showBigBlinkingStar = false;
+    let perfectRunMessage = `Bạn đạt được: ${islandScore} điểm cho đảo này.`;
+
+
+    if (isPerfectRun) {
+        if (selectedIslandDifficulty === IslandDifficulty.HARD) {
+            specialCelebrationText = REWARD_TEXT_HARD_PERFECT;
+            showBigBlinkingStar = true;
+        } else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) {
+            specialCelebrationText = REWARD_TEXT_MEDIUM_PERFECT;
+            showBigBlinkingStar = true;
+        } else { // Easy
+            perfectRunMessage = REWARD_TEXT_EASY_PERFECT;
+        }
+    }
 
     return (
       <div className="bg-gradient-to-br from-green-500 to-teal-600 text-white p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto animate-fadeIn">
-        <div className="flex justify-center mb-4">
-           {renderStars(currentIslandConfig.islandId)}
+         {specialCelebrationText && (
+          <div className="my-3 flex items-center justify-center gap-2">
+            <p className="text-4xl font-extrabold text-yellow-300 drop-shadow-lg">{specialCelebrationText}</p>
+            {showBigBlinkingStar && <StarIconFilled className="w-12 h-12 text-yellow-300 animate-pulse" style={{ animationDuration: '1s' }} />}
+          </div>
+        )}
+        <h1 className="text-4xl md:text-5xl font-bold mb-2">{ISLAND_COMPLETE_TEXT}</h1>
+        <p className="text-2xl mb-1">{currentIslandConfig.name} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
+        
+        <div className="flex justify-center my-2">
+           {renderStars(currentIslandId)} 
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">{ISLAND_COMPLETE_TEXT}</h1>
-        <p className="text-2xl mb-2">{currentIslandConfig.name}</p>
-         <p className="text-xl mb-2">Bạn đạt được: {starsAchieved} sao!</p>
-        <p className="text-3xl font-bold mb-4">Điểm đảo này: {islandScore}</p>
-        <p className="text-3xl font-bold mb-8">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
+        <p className="text-xl mb-2">{perfectRunMessage}</p>
+
+        <p className="text-3xl font-bold mb-4">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
         <p className="text-xl mb-4">Bạn được thưởng +1 lượt thử! Hiện có: {playerLives}/{MAX_PLAYER_LIVES} lượt.</p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
             <button
@@ -855,7 +1093,7 @@ const GameScreen: React.FC = () => {
             </button>
             {canGoToNextIsland && nextIsland && (
                  <button
-                    onClick={() => { unlockAudioContext(); playSound(ISLAND_SELECT_SOUND_URL, 0.6); handleIslandSelect(nextIsland.islandId); }}
+                    onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleIslandSelect(nextIsland.islandId); }}
                     onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
                     className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
                 >
@@ -894,7 +1132,7 @@ const GameScreen: React.FC = () => {
     );
   }
   
-  if (gameState === 'IslandPlaying' && currentQuestion && currentIslandConfig && selectedGrade) {
+  if (gameState === 'IslandPlaying' && currentQuestion && currentIslandConfig && selectedGrade && selectedIslandDifficulty) {
     const isQuestionResolved = feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution);
     const canAttempt = !isQuestionResolved && !userAttemptShown;
 
@@ -913,7 +1151,7 @@ const GameScreen: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 drop-shadow-md pt-12 md:pt-8">
             {currentIslandConfig.mapIcon} {currentIslandConfig.name}
           </h1>
-          <p className="text-yellow-200 text-md mt-1">{currentIslandConfig.description}</p>
+          <p className="text-yellow-200 text-md mt-1">{currentIslandConfig.description} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
           <p className="text-yellow-200 text-lg mt-2">
             {GRADE_LEVEL_TEXT_MAP[selectedGrade]} - {QUESTION_TEXT} {currentQuestionIndexInIsland + 1} / {questionsForCurrentIsland.length}
           </p>

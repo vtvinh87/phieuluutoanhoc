@@ -1,4 +1,3 @@
-
 // The problematic module declaration has been removed.
 
 export enum GradeLevel {
@@ -13,17 +12,23 @@ export enum QuestionType {
   MULTIPLE_CHOICE = "multiple_choice",
 }
 
+export enum IslandDifficulty {
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
+}
+
 export interface Question {
   id: string; 
   text: string; 
-  targetGradeLevel: GradeLevel; // Renamed from gradeLevel to match IslandConfig
+  targetGradeLevel: GradeLevel; 
   topic: string; 
   type: QuestionType;
   options: string[];
   correctAnswer: string;
   image?: string;
-  islandId?: string; // Optional: To associate question with a specific island
-  islandName?: string; // Optional: Name of the island this question belongs to
+  islandId: string; 
+  islandName: string; 
 }
 
 export interface AnswerAttempt {
@@ -31,19 +36,26 @@ export interface AnswerAttempt {
   isHintUsed?: boolean;
 }
 
-// New types for Island-based progression
 export interface IslandConfig {
-  islandId: string; // e.g., "island_01_start"
-  islandNumber: number; // For sequential ordering and unlocking
-  name: string; // e.g., "Đảo Khởi Đầu"
-  description: string; // e.g., "Những bài toán đếm số và so sánh đơn giản."
-  topics: string[]; // Topics for Gemini, e.g., ["đếm số từ 1 đến 10", "so sánh số phạm vi 10"]
-  targetGradeLevel: GradeLevel; // Difficulty target for questions on this island
-  mapIcon?: string; // Optional: for a visual map later, e.g., "🏝️" or "volcano.png"
-  // mapPosition?: { x: number, y: number }; // For visual map - keep simple for now
+  islandId: string; 
+  islandNumber: number; 
+  name: string; 
+  description: string; 
+  topics: string[]; 
+  targetGradeLevel: GradeLevel; 
+  mapIcon?: string; 
 }
 
 export type IslandStatus = 'locked' | 'unlocked' | 'completed';
 
-export type IslandProgressState = Record<string, IslandStatus>; // islandId: status
-export type IslandStarRatingsState = Record<string, number>; // islandId: numberOfStars
+export type IslandProgressState = Record<string, IslandStatus>; 
+export type IslandStarRatingsState = Record<string, number>; 
+
+// For enhanced preloading
+export type PreloadedQuestionSet = Question[] | 'loading' | 'error' | 'pending';
+export interface PreloadedIslandDifficulties {
+  [IslandDifficulty.EASY]?: PreloadedQuestionSet;
+  [IslandDifficulty.MEDIUM]?: PreloadedQuestionSet;
+  [IslandDifficulty.HARD]?: PreloadedQuestionSet;
+}
+export type PreloadedQuestionsCache = Record<string, PreloadedIslandDifficulties>;

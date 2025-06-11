@@ -1,23 +1,30 @@
 {
-  "name": "cuộc-phiêu-lưu-toán-học-trên-đảo-kho-báu",
-  "private": true,
-  "version": "0.0.0",
+  "name": "cuoc-phieu-luu-toan-hoc",
+  "version": "1.0.0",
+  "description": "Một ứng dụng học Toán vui vẻ và hấp dẫn cho học sinh tiểu học (lớp 1-5) trong kỳ nghỉ hè, giúp ôn tập kiến thức và duy trì hứng thú học tập thông qua trò chơi phiêu lưu trên Đảo Kho Báu.",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "esbuild index.tsx --bundle --outfile=index.js --platform=browser --format=esm --jsx=automatic --external:react --external:react-dom --external:react/jsx-runtime --external:@google/genai --external:uuid --external:canvas-confetti --servedir=. --watch",
+    "build": "rimraf dist && mkdir dist && esbuild index.tsx --bundle --outfile=dist/index.js --platform=browser --format=esm --jsx=automatic --minify --sourcemap --external:react --external:react-dom --external:react/jsx-runtime --external:@google/genai --external:uuid --external:canvas-confetti --define:process.env.API_KEY='\"'$API_KEY'\"' && cp index.html dist/index.html && cp metadata.json dist/metadata.json && node -e \"let fs=require('fs'); let html=fs.readFileSync('dist/index.html','utf8'); html=html.replace('src=\\\"/index.tsx\\\"','src=\\\"/index.js\\\"'); fs.writeFileSync('dist/index.html',html);\"",
+    "start": "npm run dev"
   },
   "dependencies": {
+    "@google/genai": "^1.4.0",
+    "canvas-confetti": "^1.9.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@google/genai": "^1.4.0",
-    "uuid": "^10.0.0",
-    "canvas-confetti": "^1.9.3"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "@types/canvas-confetti": "^1.6.4",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/uuid": "^9.0.8",
+    "esbuild": "^0.23.0",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

@@ -1,5 +1,4 @@
-
-import { GradeLevel, IslandConfig } from './types';
+import { GradeLevel, IslandConfig, IslandDifficulty } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -8,7 +7,7 @@ export const MAX_PLAYER_LIVES = 3;
 export const ISLANDS_PER_GRADE = 10; // New constant
 
 export const API_KEY_ERROR_MESSAGE = "Lỗi: API Key cho Gemini chưa được cấu hình. Vui lòng kiểm tra biến môi trường process.env.API_KEY.";
-export const QUESTION_GENERATION_ERROR_MESSAGE = "Rất tiếc, không thể tạo câu hỏi mới. Hãy thử lại!";
+export const QUESTION_GENERATION_ERROR_MESSAGE = "Rất tiếc, không thể tạo đủ câu hỏi cho hòn đảo này vào lúc này. Nguyên nhân có thể do kết nối hoặc giới hạn truy cập. Vui lòng thử lại sau hoặc chọn một hòn đảo/độ khó khác.";
 export const HINT_GENERATION_ERROR_MESSAGE = "Rất tiếc, Thần Toán Học tạm thời không thể đưa ra gợi ý. Hãy thử tự suy nghĩ thêm nhé!";
 export const HINT_API_KEY_ERROR_MESSAGE = "Lỗi: API Key không hợp lệ. Vui lòng kiểm tra lại.";
 export const HINT_LOADING_MESSAGE = "Thần Toán Học đang suy nghĩ...";
@@ -20,6 +19,12 @@ export const GRADE_LEVEL_TEXT_MAP: Record<GradeLevel, string> = {
   [GradeLevel.GRADE_3]: "Lớp 3",
   [GradeLevel.GRADE_4]: "Lớp 4",
   [GradeLevel.GRADE_5]: "Lớp 5",
+};
+
+export const ISLAND_DIFFICULTY_TEXT_MAP: Record<IslandDifficulty, string> = {
+  [IslandDifficulty.EASY]: "Dễ",
+  [IslandDifficulty.MEDIUM]: "Trung Bình",
+  [IslandDifficulty.HARD]: "Khó",
 };
 
 // Sound Effect URLs - Updated with user-provided Pixabay links
@@ -500,6 +505,7 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
 // UI Text Constants
 export const CHOOSE_GRADE_TEXT = "Chọn Lớp Của Bạn";
 export const CHOOSE_ISLAND_TEXT = "Chọn Hòn Đảo Phiêu Lưu!";
+export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn độ khó cho ${islandName}`;
 export const ISLAND_TEXT = "Đảo";
 export const QUESTION_TEXT = "Câu hỏi";
 export const SCORE_TEXT = "Điểm";
@@ -513,12 +519,19 @@ export const GRADE_COMPLETE_TEXT = "Xuất Sắc! Bạn Đã Vượt Qua Tất C
 export const LOCKED_ISLAND_TEXT = "Đảo này vẫn còn bí ẩn, hãy hoàn thành các đảo trước!";
 export const NEXT_ISLAND_BUTTON_TEXT = "Đảo Tiếp Theo"; // Added
 
+export const REWARD_TEXT_EASY_PERFECT = "Xuất sắc! Hoàn hảo 5 sao!";
+export const REWARD_TEXT_MEDIUM_PERFECT = "1 Triệu Sao!";
+export const REWARD_TEXT_HARD_PERFECT = "1 Tỷ Sao!";
+
 
 // Transition and Loading Messages
 export const TRAVELLING_TO_ISLAND_TEXT = (islandName: string) => `Đang dong buồm đến ${islandName}...`;
+export const STARTING_ISLAND_TEXT = (islandName: string, difficultyName: string) => `Bắt đầu ${islandName} (Cấp độ: ${difficultyName})...`;
 export const UPDATING_MAP_TEXT = "Đang cập nhật bản đồ phiêu lưu...";
 export const ISLAND_LOADING_MESSAGE_DETAIL = (islandName: string, qNum: number, totalQ: number) => `Đang khởi tạo câu hỏi ${qNum}/${totalQ} cho ${islandName}...`;
 export const ISLAND_PREPARING_MESSAGE = (islandName: string) => `Chuẩn bị khám phá ${islandName}...`;
+export const BACKGROUND_PRELOADING_ISLAND_TEXT = (islandName: string, difficultyName: string) => `Đang tải trước ${islandName} (${difficultyName})...`;
+
 
 export const NO_ISLANDS_FOR_GRADE_TEXT = "Hiện tại chưa có hòn đảo nào được thiết kế cho lớp này. Vui lòng chọn lớp khác hoặc kiểm tra lại cấu hình.";
 export const START_ADVENTURE_TEXT = "Bắt Đầu Phiêu Lưu!";
@@ -531,4 +544,4 @@ export const LAST_SELECTED_GRADE_KEY = `${LOCAL_STORAGE_PREFIX}lastSelectedGrade
 export const ISLAND_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandProgress_grade_`;
 export const OVERALL_SCORE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}overallScore_grade_`;
 export const ISLAND_STAR_RATINGS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandStarRatings_grade_`;
-    
+export const PRELOADED_QUESTIONS_CACHE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}preloadedQuestions_grade_`; // For persistence if needed, though usually in-memory is fine.
