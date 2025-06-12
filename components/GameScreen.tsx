@@ -213,29 +213,19 @@ const GameScreen: React.FC = () => {
     }
   }, [gameState, transitionDetails]);
 
-  // Effect for custom fireworks duration and cleanup
+  // Effect for custom fireworks: Keep them on for completion screens, turn off otherwise.
   useEffect(() => {
-    let fireworksTimer: number | null = null;
-    if (showCustomFireworks) {
-      if (gameState === 'IslandComplete') {
-        // Fireworks are on, and we are on the correct screen
-        fireworksTimer = setTimeout(() => {
-          setShowCustomFireworks(false);
-        }, 7000); // Custom fireworks last 7 seconds
-      } else {
-        // Fireworks are on, but we are NOT on IslandComplete screen (e.g., navigated away)
-        // Turn them off immediately.
-        setShowCustomFireworks(false); 
+    if (gameState === 'IslandComplete' || gameState === 'GradeComplete') {
+      // If fireworks are intended for these states (set by the logic transitioning TO them),
+      // this effect doesn't need to do anything to keep them on.
+      // If `showCustomFireworks` is already true, it will remain true.
+    } else {
+      // If we are NOT on a completion screen, ensure fireworks are turned off.
+      if (showCustomFireworks) {
+        setShowCustomFireworks(false);
       }
     }
-    // If showCustomFireworks is false, no timer needed, no action.
-  
-    return () => {
-      if (fireworksTimer) {
-        clearTimeout(fireworksTimer);
-      }
-    };
-  }, [showCustomFireworks, gameState]);
+  }, [gameState, showCustomFireworks]);
 
 
   const currentIslandConfig = currentIslandId ? islandsForCurrentGrade.find(island => island.islandId === currentIslandId) : null;
@@ -588,14 +578,13 @@ const GameScreen: React.FC = () => {
       const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgress[island.islandId] === 'completed');
       
       if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
-          if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); // Consider if GradeComplete also needs fireworks
-          setShowCustomFireworks(true); // For GradeComplete as well, potentially
+          if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
+          setShowCustomFireworks(true); 
           setGameState('GradeComplete');
       } else {
-          // Island is complete, but not the whole grade
           if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
-          setShowCustomFireworks(true); // Trigger fireworks immediately
-          setGameState('IslandComplete'); // Then show the modal
+          setShowCustomFireworks(true); 
+          setGameState('IslandComplete'); 
       }
     }
   }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked]);
@@ -674,8 +663,6 @@ const GameScreen: React.FC = () => {
     playSound(BUTTON_CLICK_SOUND_URL);
     if (currentIslandId && selectedGrade && selectedIslandDifficulty && currentIslandConfig) {
       resetForNewIslandPlay(); 
-      // Questions for the current island are already set, so no need to fetch them again.
-      
       setTransitionDetails({
         message: STARTING_ISLAND_TEXT(currentIslandConfig.name, ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]),
         duration: 700,
@@ -684,7 +671,7 @@ const GameScreen: React.FC = () => {
       setGameState('Transitioning');
     } else {
       console.warn("Cannot play island again: missing island context.");
-      handleBackToMap(); // Fallback if context is lost
+      handleBackToMap(); 
     }
   };
   
@@ -1086,7 +1073,7 @@ const GameScreen: React.FC = () => {
 
     return (
       <div className="w-full animate-fadeInScale">
-        {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} />}
+        {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked} />}
         <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
           {specialCelebrationText && (
             <div className="my-3 flex items-center justify-center gap-2 animate-subtle-shine">
@@ -1121,7 +1108,11 @@ const GameScreen: React.FC = () => {
               </button>
               {canGoToNextIsland && nextIsland && (
                   <button
-                      onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleIslandSelect(nextIsland.islandId); }}
+                      onClick={() => { 
+                          unlockAudioContext(); 
+                          playSound(BUTTON_CLICK_SOUND_URL); 
+                          handleIslandSelect(nextIsland.islandId); 
+                      }}
                       onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
                       className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
                   >
@@ -1137,7 +1128,7 @@ const GameScreen: React.FC = () => {
   if (gameState === 'GradeComplete' && selectedGrade) {
      return (
       <div className="w-full animate-fadeInScale">
-      {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} />} {/* Ensure fireworks can show on GradeComplete too */}
+      {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>} 
         <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
           <SparklesIcon className="w-24 h-24 mx-auto mb-6 text-white animate-subtle-shine"/>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1>
