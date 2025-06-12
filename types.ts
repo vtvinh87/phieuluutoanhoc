@@ -77,9 +77,11 @@ export type PreloadedQuestionsCache = {
 // For the purpose of this exercise, keeping it in types.ts if it's broadly used.
 export interface ThemeConfig {
   name: string;
-  backgroundUrl: string;
-  backgroundUrlSideBySideLayout?: string; // For desktop-like layout (panels next to each other)
-  backgroundUrlStackedLayout?: string;    // For mobile-like layout (panels stacked)
+  backgroundUrl: string; // General fallback remote URL
+  backgroundUrlSideBySideLayout?: string; // Specific remote URL for desktop/side-by-side
+  backgroundUrlStackedLayout?: string;    // Specific remote URL for mobile/stacked
+  localBackgroundUrlSideBySideLayout?: string; // Specific local path for desktop/side-by-side
+  localBackgroundUrlStackedLayout?: string;    // Specific local path for mobile/stacked
   // Primary colors
   primaryBg: string; 
   primaryText: string;

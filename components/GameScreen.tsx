@@ -60,7 +60,7 @@ import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
 import ThemeSelectionScreen from './ThemeSelectionScreen'; 
-import FireworksCanvas from './FireworksCanvas'; // Import the new component
+import FireworksCanvas from './FireworksCanvas';
 import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken } from './icons'; 
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
@@ -192,7 +192,7 @@ const GameScreen: React.FC = () => {
     document.addEventListener('click', unlockAudioContext, { once: true });
     return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlockAudioContext]); 
+  }, [unlockAudioContext, applyNewTheme]); 
 
 
   const islandsForCurrentGrade = useMemo(() => {
@@ -800,12 +800,8 @@ const GameScreen: React.FC = () => {
             return;
           }
           
-          const lastGrade = loadLastSelectedGrade();
-          if (lastGrade) {
-            handleGradeSelect(lastGrade, true); 
-          } else {
-            setGameState('GradeSelection');
-          }
+          // Always go to GradeSelection after selecting a theme
+          setGameState('GradeSelection');
         }}
       />
     );
@@ -1074,7 +1070,7 @@ const GameScreen: React.FC = () => {
     return (
       <div className="w-full animate-fadeInScale">
         {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked} />}
-        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-10`}>
           {specialCelebrationText && (
             <div className="my-3 flex items-center justify-center gap-2 animate-subtle-shine">
               <p className="text-4xl font-extrabold text-[var(--title-text-gradient-from)] drop-shadow-lg">{specialCelebrationText}</p>
@@ -1129,7 +1125,7 @@ const GameScreen: React.FC = () => {
      return (
       <div className="w-full animate-fadeInScale">
       {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>} 
-        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-10`}>
           <SparklesIcon className="w-24 h-24 mx-auto mb-6 text-white animate-subtle-shine"/>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1>
           <p className="text-2xl mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>

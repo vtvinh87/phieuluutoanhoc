@@ -20,24 +20,37 @@ const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onCl
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)'); // Tailwind's md breakpoint
 
-    const getResponsiveImageUrl = () => {
-      if (mediaQuery.matches && config.backgroundUrlSideBySideLayout) {
-        return config.backgroundUrlSideBySideLayout;
-      } else if (!mediaQuery.matches && config.backgroundUrlStackedLayout) {
-        return config.backgroundUrlStackedLayout;
+    const updateBackgroundImage = () => {
+      let targetLocalPath: string | undefined;
+      let targetRemotePath: string;
+
+      if (mediaQuery.matches) { // Desktop / Side-by-side layout
+        targetLocalPath = config.localBackgroundUrlSideBySideLayout;
+        targetRemotePath = config.backgroundUrlSideBySideLayout || config.backgroundUrl;
+      } else { // Mobile / Stacked layout
+        targetLocalPath = config.localBackgroundUrlStackedLayout;
+        targetRemotePath = config.backgroundUrlStackedLayout || config.backgroundUrl;
       }
-      return config.backgroundUrl; // Fallback
+      
+      if (targetLocalPath) {
+        const img = new Image();
+        img.onload = () => {
+          setCurrentBackgroundImageUrl(targetLocalPath!);
+        };
+        img.onerror = () => {
+          setCurrentBackgroundImageUrl(targetRemotePath);
+        };
+        img.src = targetLocalPath;
+      } else {
+        setCurrentBackgroundImageUrl(targetRemotePath);
+      }
     };
 
-    setCurrentBackgroundImageUrl(getResponsiveImageUrl());
+    updateBackgroundImage(); // Set initial image
 
-    const handleChange = () => {
-      setCurrentBackgroundImageUrl(getResponsiveImageUrl());
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [config.backgroundUrl, config.backgroundUrlSideBySideLayout, config.backgroundUrlStackedLayout]);
+    mediaQuery.addEventListener('change', updateBackgroundImage); // Update on resize
+    return () => mediaQuery.removeEventListener('change', updateBackgroundImage);
+  }, [config]);
 
 
   const playHoverSound = () => {
@@ -58,7 +71,7 @@ const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onCl
       className={`
         w-full h-1/2 
         md:w-9/20 md:max-w-lg md:h-[95vh]
-        flex flex-col items-center justify-start pt-8 md:pt-16 /* MODIFIED: Adjusted padding-top for 1/6th position */
+        flex flex-col items-center justify-start pt-8 md:pt-16
         p-0 cursor-pointer relative overflow-hidden group 
         transition-all duration-300 ease-in-out 
         md:rounded-3xl
@@ -75,7 +88,7 @@ const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onCl
       tabIndex={0}
       aria-label={`Chọn giao diện ${config.name}`}
     >
-      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black/60 via-black/40 to-black/20 group-hover:from-black/10 group-hover:via-black/5 group-hover:to-transparent backdrop-filter transition-all duration-300 ease-in-out"></div> {/* MODIFIED: Overlay for dim/bright effect */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black/60 via-black/40 to-black/20 group-hover:from-black/10 group-hover:via-black/5 group-hover:to-transparent backdrop-filter transition-all duration-300 ease-in-out"></div>
       
       <div className="relative z-10 flex flex-col items-center justify-center text-center p-2 max-w-[160px] sm:max-w-[200px] bg-black/40 backdrop-blur-lg rounded-xl shadow-xl border border-white/25">
         <h2 

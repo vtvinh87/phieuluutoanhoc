@@ -22,8 +22,35 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const config = THEME_CONFIGS[theme];
     if (!config) return;
 
-    // Update body background image
-    document.body.style.backgroundImage = `url('${config.backgroundUrl}')`;
+    // Determine responsive background URL
+    const mediaQuery = window.matchMedia('(min-width: 768px)'); // Tailwind's md breakpoint
+    let targetLocalPath: string | undefined;
+    let targetRemotePath: string;
+
+    if (mediaQuery.matches) { // Desktop / Side-by-side layout
+      targetLocalPath = config.localBackgroundUrlSideBySideLayout;
+      targetRemotePath = config.backgroundUrlSideBySideLayout || config.backgroundUrl;
+    } else { // Mobile / Stacked layout
+      targetLocalPath = config.localBackgroundUrlStackedLayout;
+      targetRemotePath = config.backgroundUrlStackedLayout || config.backgroundUrl;
+    }
+    
+    const setBodyBackground = (url: string) => {
+      document.body.style.backgroundImage = `url('${url}')`;
+    };
+
+    if (targetLocalPath) {
+      const img = new Image();
+      img.onload = () => {
+        setBodyBackground(targetLocalPath!);
+      };
+      img.onerror = () => {
+        setBodyBackground(targetRemotePath);
+      };
+      img.src = targetLocalPath;
+    } else {
+      setBodyBackground(targetRemotePath);
+    }
     
     // Update font family
     if (config.fontFamily) {
@@ -31,7 +58,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.body.style.fontFamily = 'var(--font-family-theme)';
     } else {
       document.documentElement.style.removeProperty('--font-family-theme');
-      // Set a fallback default font for the body if no theme font is specified
       document.body.style.fontFamily = "'Arial', sans-serif"; 
     }
 
@@ -82,15 +108,22 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--question-display-bg', config.questionDisplayBg);
     document.documentElement.style.setProperty('--question-display-text', config.questionDisplayText);
     document.documentElement.style.setProperty('--question-display-image-border', config.questionDisplayImageBorder);
-    document.documentElement.style.setProperty('--spinner-border-color', config.spinnerColor); // Updated to use direct color
+    document.documentElement.style.setProperty('--spinner-border-color', config.spinnerColor);
     
-    // Add a class to body for theme-specific global styles if needed (less critical with CSS vars on :root)
     document.body.className = `theme-${theme}`;
 
   }, []);
 
   useEffect(() => {
     applyThemeToDocument(currentTheme);
+    // Add listener for media query changes to re-apply background if layout preference changes
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const handleMediaQueryChange = () => applyThemeToDocument(currentTheme);
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
+    };
   }, [currentTheme, applyThemeToDocument]);
 
   const setTheme = (theme: Theme) => {
