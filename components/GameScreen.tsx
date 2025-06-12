@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, PreloadedIslandDifficulties, PreloadedQuestionSet } from '../types';
+import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, Theme } from '../types';
 import { 
   MAX_PLAYER_LIVES,
   API_KEY_ERROR_MESSAGE,
@@ -14,7 +14,6 @@ import {
   ISLAND_DIFFICULTY_TEXT_MAP,
   CHOOSE_GRADE_TEXT,
   CHOOSE_ISLAND_TEXT,
-  CHOOSE_ISLAND_DIFFICULTY_TEXT,
   ISLAND_TEXT,
   QUESTION_TEXT,
   SCORE_TEXT,
@@ -22,7 +21,6 @@ import {
   ISLAND_COMPLETE_TEXT,
   GRADE_COMPLETE_TEXT, 
   LOCKED_ISLAND_TEXT,
-  ISLAND_LOADING_MESSAGE_DETAIL,
   ISLAND_PREPARING_MESSAGE,
   STARTING_ISLAND_TEXT,
   PLAY_AGAIN_TEXT,
@@ -51,19 +49,24 @@ import {
   INCORRECT_ANSWER_SOUND_URL,
   VICTORY_FANFARE_SOUND_URL,
   BUTTON_CLICK_SOUND_URL,
-  // PRELOADED_QUESTIONS_CACHE_KEY_PREFIX // Decided to keep preload in-memory for simplicity
+  SELECTED_THEME_KEY,
+  DEFAULT_THEME,
 } from '../constants';
-import { getMathHint, generateMathQuestion, delay as apiDelay } from '../services/geminiService'; // Import delay
+import { getMathHint, generateMathQuestionsForIslandSet, delay as apiDelay } from '../services/geminiService';
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
 import FeedbackIndicator from './FeedbackIndicator';
 import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
-import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline } from './icons';
+import ThemeSelectionScreen from './ThemeSelectionScreen'; // Added
+import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon } from './icons'; // Added new icons
 import confetti from 'canvas-confetti';
+import { useTheme } from '../contexts/ThemeContext';
+import { THEME_CONFIGS } from '../themes';
 
-type GameState = 'GradeSelection' | 'IslandMap' | 'IslandPlaying' | 'IslandComplete' | 'GradeComplete' | 'Transitioning' | 'Error';
+
+type GameState = 'ThemeSelection' | 'GradeSelection' | 'IslandMap' | 'IslandPlaying' | 'IslandComplete' | 'GradeComplete' | 'Transitioning' | 'Error';
 
 interface TransitionDetails {
   message: string;
@@ -71,10 +74,10 @@ interface TransitionDetails {
   onComplete: () => void;
 }
 
-const QUESTION_FETCH_DELAY_MS = 1100; // Delay between individual question fetches, increased from 750ms
-
 const GameScreen: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>('GradeSelection');
+  const { theme, setTheme: applyNewTheme, themeConfig } = useTheme();
+
+  const [gameState, setGameState] = useState<GameState>('ThemeSelection'); // Initial state
   const [transitionDetails, setTransitionDetails] = useState<TransitionDetails | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel | null>(null);
   const [islandProgress, setIslandProgress] = useState<IslandProgressState>({});
@@ -132,7 +135,7 @@ const GameScreen: React.FC = () => {
         audioCache.current[soundUrl] = audio;
       }
       
-      if (audio.readyState >= 2) { // HTMLMediaElement.HAVE_CURRENT_DATA or higher
+      if (audio.readyState >= 2) { 
         audio.currentTime = 0; 
         audio.play().catch(_e => {});
       } else {
@@ -178,21 +181,17 @@ const GameScreen: React.FC = () => {
     localStorage.setItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, JSON.stringify(ratings));
   };
 
-  useEffect(() => {
-    if (!process.env.API_KEY) {
-      setApiKeyMissing(true);
-      setGameState('Error');
-      setLoadingError(API_KEY_ERROR_MESSAGE);
-      return; 
+ useEffect(() => {
+    const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) as Theme | null;
+    if (savedTheme && THEME_CONFIGS[savedTheme]) {
+      applyNewTheme(savedTheme);
+    } else {
+      applyNewTheme(DEFAULT_THEME);
     }
-    const lastGrade = loadLastSelectedGrade();
-    if (lastGrade) handleGradeSelect(lastGrade, true); 
-    else setGameState('GradeSelection'); 
-    
     document.addEventListener('click', unlockAudioContext, { once: true });
     return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlockAudioContext]); 
+  }, [unlockAudioContext]); // applyNewTheme is stable from context
 
 
   const islandsForCurrentGrade = useMemo(() => {
@@ -213,7 +212,7 @@ const GameScreen: React.FC = () => {
     }
   }, [gameState, transitionDetails]);
 
-  const triggerConfettiStars = useCallback(() => { // Paper confetti
+  const triggerConfettiStars = useCallback(() => { 
     if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
     const duration = 2 * 1000;
     const animationEnd = Date.now() + duration;
@@ -223,7 +222,7 @@ const GameScreen: React.FC = () => {
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
       if (timeLeft <= 0) return clearInterval(interval);
-      const particleCount = 50 * (timeLeft / duration);
+      const particleCount = 70 * (timeLeft / duration); // Increased from 50
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
     }, 250);
@@ -239,7 +238,7 @@ const GameScreen: React.FC = () => {
       if (timeLeft <= 0) return clearInterval(interval);
 
       confetti({
-        particleCount: 3,
+        particleCount: 4, // Increased from 3
         startVelocity: 0,
         ticks: 300 + Math.random() * 200, 
         origin: { x: Math.random(), y: Math.random() * 0.4 - 0.2 }, 
@@ -261,7 +260,7 @@ const GameScreen: React.FC = () => {
 
     function fire(particleRatio: number, opts: confetti.Options) {
       confetti(Object.assign({}, defaults, opts, {
-        particleCount: Math.floor(200 * particleRatio)
+        particleCount: Math.floor(250 * particleRatio) // Increased from 200
       }));
     }
     
@@ -269,7 +268,7 @@ const GameScreen: React.FC = () => {
         const timeLeft = animationEnd - Date.now();
         if (timeLeft <=0) return clearInterval(interval);
         const randomX = () => Math.random();
-        const randomY = () => Math.random() * 0.5 + 0.1; // Launch higher
+        const randomY = () => Math.random() * 0.5 + 0.1; 
 
         fire(0.25, { spread: 26, startVelocity: 55, origin: { x: randomX(), y: randomY() } });
         fire(0.2, { spread: 60, origin: { x: randomX(), y: randomY() } });
@@ -290,7 +289,7 @@ const GameScreen: React.FC = () => {
                 triggerFireworksEffect();
             } else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) {
                 triggerStarRainEffect();
-            } else { // EASY
+            } else { 
                 triggerConfettiStars(); 
             }
         } else {
@@ -314,7 +313,7 @@ const GameScreen: React.FC = () => {
   
   const resetForNewIslandPlay = useCallback(() => {
     resetForNewQuestion();
-    setCurrentQuestionIndexInIsland(0); // Ensure island starts from the first question
+    setCurrentQuestionIndexInIsland(0); 
     setPlayerLives(MAX_PLAYER_LIVES);
     setIslandScore(0);
   }, [resetForNewQuestion]);
@@ -322,7 +321,6 @@ const GameScreen: React.FC = () => {
   const resetForNewGradeJourney = useCallback(() => {
     resetForNewIslandPlay(); 
     setQuestionsForCurrentIsland([]);
-    // setCurrentQuestionIndexInIsland(0); // This is now handled by resetForNewIslandPlay
     setCurrentIslandId(null);
     setSelectedIslandDifficulty(null);
     setShowDifficultySelectionModalForIslandId(null);
@@ -330,56 +328,33 @@ const GameScreen: React.FC = () => {
     setOverallScore(0); 
     setIslandProgress({}); 
     setIslandStarRatings({});
-    setPreloadedQuestionsCache({}); // Clear preload cache for new grade
+    setPreloadedQuestionsCache({}); 
     setTransitionDetails(null); 
   }, [resetForNewIslandPlay]);
 
 
-  // Helper to fetch a full set of 5 questions for a given island and difficulty
-  const _fetchFullQuestionSet = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty): Promise<Question[]> => {
-    const fetchedQuestionSet: Question[] = [];
-    let fetchSuccessful = true;
-    for (let i = 0; i < QUESTIONS_PER_ISLAND; i++) {
-        // For on-demand fetching, show detailed progress
-        if (isIslandLoading && gameState !== 'IslandMap' && gameState !== 'IslandPlaying') { // gameState check to not show this for background preload
-             setIslandLoadingProgressMessage(ISLAND_LOADING_MESSAGE_DETAIL(islandConfig.name, i + 1, QUESTIONS_PER_ISLAND));
-        }
-        
-        const newQuestion = await generateMathQuestion(
-            islandConfig.targetGradeLevel,
-            islandConfig.topics,
-            islandConfig.name,
-            islandConfig.islandId,
-            i, // questionIndexInIsland
-            difficulty
-        );
-
-        if (newQuestion) {
-            fetchedQuestionSet.push(newQuestion);
-        } else {
-            console.error(`Failed to generate question ${i+1} for ${islandConfig.name} (${difficulty}). Will result in an incomplete set.`);
-            fetchSuccessful = false; 
-            // We could break here, or try to get as many as possible.
-            // For now, let's continue to see if other questions can be fetched, but the set will be incomplete.
-            // The caller will handle the incomplete set.
-        }
-        // Add delay only if not the last question to avoid unnecessary wait after the loop
-        if (i < QUESTIONS_PER_ISLAND - 1) {
-            await apiDelay(QUESTION_FETCH_DELAY_MS); 
-        }
+  const _fetchAndProcessQuestionSet = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty): Promise<Question[]> => {
+    if (isIslandLoading && gameState !== 'IslandMap' && gameState !== 'IslandPlaying') {
+         setIslandLoadingProgressMessage(ISLAND_PREPARING_MESSAGE(islandConfig.name));
     }
+    
+    const fetchedQuestionSet = await generateMathQuestionsForIslandSet(
+        islandConfig.targetGradeLevel,
+        islandConfig.topics,
+        islandConfig.name,
+        islandConfig.islandId,
+        difficulty
+    );
 
-    if (fetchedQuestionSet.length === QUESTIONS_PER_ISLAND && fetchSuccessful) {
+    if (fetchedQuestionSet && fetchedQuestionSet.length === QUESTIONS_PER_ISLAND) {
         return fetchedQuestionSet;
     } else {
-        // This specific error message will be shown to the user if fetching on demand.
-        // It reflects that not all questions could be loaded.
-        console.error(`_fetchFullQuestionSet for ${islandConfig.name} (${difficulty}) resulted in ${fetchedQuestionSet.length}/${QUESTIONS_PER_ISLAND} questions.`);
+        console.error(`_fetchAndProcessQuestionSet for ${islandConfig.name} (${difficulty}) resulted in an incomplete or null set from the service.`);
         throw new Error(QUESTION_GENERATION_ERROR_MESSAGE); 
     }
-  }, [isIslandLoading, gameState]); 
+  }, [isIslandLoading, gameState]);
 
-  // Main function to get questions for an island: uses cache or fetches on demand
+
   const fetchAndSetQuestionsForIsland = useCallback(async (islandIdToLoad: string, difficulty: IslandDifficulty) => {
     if (apiKeyMissing || !selectedGrade) {
         setGameState('Error');
@@ -398,7 +373,7 @@ const GameScreen: React.FC = () => {
     
     const cachedData = preloadedQuestionsCache[islandIdToLoad]?.[difficulty];
 
-    if (Array.isArray(cachedData)) { // Questions are preloaded and are an array
+    if (Array.isArray(cachedData)) { 
         setQuestionsForCurrentIsland(cachedData);
         setCurrentIslandId(islandIdToLoad);
         setSelectedIslandDifficulty(difficulty);
@@ -412,14 +387,13 @@ const GameScreen: React.FC = () => {
         return;
     }
 
-    // If not cached, or cache shows 'loading', 'error', or 'pending', proceed to fetch
     setIsIslandLoading(true);
     setLoadingError(null);
-    setIslandLoadingProgressMessage(ISLAND_PREPARING_MESSAGE(islandConfig.name));
-    setTransitionDetails(null); // Clear any previous transition
+    setIslandLoadingProgressMessage(ISLAND_PREPARING_MESSAGE(islandConfig.name)); 
+    setTransitionDetails(null); 
 
     try {
-        const fetchedQuestions = await _fetchFullQuestionSet(islandConfig, difficulty);
+        const fetchedQuestions = await _fetchAndProcessQuestionSet(islandConfig, difficulty);
         
         setPreloadedQuestionsCache(prev => ({
             ...prev,
@@ -437,7 +411,7 @@ const GameScreen: React.FC = () => {
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : QUESTION_GENERATION_ERROR_MESSAGE;
         console.error(`Error in fetchAndSetQuestionsForIsland for ${islandConfig.name} (${difficulty}):`, errorMessage);
-        setLoadingError(errorMessage); // This will show QUESTION_GENERATION_ERROR_MESSAGE to the user
+        setLoadingError(errorMessage); 
         setGameState('Error');
         setPreloadedQuestionsCache(prev => ({
             ...prev,
@@ -448,54 +422,73 @@ const GameScreen: React.FC = () => {
         }));
     } finally {
         setIsIslandLoading(false);
-        setIslandLoadingProgressMessage(null);
     }
-  }, [apiKeyMissing, selectedGrade, islandsForCurrentGrade, resetForNewIslandPlay, preloadedQuestionsCache, _fetchFullQuestionSet]);
+  }, [apiKeyMissing, selectedGrade, islandsForCurrentGrade, resetForNewIslandPlay, preloadedQuestionsCache, _fetchAndProcessQuestionSet]);
 
 
-  // Background preloader for a specific island and difficulty
-  const backgroundPreloadIslandDifficulty = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty) => {
+  const backgroundPreloadIslandDifficulty = useCallback(async (
+    islandConfig: IslandConfig, 
+    difficulty: IslandDifficulty,
+    isNPlusOnePreloadContext: boolean = false 
+  ) => {
     if (apiKeyMissing || !selectedGrade) return;
 
-    const currentCacheEntry = preloadedQuestionsCache[islandConfig.islandId]?.[difficulty];
+    const cacheKey = islandConfig.islandId;
+    const currentCacheEntry = preloadedQuestionsCache[cacheKey]?.[difficulty];
     if (Array.isArray(currentCacheEntry) || currentCacheEntry === 'loading' || currentCacheEntry === 'error') {
         return; 
     }
 
     setPreloadedQuestionsCache(prev => ({
         ...prev,
-        [islandConfig.islandId]: {
-            ...(prev[islandConfig.islandId] || {}),
+        [cacheKey]: {
+            ...(prev[cacheKey] || {}),
             [difficulty]: 'loading'
         }
     }));
 
-    try {
-        // console.log(`Background Preloading: START - ${islandConfig.name} (${difficulty})`);
-        await apiDelay(QUESTION_FETCH_DELAY_MS / 2); // Stagger start of batch
-        
-        const fetchedQuestions = await _fetchFullQuestionSet(islandConfig, difficulty);
-        setPreloadedQuestionsCache(prev => ({
-            ...prev,
-            [islandConfig.islandId]: {
-                ...(prev[islandConfig.islandId] || {}),
-                [difficulty]: fetchedQuestions
-            }
-        }));
-        // console.log(`Background Preloading: SUCCESS - ${islandConfig.name} (${difficulty})`);
-    } catch (error) {
-        // console.warn(`Background Preloading: ERROR - ${islandConfig.name} (${difficulty}):`, error);
-        setPreloadedQuestionsCache(prev => ({
-            ...prev,
-            [islandConfig.islandId]: {
-                ...(prev[islandConfig.islandId] || {}),
-                [difficulty]: 'error'
-            }
-        }));
-    }
-  }, [apiKeyMissing, selectedGrade, preloadedQuestionsCache, _fetchFullQuestionSet]);
+    let attempts = 0;
+    const maxAttempts = isNPlusOnePreloadContext ? 2 : 1; 
 
-  // Effect to trigger background preloading for UNLOCKED/COMPLETED islands when on IslandMap
+    while (attempts < maxAttempts) {
+        try {
+            if (attempts > 0 && isNPlusOnePreloadContext) { 
+                await apiDelay(3000); 
+            } else if (attempts === 0 && !isNPlusOnePreloadContext) {
+                 await apiDelay(500); 
+            }
+            
+            const fetchedQuestions = await _fetchAndProcessQuestionSet(islandConfig, difficulty);
+            
+            setPreloadedQuestionsCache(prev => ({
+                ...prev,
+                [cacheKey]: {
+                    ...(prev[cacheKey] || {}),
+                    [difficulty]: fetchedQuestions
+                }
+            }));
+            return; 
+        } catch (error) {
+            attempts++;
+            console.warn(`Background Preloading: ERROR (Attempt ${attempts}/${maxAttempts}) - ${islandConfig.name} (${difficulty}):`, error);
+            if (attempts >= maxAttempts) {
+                setPreloadedQuestionsCache(prev => ({
+                    ...prev,
+                    [cacheKey]: {
+                        ...(prev[cacheKey] || {}),
+                        [difficulty]: 'error'
+                    }
+                }));
+                if (isNPlusOnePreloadContext) {
+                    console.error(`N+1 Preload for ${islandConfig.name} (${difficulty}) FAILED after all attempts. No further automatic attempts for this set.`);
+                } else {
+                     console.warn(`Standard preload for ${islandConfig.name} (${difficulty}) FAILED.`);
+                }
+            }
+        }
+    }
+  }, [apiKeyMissing, selectedGrade, preloadedQuestionsCache, _fetchAndProcessQuestionSet]);
+
   useEffect(() => {
     if (gameState === 'IslandMap' && selectedGrade) {
         let preloadChain = Promise.resolve();
@@ -505,7 +498,7 @@ const GameScreen: React.FC = () => {
                     const difficulty = diffKey as IslandDifficulty;
                     const cacheEntry = preloadedQuestionsCache[islandConfig.islandId]?.[difficulty];
                     if (!cacheEntry || cacheEntry === 'pending') {
-                         preloadChain = preloadChain.then(() => backgroundPreloadIslandDifficulty(islandConfig, difficulty));
+                         preloadChain = preloadChain.then(() => backgroundPreloadIslandDifficulty(islandConfig, difficulty, false));
                     }
                 });
             }
@@ -514,27 +507,29 @@ const GameScreen: React.FC = () => {
     }
   }, [gameState, selectedGrade, islandsForCurrentGrade, islandProgress, backgroundPreloadIslandDifficulty, preloadedQuestionsCache]);
 
-  // Effect to trigger background preloading for THE NEXT island (N+1) when PLAYING an island (N)
   useEffect(() => {
     if (gameState === 'IslandPlaying' && currentIslandId && selectedGrade && islandsForCurrentGrade.length > 0) {
       const currentIndex = islandsForCurrentGrade.findIndex(island => island.islandId === currentIslandId);
       
       if (currentIndex !== -1 && currentIndex < islandsForCurrentGrade.length - 1) {
         const nextIslandConfig = islandsForCurrentGrade[currentIndex + 1];
-        let preloadChainForNextIsland = Promise.resolve();
+        
+        const timeoutId = setTimeout(() => {
+          let preloadChainForNextIsland = Promise.resolve();
+          Object.values(IslandDifficulty).forEach(diffKey => {
+            const difficulty = diffKey as IslandDifficulty;
+            const cacheEntry = preloadedQuestionsCache[nextIslandConfig.islandId]?.[difficulty];
+            
+            if (!cacheEntry || cacheEntry === 'pending') {
+              preloadChainForNextIsland = preloadChainForNextIsland.then(() => 
+                backgroundPreloadIslandDifficulty(nextIslandConfig, difficulty, true) 
+              );
+            }
+          });
+          preloadChainForNextIsland.catch(err => console.error(`Error in N+1 preload chain for ${nextIslandConfig.name}:`, err));
+        }, 2000); 
 
-        Object.values(IslandDifficulty).forEach(diffKey => {
-          const difficulty = diffKey as IslandDifficulty;
-          const cacheEntry = preloadedQuestionsCache[nextIslandConfig.islandId]?.[difficulty];
-          
-          if (!cacheEntry || cacheEntry === 'pending') {
-            // console.log(`Queueing N+1 preload for ${nextIslandConfig.name} (${difficulty})`);
-            preloadChainForNextIsland = preloadChainForNextIsland.then(() => 
-              backgroundPreloadIslandDifficulty(nextIslandConfig, difficulty)
-            );
-          }
-        });
-        preloadChainForNextIsland.catch(err => console.error(`Error in N+1 preload chain for ${nextIslandConfig.name}:`, err));
+        return () => clearTimeout(timeoutId); 
       }
     }
   }, [
@@ -621,7 +616,7 @@ const GameScreen: React.FC = () => {
     setShowDifficultySelectionModalForIslandId(null); 
     
     const cachedData = preloadedQuestionsCache[currentIslandId]?.[difficulty];
-    if (Array.isArray(cachedData) && cachedData.length === QUESTIONS_PER_ISLAND) { // Check if full set is cached
+    if (Array.isArray(cachedData) && cachedData.length === QUESTIONS_PER_ISLAND) { 
         fetchAndSetQuestionsForIsland(currentIslandId, difficulty); 
     } else {
         setTransitionDetails({
@@ -649,8 +644,8 @@ const GameScreen: React.FC = () => {
       if (livesAtCompletion === MAX_PLAYER_LIVES) starsEarned = 5;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 1) starsEarned = 4;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 2 && livesAtCompletion > 0) starsEarned = 3; 
-      else if (livesAtCompletion === 0) starsEarned = 2; // Failed the island
-      else starsEarned = 3; // Should ideally not happen if logic is tight, but as a fallback.
+      else if (livesAtCompletion === 0) starsEarned = 2; 
+      else starsEarned = 3; 
 
 
       const updatedStarRatings = { ...islandStarRatings, [completedIslandId]: Math.max(islandStarRatings[completedIslandId] || 0, starsEarned) }; 
@@ -666,13 +661,8 @@ const GameScreen: React.FC = () => {
         const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1];
         if (nextIslandInGrade) {
             updatedProgress[nextIslandInGrade.islandId] = 'unlocked';
-            // Preloading for N+2 (the island after the newly unlocked one)
-            // will be handled by the 'IslandPlaying' useEffect if the user starts playing N+1
-            // or by the 'IslandMap' useEffect if they return to map.
-            // However, we can initiate a preload for N+1's difficulties here as well if not already started
-            // because they've just *unlocked* it.
             Object.values(IslandDifficulty).forEach(diff => {
-                backgroundPreloadIslandDifficulty(nextIslandInGrade, diff as IslandDifficulty);
+                backgroundPreloadIslandDifficulty(nextIslandInGrade, diff as IslandDifficulty, false);
             });
         }
       }
@@ -741,7 +731,7 @@ const GameScreen: React.FC = () => {
     setCurrentIslandId(null);
     setSelectedIslandDifficulty(null);
     setQuestionsForCurrentIsland([]);
-    setCurrentQuestionIndexInIsland(0); // Reset index when going back to map
+    setCurrentQuestionIndexInIsland(0); 
     resetForNewQuestion();
 
     setTransitionDetails({
@@ -796,27 +786,37 @@ const GameScreen: React.FC = () => {
     unlockAudioContext();
     playSound(BUTTON_CLICK_SOUND_URL);
     if (currentIslandId && selectedGrade && selectedIslandDifficulty) { 
-        // Reset the error state for this specific cache entry to allow retry
         setPreloadedQuestionsCache(prev => ({
             ...prev,
             [currentIslandId]: {
                 ...(prev[currentIslandId] || {}),
-                [selectedIslandDifficulty]: 'pending' // Mark as pending to allow fetch
+                [selectedIslandDifficulty]: 'pending' 
             }
         }));
+        setTransitionDetails(null);
         fetchAndSetQuestionsForIsland(currentIslandId, selectedIslandDifficulty);
     } else if (selectedGrade) { 
         const firstUnlockedIslandForGrade = islandsForCurrentGrade.find(i => islandProgress[i.islandId] === 'unlocked');
         if (firstUnlockedIslandForGrade) {
             setCurrentIslandId(firstUnlockedIslandForGrade.islandId);
-            setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
+            setLoadingError(null); 
+            if(gameState === 'Error') {
+                 setGameState('IslandMap'); 
+                 setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
+            } else {
+                setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
+            }
+
         } else {
+             setLoadingError(null);
              setGameState(islandsForCurrentGrade.length > 0 ? 'IslandMap' : 'GradeSelection');
         }
     } else { 
+        setLoadingError(null);
         setGameState('GradeSelection');
     }
   };
+
 
   const handleHintRequest = useCallback(async () => {
     unlockAudioContext();
@@ -846,24 +846,54 @@ const GameScreen: React.FC = () => {
       <div className="flex justify-center items-center h-6">
         {Array.from({ length: totalStars }).map((_, i) => 
           i < stars 
-            ? <StarIconFilled key={i} className="w-5 h-5 text-yellow-400" /> 
-            : <StarIconOutline key={i} className="w-5 h-5 text-yellow-400 opacity-50" />
+            ? <StarIconFilled key={i} className="w-5 h-5 text-[var(--accent-color)]" /> 
+            : <StarIconOutline key={i} className="w-5 h-5 text-[var(--accent-color)] opacity-50" />
         )}
       </div>
     );
   };
 
-  // --- RENDER LOGIC ---
+  const handleThemeChange = (newTheme: Theme) => {
+    unlockAudioContext();
+    playSound(BUTTON_CLICK_SOUND_URL);
+    applyNewTheme(newTheme);
+  };
+
+
+  if (gameState === 'ThemeSelection') {
+    return (
+      <ThemeSelectionScreen
+        onThemeSelect={(selectedTheme) => {
+          handleThemeChange(selectedTheme); // Applies theme, saves, plays sound
+
+          if (!process.env.API_KEY) {
+            setApiKeyMissing(true);
+            setGameState('Error');
+            setLoadingError(API_KEY_ERROR_MESSAGE);
+            return;
+          }
+          // API key is present, proceed
+          const lastGrade = loadLastSelectedGrade();
+          if (lastGrade) {
+            handleGradeSelect(lastGrade, true); // true for isAutoLoading, will set gameState to 'IslandMap' or 'Error'
+          } else {
+            setGameState('GradeSelection');
+          }
+        }}
+      />
+    );
+  }
+
 
   if (apiKeyMissing && gameState === 'Error' && loadingError === API_KEY_ERROR_MESSAGE) {
      return (
-       <div className="bg-red-800 text-white p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto animate-fadeIn">
-         <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-yellow-300" />
+       <div className="bg-[var(--incorrect-bg)] text-[var(--incorrect-text)] p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto animate-fadeIn">
+         <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent-color)]" />
          <h1 className="text-3xl font-bold mb-4">Lỗi Cấu Hình</h1>
          <p className="text-xl mb-6">{API_KEY_ERROR_MESSAGE}</p>
           <button
             onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); window.location.reload(); }}
-            className="bg-yellow-500 hover:bg-yellow-600 text-red-900 font-bold py-3 px-6 rounded-lg"
+            className="bg-[var(--button-primary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-6 rounded-lg"
         >
             Tải Lại Trang
         </button>
@@ -871,39 +901,41 @@ const GameScreen: React.FC = () => {
      );
   }
   
-  if (gameState === 'Transitioning' && transitionDetails) {
+  if (gameState === 'Transitioning' && transitionDetails && transitionDetails.message) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-        <LoadingSpinner text={transitionDetails.message} size="w-20 h-20" />
+        <LoadingSpinner text={transitionDetails.message} />
       </div>
     );
   }
 
-  if (isIslandLoading && gameState !== 'Transitioning' && gameState !== 'IslandPlaying') { // Don't show global load if playing & N+1 preloading
+  if (isIslandLoading) {
      return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-        <LoadingSpinner text={islandLoadingProgressMessage || `Đang tải hòn đảo...`} size="w-20 h-20" />
+        <LoadingSpinner 
+          text={islandLoadingProgressMessage || ISLAND_PREPARING_MESSAGE(currentIslandConfig?.name || "...")} 
+        />
       </div>
     );
   }
   
   if (gameState === 'Error') {
     return (
-      <div className="bg-red-800 text-white p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto animate-fadeIn">
-        <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-yellow-300" />
+      <div className={`p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto animate-fadeInScale bg-[var(--incorrect-bg)] text-[var(--incorrect-text)]`}>
+        <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent-color)]" />
         <h1 className="text-3xl font-bold mb-4">Lỗi</h1>
         <p className="text-xl mb-6">{loadingError || "Đã có lỗi xảy ra."}</p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
-              onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleChooseAnotherGrade(); }}
-              className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg"
+              onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleReturnToGradeSelection(); }}
+              className="bg-[var(--button-secondary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-6 rounded-lg"
             >
               {RETURN_TO_GRADE_SELECTION_TEXT}
             </button>
             {loadingError !== NO_ISLANDS_FOR_GRADE_TEXT && loadingError !== API_KEY_ERROR_MESSAGE && (
                  <button
                     onClick={handleRetryFetchIsland}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-red-900 font-bold py-3 px-6 rounded-lg"
+                    className="bg-[var(--button-primary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-6 rounded-lg"
                 >
                     Thử Tải Lại
                 </button>
@@ -915,24 +947,45 @@ const GameScreen: React.FC = () => {
 
   if (gameState === 'GradeSelection') {
     return (
-      <div className="w-full max-w-xl mx-auto p-6 md:p-8 bg-sky-700 bg-opacity-80 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-sky-400">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 mb-8 text-center">
-          {CHOOSE_GRADE_TEXT}
-        </h1>
-        <div className="grid grid-cols-1 gap-4">
-          {(Object.keys(GradeLevel).filter(key => !isNaN(Number(GradeLevel[key as keyof typeof GradeLevel]))) as (keyof typeof GradeLevel)[]).map((gradeKey) => {
-            const gradeValue = GradeLevel[gradeKey];
-            return (
-              <button
-                key={gradeValue}
-                onClick={() => handleGradeSelect(gradeValue as GradeLevel)}
-                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-                className="p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 bg-yellow-500 hover:bg-yellow-600 text-gray-800 font-bold text-2xl"
-              >
-                {GRADE_LEVEL_TEXT_MAP[gradeValue as GradeLevel]}
-              </button>
-            );
-          })}
+      <div className="w-full animate-fadeInScale">
+        <div className={`w-full max-w-xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-8 text-center">
+            {CHOOSE_GRADE_TEXT}
+          </h1>
+          <div className="grid grid-cols-1 gap-4 mb-8">
+            {(Object.keys(GradeLevel).filter(key => !isNaN(Number(GradeLevel[key as keyof typeof GradeLevel]))) as (keyof typeof GradeLevel)[]).map((gradeKey) => {
+              const gradeValue = GradeLevel[gradeKey];
+              return (
+                <button
+                  key={gradeValue}
+                  onClick={() => handleGradeSelect(gradeValue as GradeLevel)}
+                  onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                  className="p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 active:scale-95 active:brightness-90 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold text-2xl"
+                >
+                  {GRADE_LEVEL_TEXT_MAP[gradeValue as GradeLevel]}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-8 pt-6 border-t-2 border-[var(--border-color)]">
+            <h2 className="text-2xl font-bold text-[var(--primary-text)] mb-4 text-center">Chọn Giao Diện</h2>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              {(Object.values(Theme).filter(t => t !== Theme.DEFAULT) as Theme[]).map(themeItem => (
+                  <button
+                      key={themeItem}
+                      onClick={() => handleThemeChange(themeItem)}
+                      onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                      className={`p-3 rounded-lg shadow-md transition-all transform hover:scale-105 active:scale-95 active:brightness-90 text-lg font-semibold w-full flex items-center justify-center gap-2 border-2
+                                  ${theme === themeItem ? 'border-[var(--accent-color)] ring-4 ring-[var(--ring-color-focus)]' : 'border-transparent'}
+                                  ${themeItem === Theme.NEON ? 'bg-[#0d1117] text-[#30c5ff]' : 'bg-[#fdf2f8] text-[#c026d3]'}`}
+                  >
+                      {themeItem === Theme.NEON ? <MoonIcon className="w-5 h-5"/> : <SunIcon className="w-5 h-5"/>}
+                      {THEME_CONFIGS[themeItem].name}
+                      {theme === themeItem && <CheckIcon className="w-5 h-5 ml-auto text-[var(--accent-color)]" />}
+                  </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -961,8 +1014,9 @@ const GameScreen: React.FC = () => {
   if (gameState === 'IslandMap' && selectedGrade) {
     if (islandsForCurrentGrade.length === 0 || islandsForCurrentGrade.length < ISLANDS_PER_GRADE) { 
         return (
-             <div className="bg-yellow-700 text-white p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto animate-fadeIn">
-                <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-sky-200" />
+            <div className="w-full animate-fadeInScale">
+             <div className={`p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto bg-[var(--secondary-bg)] text-[var(--secondary-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+                <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent-color)]" />
                 <h1 className="text-3xl font-bold mb-4">Thông Báo Cấu Hình</h1>
                 <p className="text-xl mb-6">
                   {islandsForCurrentGrade.length === 0 
@@ -972,69 +1026,73 @@ const GameScreen: React.FC = () => {
                 </p>
                 <button
                     onClick={handleChooseAnotherGrade}
-                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg"
+                    className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-6 rounded-lg"
                 >
                     {CHOOSE_ANOTHER_GRADE_TEXT}
                 </button>
             </div>
+          </div>
         );
     }
     return (
-      <div className="w-full max-w-4xl mx-auto p-6 md:p-8 bg-sky-700 bg-opacity-80 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-sky-400">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500">
-            {CHOOSE_ISLAND_TEXT}
-            </h1>
-            <button 
-                onClick={handleChooseAnotherGrade}
-                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm"
-            >
-                {CHOOSE_ANOTHER_GRADE_TEXT}
-            </button>
-        </div>
-         <p className="text-center text-yellow-100 mb-1 text-2xl">Lớp: {GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {islandsForCurrentGrade.map((island) => {
-            const status = islandProgress[island.islandId] || 'locked'; 
-            const isDisabled = status === 'locked';
-            let bgColor = 'bg-gray-500 hover:bg-gray-600';
-             let textColor = 'text-gray-300';
-            let ringColor = 'ring-gray-700';
-
-            if (status === 'completed') {
-                bgColor = 'bg-green-600 hover:bg-green-700';
-                textColor = 'text-white';
-                ringColor = 'ring-green-400';
-            } else if (status === 'unlocked') {
-                bgColor = 'bg-yellow-500 hover:bg-yellow-600';
-                textColor = 'text-gray-800';
-                ringColor = 'ring-yellow-300';
-            }
-            
-            return (
-              <button
-                key={island.islandId}
-                onClick={() => !isDisabled && handleIslandSelect(island.islandId)}
-                onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_URL, 0.2)}
-                disabled={isDisabled}
-                className={`p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${bgColor} ${textColor} min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ${ringColor} ${isDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
-                aria-label={`${island.name}${isDisabled ? ' (Đã khoá)' : ''}`}
+      <div className="w-full animate-fadeInScale">
+        <div className={`w-full max-w-4xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
+          <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)]">
+              {CHOOSE_ISLAND_TEXT}
+              </h1>
+              <button 
+                  onClick={handleChooseAnotherGrade}
+                  onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                  className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-4 rounded-lg shadow-md text-sm"
               >
-                <div className="flex-grow flex flex-col items-center justify-center">
-                  <span className="text-3xl mb-1" aria-hidden="true">{island.mapIcon}</span>
-                  <h2 className="text-lg font-bold leading-tight">{island.name}</h2>
-                  <p className="text-xs mt-1 px-1 opacity-90">{island.description}</p>
-                </div>
-                <div className="mt-2 h-6">
-                    {isDisabled && <LockIcon className="w-6 h-6 text-red-200" />}
-                    {status === 'completed' ? renderStars(island.islandId) : null}
-                </div>
+                  {CHOOSE_ANOTHER_GRADE_TEXT}
               </button>
-            );
-          })}
+          </div>
+          <p className="text-center text-[var(--primary-text)] opacity-90 mb-1 text-2xl">Lớp: {GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {islandsForCurrentGrade.map((island) => {
+              const status = islandProgress[island.islandId] || 'locked'; 
+              const isDisabled = status === 'locked';
+              let currentBgColor = 'bg-[var(--island-locked-bg)]';
+              let currentTextColor = 'text-[var(--island-locked-text)]';
+
+              if (status === 'completed') {
+                  currentBgColor = 'bg-[var(--island-completed-bg)]';
+                  currentTextColor = 'text-[var(--island-completed-text)]';
+              } else if (status === 'unlocked') {
+                  currentBgColor = 'bg-[var(--island-unlocked-bg)]';
+                  currentTextColor = 'text-[var(--island-unlocked-text)]';
+              }
+              const isUnlockedAndNotCompleted = status === 'unlocked';
+              
+              return (
+                <button
+                  key={island.islandId}
+                  onClick={() => !isDisabled && handleIslandSelect(island.islandId)}
+                  onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_URL, 0.2)}
+                  disabled={isDisabled}
+                  className={`p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${currentBgColor} ${currentTextColor} min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ring-[var(--island-button-ring-color)] 
+                              ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 active:brightness-90'}
+                              ${isUnlockedAndNotCompleted ? 'animate-pulse-glow' : ''}
+                            `}
+                  aria-label={`${island.name}${isDisabled ? ' (Đã khoá)' : ''}`}
+                >
+                  <div className="flex-grow flex flex-col items-center justify-center">
+                    <span className="text-3xl mb-1" aria-hidden="true">{island.mapIcon}</span>
+                    <h2 className="text-lg font-bold leading-tight">{island.name}</h2>
+                    <p className="text-xs mt-1 px-1 opacity-90">{island.description}</p>
+                  </div>
+                  <div className="mt-2 h-6">
+                      {isDisabled && <LockIcon className="w-6 h-6 text-[var(--incorrect-bg)] opacity-70" />}
+                      {status === 'completed' ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-[var(--primary-text)] opacity-90 mt-8 text-2xl font-bold">Tổng Điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
         </div>
-         <p className="text-center text-yellow-200 mt-8 text-2xl font-bold">Tổng Điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
       </div>
     );
   }
@@ -1060,46 +1118,48 @@ const GameScreen: React.FC = () => {
         } else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) {
             specialCelebrationText = REWARD_TEXT_MEDIUM_PERFECT;
             showBigBlinkingStar = true;
-        } else { // Easy
+        } else { 
             perfectRunMessage = REWARD_TEXT_EASY_PERFECT;
         }
     }
 
     return (
-      <div className="bg-gradient-to-br from-green-500 to-teal-600 text-white p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto animate-fadeIn">
-         {specialCelebrationText && (
-          <div className="my-3 flex items-center justify-center gap-2">
-            <p className="text-4xl font-extrabold text-yellow-300 drop-shadow-lg">{specialCelebrationText}</p>
-            {showBigBlinkingStar && <StarIconFilled className="w-12 h-12 text-yellow-300 animate-pulse" style={{ animationDuration: '1s' }} />}
+      <div className="w-full animate-fadeInScale">
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+          {specialCelebrationText && (
+            <div className="my-3 flex items-center justify-center gap-2 animate-subtle-shine">
+              <p className="text-4xl font-extrabold text-[var(--title-text-gradient-from)] drop-shadow-lg">{specialCelebrationText}</p>
+              {showBigBlinkingStar && <StarIconFilled className="w-12 h-12 text-[var(--title-text-gradient-from)] animate-pulse" style={{ animationDuration: '1s' }} />}
+            </div>
+          )}
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">{ISLAND_COMPLETE_TEXT}</h1>
+          <p className="text-2xl mb-1">{currentIslandConfig.name} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
+          
+          <div className="flex justify-center my-2 animate-subtle-shine">
+            {renderStars(currentIslandId)} 
           </div>
-        )}
-        <h1 className="text-4xl md:text-5xl font-bold mb-2">{ISLAND_COMPLETE_TEXT}</h1>
-        <p className="text-2xl mb-1">{currentIslandConfig.name} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
-        
-        <div className="flex justify-center my-2">
-           {renderStars(currentIslandId)} 
-        </div>
-        <p className="text-xl mb-2">{perfectRunMessage}</p>
+          <p className="text-xl mb-2">{perfectRunMessage}</p>
 
-        <p className="text-3xl font-bold mb-4">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
-        <p className="text-xl mb-4">Bạn được thưởng +1 lượt thử! Hiện có: {playerLives}/{MAX_PLAYER_LIVES} lượt.</p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-            <button
-            onClick={handleBackToMap}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
-            >
-            {BACK_TO_MAP_TEXT}
-            </button>
-            {canGoToNextIsland && nextIsland && (
-                 <button
-                    onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleIslandSelect(nextIsland.islandId); }}
-                    onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
-                >
-                    {NEXT_ISLAND_BUTTON_TEXT}
-                </button>
-            )}
+          <p className="text-3xl font-bold mb-4">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
+          <p className="text-xl mb-4">Bạn được thưởng +1 lượt thử! Hiện có: {playerLives}/{MAX_PLAYER_LIVES} lượt.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+              <button
+              onClick={handleBackToMap}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
+              >
+              {BACK_TO_MAP_TEXT}
+              </button>
+              {canGoToNextIsland && nextIsland && (
+                  <button
+                      onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleIslandSelect(nextIsland.islandId); }}
+                      onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                      className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
+                  >
+                      {NEXT_ISLAND_BUTTON_TEXT}
+                  </button>
+              )}
+          </div>
         </div>
       </div>
     );
@@ -1107,26 +1167,28 @@ const GameScreen: React.FC = () => {
   
   if (gameState === 'GradeComplete' && selectedGrade) {
      return (
-      <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 text-gray-800 p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto animate-fadeIn">
-        <SparklesIcon className="w-24 h-24 mx-auto mb-6 text-white"/>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">{GRADE_COMPLETE_TEXT}</h1>
-        <p className="text-2xl mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
-        <p className="text-5xl md:text-6xl font-extrabold text-white mb-8 drop-shadow-lg">{overallScore} <span className="text-3xl">điểm</span></p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button
-            onClick={handlePlayThisGradeAgain}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
-            >
-            {PLAY_THIS_GRADE_AGAIN_TEXT}
-            </button>
-            <button
-            onClick={handleChooseAnotherGrade}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
-            >
-            {CHOOSE_ANOTHER_GRADE_TEXT}
-            </button>
+      <div className="w-full animate-fadeInScale">
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+          <SparklesIcon className="w-24 h-24 mx-auto mb-6 text-white animate-subtle-shine"/>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1>
+          <p className="text-2xl mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
+          <p className="text-5xl md:text-6xl font-extrabold text-white mb-8 drop-shadow-lg">{overallScore} <span className="text-3xl">điểm</span></p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button
+              onClick={handlePlayThisGradeAgain}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              className="bg-[var(--correct-bg)] hover:opacity-90 active:brightness-90 text-[var(--correct-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
+              >
+              {PLAY_THIS_GRADE_AGAIN_TEXT}
+              </button>
+              <button
+              onClick={handleChooseAnotherGrade}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
+              >
+              {CHOOSE_ANOTHER_GRADE_TEXT}
+              </button>
+          </div>
         </div>
       </div>
     );
@@ -1135,86 +1197,92 @@ const GameScreen: React.FC = () => {
   if (gameState === 'IslandPlaying' && currentQuestion && currentIslandConfig && selectedGrade && selectedIslandDifficulty) {
     const isQuestionResolved = feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution);
     const canAttempt = !isQuestionResolved && !userAttemptShown;
+    
+    // Determine if frosted glass effect should be applied to the main card
+    // For Girly theme, we want a solid background for better contrast, so don't apply frostedGlassOpacity.
+    const mainCardExtraClasses = theme === Theme.GIRLY ? '' : (themeConfig.frostedGlassOpacity || '');
 
     return (
-      <div className="w-full max-w-3xl mx-auto p-4 md:p-6 bg-green-800 bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-yellow-500">
-        <header className="mb-6 text-center relative">
-          <button 
-            onClick={handleBackToMap}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            className="absolute top-0 left-0 mt-[-8px] ml-[-8px] md:mt-0 md:ml-0 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm z-10"
-            aria-label="Trở về bản đồ"
-            disabled={userAttemptShown && !revealSolution && playerLives > 0} 
-          >
-            &larr; Bản Đồ
-          </button>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 drop-shadow-md pt-12 md:pt-8">
-            {currentIslandConfig.mapIcon} {currentIslandConfig.name}
-          </h1>
-          <p className="text-yellow-200 text-md mt-1">{currentIslandConfig.description} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
-          <p className="text-yellow-200 text-lg mt-2">
-            {GRADE_LEVEL_TEXT_MAP[selectedGrade]} - {QUESTION_TEXT} {currentQuestionIndexInIsland + 1} / {questionsForCurrentIsland.length}
-          </p>
-          <p className="text-yellow-100 text-xl font-semibold">
-             Điểm Lớp: {overallScore} (Đảo: {islandScore})
-          </p>
-        </header>
+      <div className="w-full animate-fadeInScale">
+        <div className={`w-full max-w-3xl mx-auto p-4 md:p-6 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${mainCardExtraClasses}`}>
+          <header className="mb-6 text-center relative">
+            <button 
+              onClick={handleBackToMap}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              className="absolute top-0 left-0 mt-[-8px] ml-[-8px] md:mt-0 md:ml-0 bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-3 rounded-lg shadow-md text-sm z-10"
+              aria-label="Trở về bản đồ"
+              disabled={userAttemptShown && !revealSolution && playerLives > 0} 
+            >
+              &larr; Bản Đồ
+            </button>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] drop-shadow-md pt-12 md:pt-8">
+              {currentIslandConfig.mapIcon} {currentIslandConfig.name}
+            </h1>
+            <p className="text-[var(--primary-text)] opacity-80 text-md mt-1">{currentIslandConfig.description} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
+            <p className="text-[var(--primary-text)] opacity-90 text-lg mt-2">
+              {GRADE_LEVEL_TEXT_MAP[selectedGrade]} - {QUESTION_TEXT} {currentQuestionIndexInIsland + 1} / {questionsForCurrentIsland.length}
+            </p>
+            <p className="text-[var(--primary-text)] text-xl font-semibold">
+              Điểm Lớp: {overallScore} (Đảo: {islandScore})
+            </p>
+          </header>
 
-        <QuestionDisplay question={currentQuestion} />
+          <QuestionDisplay question={currentQuestion} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
-          {currentQuestion.options.map((option, index) => (
-            <AnswerOption
-              key={currentQuestion.id + "_" + index}
-              optionText={option}
-              onClick={() => { 
-                unlockAudioContext();
-                playSound(ANSWER_SELECT_SOUND_URL, 0.4); 
-                setSelectedAnswer(option); 
-              }}
-              disabled={!canAttempt || isQuestionResolved} 
-              isSelected={selectedAnswer === option}
-              isCorrect={option === currentQuestion.correctAnswer}
-              userAttemptShown={userAttemptShown}
-              solutionRevealed={revealSolution}
-            />
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+            {currentQuestion.options.map((option, index) => (
+              <AnswerOption
+                key={currentQuestion.id + "_" + index}
+                optionText={option}
+                onClick={() => { 
+                  unlockAudioContext();
+                  playSound(ANSWER_SELECT_SOUND_URL, 0.4); 
+                  setSelectedAnswer(option); 
+                }}
+                disabled={!canAttempt || isQuestionResolved} 
+                isSelected={selectedAnswer === option}
+                isCorrect={option === currentQuestion.correctAnswer}
+                userAttemptShown={userAttemptShown}
+                solutionRevealed={revealSolution}
+              />
+            ))}
+          </div>
+          
+          {userAttemptShown && feedback.isCorrect !== null && <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />}
+
+          <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <button
+              onClick={handleHintRequest}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              disabled={isHintLoading || hintButtonUsed || !canAttempt || isQuestionResolved}
+              className="flex items-center justify-center gap-2 bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
+            >
+              <LightbulbIcon className="w-6 h-6" />
+              {isHintLoading ? HINT_LOADING_MESSAGE : (hint && !isHintLoading && hintButtonUsed ? 'Xem lại gợi ý' : 'Nhận Gợi Ý')}
+            </button>
+
+            <button
+              onClick={handleAnswerSubmit}
+              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              disabled={!selectedAnswer || !canAttempt || isQuestionResolved}
+              className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 text-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
+            >
+              Kiểm Tra
+            </button>
+          </div>
+          <p className="text-center text-[var(--primary-text)] opacity-70 mt-4 text-sm">Số lượt thử còn lại: {playerLives} / {MAX_PLAYER_LIVES}</p>
+
+          <HintModal
+            isOpen={isHintModalOpen}
+            onClose={() => { 
+              unlockAudioContext();
+              playSound(BUTTON_CLICK_SOUND_URL); 
+              setIsHintModalOpen(false); 
+            }}
+            hint={hint}
+            isLoading={isHintLoading}
+          />
         </div>
-        
-        {userAttemptShown && feedback.isCorrect !== null && <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />}
-
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <button
-            onClick={handleHintRequest}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            disabled={isHintLoading || hintButtonUsed || !canAttempt || isQuestionResolved}
-            className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
-          >
-            <LightbulbIcon className="w-6 h-6" />
-            {isHintLoading ? HINT_LOADING_MESSAGE : (hint && !isHintLoading && hintButtonUsed ? 'Xem lại gợi ý' : 'Nhận Gợi Ý')}
-          </button>
-
-          <button
-            onClick={handleAnswerSubmit}
-            onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-            disabled={!selectedAnswer || !canAttempt || isQuestionResolved}
-            className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 text-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
-          >
-            Kiểm Tra
-          </button>
-        </div>
-        <p className="text-center text-yellow-300 mt-4 text-sm">Số lượt thử còn lại: {playerLives} / {MAX_PLAYER_LIVES}</p>
-
-        <HintModal
-          isOpen={isHintModalOpen}
-          onClose={() => { 
-            unlockAudioContext();
-            playSound(BUTTON_CLICK_SOUND_URL); 
-            setIsHintModalOpen(false); 
-          }}
-          hint={hint}
-          isLoading={isHintLoading}
-        />
       </div>
     );
   }

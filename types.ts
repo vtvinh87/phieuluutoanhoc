@@ -18,6 +18,12 @@ export enum IslandDifficulty {
   HARD = "hard",
 }
 
+export enum Theme {
+  DEFAULT = 'default', // A neutral or initial theme
+  NEON = 'neon',
+  GIRLY = 'girly',
+}
+
 export interface Question {
   id: string; 
   text: string; 
@@ -53,9 +59,14 @@ export type IslandStarRatingsState = Record<string, number>;
 
 // For enhanced preloading
 export type PreloadedQuestionSet = Question[] | 'loading' | 'error' | 'pending';
+
+// Ensure PreloadedIslandDifficulties explicitly lists all difficulties
 export interface PreloadedIslandDifficulties {
   [IslandDifficulty.EASY]?: PreloadedQuestionSet;
   [IslandDifficulty.MEDIUM]?: PreloadedQuestionSet;
   [IslandDifficulty.HARD]?: PreloadedQuestionSet;
 }
-export type PreloadedQuestionsCache = Record<string, PreloadedIslandDifficulties>;
+
+export type PreloadedQuestionsCache = {
+  [islandId: string]: PreloadedIslandDifficulties | undefined;
+};

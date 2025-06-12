@@ -1,14 +1,17 @@
+
 import React from 'react';
 import { Question } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface QuestionDisplayProps {
   question: Question;
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question }) => {
+  const { themeConfig } = useTheme();
   return (
-    <div className="mb-6 p-6 bg-green-700 bg-opacity-80 rounded-xl shadow-2xl transition-all duration-300 hover:shadow-green-400/50">
-      <p className="text-2xl md:text-3xl font-bold text-yellow-300 leading-tight text-center">
+    <div className={`mb-6 p-6 bg-[var(--question-display-bg)] rounded-xl shadow-2xl transition-all duration-300 hover:shadow-green-400/50 ${themeConfig.frostedGlassOpacity || ''}`}>
+      <p className="text-2xl md:text-3xl font-bold text-[var(--question-display-text)] leading-tight text-center">
         {question.text}
       </p>
       {question.image && (
@@ -16,12 +19,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question }) => {
           <img 
             src={question.image} 
             alt="Hình ảnh minh họa cho câu hỏi" 
-            className="rounded-lg shadow-lg max-w-full h-auto md:max-w-md border-4 border-yellow-400 transition-transform duration-300 hover:scale-105"
+            className="rounded-lg shadow-lg max-w-full h-auto md:max-w-md border-4 border-[var(--question-display-image-border)] transition-transform duration-300 hover:scale-105"
           />
         </div>
       )}
-      {/* Optional: Display topic or target grade if needed for debugging or UI */}
-      {/* <p className="text-xs text-yellow-100 text-center mt-2">Chủ đề: {question.topic} (Mức độ: {question.targetGradeLevel})</p> */}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -5,16 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cuộc Phiêu Lưu Toán Học</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Orbitron:wght@400;500;700&family=EB+Garamond:wght@400;700&family=Arial&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('https://picsum.photos/seed/treasureisland_math_dynamic/1920/1080'); /* Slightly different seed for new version */
+      /* font-family will be set by JS via CSS var --font-family-theme */
+      /* background-image will be set by JS */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background-image 0.5s ease-in-out; /* Smooth background transition */
     }
     /* Custom scrollbar for better aesthetics */
     ::-webkit-scrollbar {
@@ -25,12 +30,25 @@
       border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb {
-      background: #888;
+      background: #888; /* Fallback, can be themed too */
       border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #555;
+      background: #555; /* Fallback */
     }
+    .theme-neon ::-webkit-scrollbar-thumb {
+      background: var(--accent-color, #64ffda);
+    }
+    .theme-neon ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-text, #ccd6f6);
+    }
+     .theme-girly ::-webkit-scrollbar-thumb {
+      background: var(--accent-color, #ff85a2);
+    }
+    .theme-girly ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-text, #5d54a4);
+    }
+
     .animate-fadeIn {
       animation: fadeIn 0.5s ease-in-out;
     }
@@ -44,6 +62,84 @@
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(20px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; box-shadow: 0 0 5px var(--island-button-ring-color, #ffc107); }
+      50% { opacity: 0.8; box-shadow: 0 0 15px 5px var(--island-button-ring-color, #ffc107); }
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    @keyframes shake-error {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+      20%, 40%, 60%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake-error {
+      animation: shake-error 0.6s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes subtle-shine {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.15); }
+      100% { filter: brightness(1); }
+    }
+    .animate-subtle-shine {
+      animation: subtle-shine 1.5s infinite ease-in-out;
+    }
+    
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fadeInScale {
+      animation: fadeInScale 0.4s ease-out;
+    }
+
+    /* Basic style for :root variables, primarily for Tailwind JIT to pick them up during dev.
+       Actual values are set by JS. */
+    :root {
+      --primary-bg: #ffffff;
+      --primary-text: #000000;
+      --secondary-bg: #f0f0f0;
+      --secondary-text: #333333;
+      --accent-color: #007bff;
+      --accent-text: #ffffff;
+      --button-primary-bg: #007bff;
+      --button-primary-text: #ffffff;
+      --button-answer-option-bg: #007bff;
+      --button-answer-option-text: #ffffff;
+      --button-answer-option-ring: #007bff;
+      --button-answer-option-selected-bg: #0056b3;
+      --button-answer-option-selected-text: #ffffff;
+      --button-answer-option-selected-ring: #0056b3;
+      --correct-bg: #28a745;
+      --correct-text: #ffffff;
+      --correct-ring: #28a745;
+      --incorrect-bg: #dc3545;
+      --incorrect-text: #ffffff;
+      --incorrect-ring: #dc3545;
+      --modal-bg-backdrop: rgba(0,0,0,0.5);
+      --modal-content-bg: #ffffff;
+      --modal-header-text: #000000;
+      --border-color: #ced4da;
+      --ring-color-focus: #007bff;
+      --title-text-gradient-from: #007bff;
+      --title-text-gradient-to: #0056b3;
+      --island-locked-bg: #6c757d;
+      --island-unlocked-bg: #ffc107;
+      --island-completed-bg: #28a745;
+      --island-locked-text: #ffffff;
+      --island-unlocked-text: #000000;
+      --island-completed-text: #ffffff;
+      --island-button-ring-color: #ffc107;
+      --question-display-bg: #f8f9fa;
+      --question-display-text: #000000;
+      --question-display-image-border: #007bff;
+      --spinner-border-color: '#007bff'; /* Updated variable name, actual value from theme */
+      --font-family-theme: 'Arial', sans-serif;
     }
   </style>
 <script type="importmap">

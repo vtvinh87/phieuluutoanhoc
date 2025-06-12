@@ -2,6 +2,7 @@
 import React from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import { LightbulbIcon, SparklesIcon } from './icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HintModalProps {
   isOpen: boolean;
@@ -11,20 +12,22 @@ interface HintModalProps {
 }
 
 const HintModal: React.FC<HintModalProps> = ({ isOpen, onClose, hint, isLoading }) => {
+  const { themeConfig } = useTheme();
   if (!isOpen) return null;
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300"
+      className={`fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300 bg-[var(--modal-bg-backdrop)]`}
       onClick={onClose}
     >
       <div 
-        className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700 p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg text-white relative transform transition-all duration-300 scale-100 animate-slideUp"
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg text-[var(--primary-text)] relative transform transition-all duration-300 scale-100 animate-slideUp ${themeConfig.frostedGlassOpacity || ''}`}
+        style={{ background: themeConfig.modalContentBg }} // Allow gradient
+        onClick={(e) => e.stopPropagation()}
       >
         <button 
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-300 hover:text-white transition-colors"
+          className="absolute top-3 right-3 text-[var(--primary-text)] hover:opacity-70 transition-colors"
           aria-label="Đóng gợi ý"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8">
@@ -33,25 +36,25 @@ const HintModal: React.FC<HintModalProps> = ({ isOpen, onClose, hint, isLoading 
         </button>
         
         <div className="flex items-center mb-4">
-          <SparklesIcon className="w-10 h-10 text-yellow-300 mr-3" />
-          <h2 className="text-2xl md:text-3xl font-bold text-yellow-300">Gợi ý từ Thần Toán Học</h2>
+          <SparklesIcon className="w-10 h-10 text-[var(--modal-header-text)] mr-3" />
+          <h2 className="text-2xl md:text-3xl font-bold text-[var(--modal-header-text)]">Gợi ý từ Thần Toán Học</h2>
         </div>
 
-        {isLoading && <LoadingSpinner text="Thần Toán Học đang nghĩ gợi ý..." color="border-yellow-300"/>}
+        {isLoading && <LoadingSpinner text="Thần Toán Học đang nghĩ gợi ý..." />}
         
         {!isLoading && hint && (
-          <div className="flex items-start text-lg md:text-xl leading-relaxed bg-black bg-opacity-20 p-4 rounded-md">
-            <LightbulbIcon className="w-12 h-12 text-yellow-400 mr-4 flex-shrink-0 mt-1" />
+          <div className={`flex items-start text-lg md:text-xl leading-relaxed p-4 rounded-md bg-[var(--secondary-bg)] text-[var(--secondary-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+            <LightbulbIcon className="w-12 h-12 text-[var(--accent-color)] mr-4 flex-shrink-0 mt-1" />
             <p>{hint}</p>
           </div>
         )}
         {!isLoading && !hint && (
-            <p className="text-lg text-gray-200">Không có gợi ý nào vào lúc này.</p>
+            <p className="text-lg text-[var(--primary-text)] opacity-80">Không có gợi ý nào vào lúc này.</p>
         )}
         
         <button
           onClick={onClose}
-          className="mt-6 w-full bg-yellow-400 hover:bg-yellow-500 text-purple-700 font-bold py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-lg"
+          className="mt-6 w-full bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-lg"
         >
           Đã hiểu!
         </button>
