@@ -59,8 +59,8 @@ import FeedbackIndicator from './FeedbackIndicator';
 import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
-import ThemeSelectionScreen from './ThemeSelectionScreen'; // Added
-import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon } from './icons'; // Added new icons
+import ThemeSelectionScreen from './ThemeSelectionScreen'; 
+import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken } from './icons'; 
 import confetti from 'canvas-confetti';
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
@@ -77,7 +77,7 @@ interface TransitionDetails {
 const GameScreen: React.FC = () => {
   const { theme, setTheme: applyNewTheme, themeConfig } = useTheme();
 
-  const [gameState, setGameState] = useState<GameState>('ThemeSelection'); // Initial state
+  const [gameState, setGameState] = useState<GameState>('ThemeSelection'); 
   const [transitionDetails, setTransitionDetails] = useState<TransitionDetails | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel | null>(null);
   const [islandProgress, setIslandProgress] = useState<IslandProgressState>({});
@@ -191,7 +191,7 @@ const GameScreen: React.FC = () => {
     document.addEventListener('click', unlockAudioContext, { once: true });
     return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlockAudioContext]); // applyNewTheme is stable from context
+  }, [unlockAudioContext]); 
 
 
   const islandsForCurrentGrade = useMemo(() => {
@@ -222,7 +222,7 @@ const GameScreen: React.FC = () => {
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
       if (timeLeft <= 0) return clearInterval(interval);
-      const particleCount = 70 * (timeLeft / duration); // Increased from 50
+      const particleCount = 70 * (timeLeft / duration); 
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
     }, 250);
@@ -238,7 +238,7 @@ const GameScreen: React.FC = () => {
       if (timeLeft <= 0) return clearInterval(interval);
 
       confetti({
-        particleCount: 4, // Increased from 3
+        particleCount: 4, 
         startVelocity: 0,
         ticks: 300 + Math.random() * 200, 
         origin: { x: Math.random(), y: Math.random() * 0.4 - 0.2 }, 
@@ -260,7 +260,7 @@ const GameScreen: React.FC = () => {
 
     function fire(particleRatio: number, opts: confetti.Options) {
       confetti(Object.assign({}, defaults, opts, {
-        particleCount: Math.floor(250 * particleRatio) // Increased from 200
+        particleCount: Math.floor(250 * particleRatio) 
       }));
     }
     
@@ -864,7 +864,7 @@ const GameScreen: React.FC = () => {
     return (
       <ThemeSelectionScreen
         onThemeSelect={(selectedTheme) => {
-          handleThemeChange(selectedTheme); // Applies theme, saves, plays sound
+          handleThemeChange(selectedTheme); 
 
           if (!process.env.API_KEY) {
             setApiKeyMissing(true);
@@ -872,10 +872,10 @@ const GameScreen: React.FC = () => {
             setLoadingError(API_KEY_ERROR_MESSAGE);
             return;
           }
-          // API key is present, proceed
+          
           const lastGrade = loadLastSelectedGrade();
           if (lastGrade) {
-            handleGradeSelect(lastGrade, true); // true for isAutoLoading, will set gameState to 'IslandMap' or 'Error'
+            handleGradeSelect(lastGrade, true); 
           } else {
             setGameState('GradeSelection');
           }
@@ -1198,9 +1198,8 @@ const GameScreen: React.FC = () => {
     const isQuestionResolved = feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution);
     const canAttempt = !isQuestionResolved && !userAttemptShown;
     
-    // Determine if frosted glass effect should be applied to the main card
-    // For Girly theme, we want a solid background for better contrast, so don't apply frostedGlassOpacity.
     const mainCardExtraClasses = theme === Theme.GIRLY ? '' : (themeConfig.frostedGlassOpacity || '');
+    const progressPercentage = questionsForCurrentIsland.length > 0 ? (currentQuestionIndexInIsland / questionsForCurrentIsland.length) * 100 : 0;
 
     return (
       <div className="w-full animate-fadeInScale">
@@ -1219,8 +1218,25 @@ const GameScreen: React.FC = () => {
               {currentIslandConfig.mapIcon} {currentIslandConfig.name}
             </h1>
             <p className="text-[var(--primary-text)] opacity-80 text-md mt-1">{currentIslandConfig.description} ({ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})</p>
-            <p className="text-[var(--primary-text)] opacity-90 text-lg mt-2">
-              {GRADE_LEVEL_TEXT_MAP[selectedGrade]} - {QUESTION_TEXT} {currentQuestionIndexInIsland + 1} / {questionsForCurrentIsland.length}
+            
+            <div className="mt-3 mb-2">
+              <div className="flex justify-between items-center text-sm text-[var(--primary-text)] opacity-80 mb-1 px-1">
+                <span>Tiến độ</span>
+                <span>Câu {currentQuestionIndexInIsland + 1}/{questionsForCurrentIsland.length}</span>
+              </div>
+              <div className="w-full bg-[var(--secondary-bg)] rounded-full h-2.5">
+                <div 
+                  className="bg-[var(--accent-color)] h-2.5 rounded-full transition-all duration-500 ease-out" 
+                  style={{ width: `${progressPercentage}%` }}
+                  aria-valuenow={progressPercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                ></div>
+              </div>
+            </div>
+
+            <p className="text-[var(--primary-text)] opacity-90 text-lg">
+              Lớp: {GRADE_LEVEL_TEXT_MAP[selectedGrade]}
             </p>
             <p className="text-[var(--primary-text)] text-xl font-semibold">
               Điểm Lớp: {overallScore} (Đảo: {islandScore})
@@ -1270,7 +1286,14 @@ const GameScreen: React.FC = () => {
               Kiểm Tra
             </button>
           </div>
-          <p className="text-center text-[var(--primary-text)] opacity-70 mt-4 text-sm">Số lượt thử còn lại: {playerLives} / {MAX_PLAYER_LIVES}</p>
+          
+          <div className="flex justify-center items-center gap-1 mt-4" aria-label={`Số lượt thử còn lại: ${playerLives}`}>
+            {Array.from({ length: MAX_PLAYER_LIVES }).map((_, index) => (
+              index < playerLives 
+                ? <HeartIconFilled key={index} className="w-7 h-7 text-[var(--incorrect-bg)]" />
+                : <HeartIconBroken key={index} className="w-7 h-7 text-gray-400 opacity-70" />
+            ))}
+          </div>
 
           <HintModal
             isOpen={isHintModalOpen}
