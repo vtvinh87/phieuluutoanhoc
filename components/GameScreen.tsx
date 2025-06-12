@@ -215,7 +215,7 @@ const GameScreen: React.FC = () => {
 
   // Effect for custom fireworks duration and cleanup
   useEffect(() => {
-    let fireworksTimer: NodeJS.Timeout | null = null;
+    let fireworksTimer: number | null = null;
     if (showCustomFireworks) {
       if (gameState === 'IslandComplete') {
         // Fireworks are on, and we are on the correct screen
@@ -1287,4 +1287,3 @@ const GameScreen: React.FC = () => {
 };
 
 export default GameScreen;
-    

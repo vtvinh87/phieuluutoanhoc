@@ -1,3 +1,4 @@
+
 import { Theme } from './types';
 
 export interface ThemeConfig {
@@ -200,7 +201,7 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     spinnerColor: '#00f5d4',
     appContainerBg: 'p-2 sm:p-3 md:p-4 bg-black/80 backdrop-blur-lg rounded-[28px] shadow-2xl border-2 border-[var(--border-color)]',
     frostedGlassOpacity: 'bg-opacity-80 backdrop-blur-md shadow-xl border border-gray-700/70', 
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'TH Morucas', 'Orbitron', sans-serif",
   },
   [Theme.GIRLY]: {
     name: "Công Chúa Lấp Lánh",
@@ -247,6 +248,6 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     spinnerColor: '#ec4899', // pink-500
     appContainerBg: 'p-2 sm:p-3 md:p-4 bg-pink-100/40 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/60',
     frostedGlassOpacity: 'bg-opacity-75 backdrop-blur-xl shadow-xl border border-white/30',
-    fontFamily: "'EB Garamond', serif",
+    fontFamily: "'SVN Skill', 'EB Garamond', serif",
   },
 };
