@@ -489,47 +489,26 @@ const GameScreen: React.FC = () => {
     }
   }, [apiKeyMissing, selectedGrade, preloadedQuestionsCache, _fetchAndProcessQuestionSet]);
 
-  useEffect(() => {
-    if (gameState === 'IslandMap' && selectedGrade) {
-        let preloadChain = Promise.resolve();
-        islandsForCurrentGrade.forEach(islandConfig => {
-            if (islandProgress[islandConfig.islandId] === 'unlocked' || islandProgress[islandConfig.islandId] === 'completed') {
-                Object.values(IslandDifficulty).forEach(diffKey => {
-                    const difficulty = diffKey as IslandDifficulty;
-                    const cacheEntry = preloadedQuestionsCache[islandConfig.islandId]?.[difficulty];
-                    if (!cacheEntry || cacheEntry === 'pending') {
-                         preloadChain = preloadChain.then(() => backgroundPreloadIslandDifficulty(islandConfig, difficulty, false));
-                    }
-                });
-            }
-        });
-        preloadChain.catch(err => console.error("Error in IslandMap background preload chain:", err));
-    }
-  }, [gameState, selectedGrade, islandsForCurrentGrade, islandProgress, backgroundPreloadIslandDifficulty, preloadedQuestionsCache]);
 
   useEffect(() => {
-    if (gameState === 'IslandPlaying' && currentIslandId && selectedGrade && islandsForCurrentGrade.length > 0) {
-      const currentIndex = islandsForCurrentGrade.findIndex(island => island.islandId === currentIslandId);
+    // N+1 Preloading: Preload the *same difficulty* for the *next* island
+    if (gameState === 'IslandPlaying' && currentIslandId && selectedGrade && islandsForCurrentGrade.length > 0 && selectedIslandDifficulty) {
+      const currentIndexInGrade = islandsForCurrentGrade.findIndex(island => island.islandId === currentIslandId);
       
-      if (currentIndex !== -1 && currentIndex < islandsForCurrentGrade.length - 1) {
-        const nextIslandConfig = islandsForCurrentGrade[currentIndex + 1];
+      if (currentIndexInGrade !== -1 && currentIndexInGrade < islandsForCurrentGrade.length - 1) {
+        const nextIslandConfig = islandsForCurrentGrade[currentIndexInGrade + 1];
         
+        // Delay the N+1 preload slightly to prioritize current island experience
         const timeoutId = setTimeout(() => {
-          let preloadChainForNextIsland = Promise.resolve();
-          Object.values(IslandDifficulty).forEach(diffKey => {
-            const difficulty = diffKey as IslandDifficulty;
-            const cacheEntry = preloadedQuestionsCache[nextIslandConfig.islandId]?.[difficulty];
-            
-            if (!cacheEntry || cacheEntry === 'pending') {
-              preloadChainForNextIsland = preloadChainForNextIsland.then(() => 
-                backgroundPreloadIslandDifficulty(nextIslandConfig, difficulty, true) 
-              );
-            }
-          });
-          preloadChainForNextIsland.catch(err => console.error(`Error in N+1 preload chain for ${nextIslandConfig.name}:`, err));
-        }, 2000); 
+          const cacheEntryForNextIslandSameDifficulty = preloadedQuestionsCache[nextIslandConfig.islandId]?.[selectedIslandDifficulty];
+          
+          if (!cacheEntryForNextIslandSameDifficulty || cacheEntryForNextIslandSameDifficulty === 'pending') {
+            backgroundPreloadIslandDifficulty(nextIslandConfig, selectedIslandDifficulty, true) 
+              .catch(err => console.error(`Error in N+1 preload (same difficulty: ${selectedIslandDifficulty}) for ${nextIslandConfig.name}:`, err));
+          }
+        }, 2000); // 2-second delay
 
-        return () => clearTimeout(timeoutId); 
+        return () => clearTimeout(timeoutId); // Cleanup timeout on unmount or if dependencies change
       }
     }
   }, [
@@ -537,6 +516,7 @@ const GameScreen: React.FC = () => {
     currentIslandId, 
     selectedGrade, 
     islandsForCurrentGrade, 
+    selectedIslandDifficulty,
     preloadedQuestionsCache, 
     backgroundPreloadIslandDifficulty
   ]);
@@ -661,9 +641,11 @@ const GameScreen: React.FC = () => {
         const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1];
         if (nextIslandInGrade) {
             updatedProgress[nextIslandInGrade.islandId] = 'unlocked';
-            Object.values(IslandDifficulty).forEach(diff => {
-                backgroundPreloadIslandDifficulty(nextIslandInGrade, diff as IslandDifficulty, false);
-            });
+            // For the newly unlocked island, preload all its difficulties when returning to map,
+            // or rely on the N+1 preloader if player immediately goes to next island.
+            // The existing IslandMap preloader will cover this.
+            // If the player chooses to go to Next Island immediately, the N+1 preloader 
+            // will try to load the *same difficulty* for it.
         }
       }
       setIslandProgress(updatedProgress);
@@ -677,7 +659,7 @@ const GameScreen: React.FC = () => {
           setGameState('IslandComplete');
       }
     }
-  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, backgroundPreloadIslandDifficulty]);
+  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
