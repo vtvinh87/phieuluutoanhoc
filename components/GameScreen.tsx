@@ -1034,11 +1034,15 @@ const GameScreen: React.FC = () => {
           </div>
         );
     }
+    const completedIslandsCount = islandsForCurrentGrade.filter(island => islandProgress[island.islandId] === 'completed').length;
+    const totalIslandsForGrade = islandsForCurrentGrade.length;
+    const adventureProgressPercentage = totalIslandsForGrade > 0 ? (completedIslandsCount / totalIslandsForGrade) * 100 : 0;
+
     return (
       <div className="w-full animate-fadeInScale">
         <div className={`w-full max-w-4xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
-          <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)]">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-2 sm:mb-0">
               {CHOOSE_ISLAND_TEXT}
               </h1>
               <button 
@@ -1049,6 +1053,23 @@ const GameScreen: React.FC = () => {
                   {CHOOSE_ANOTHER_GRADE_TEXT}
               </button>
           </div>
+          
+          <div className="mb-5">
+            <div className="flex justify-between items-center text-md text-[var(--primary-text)] opacity-90 mb-1 px-1">
+              <span className="font-semibold">Tiến Độ Phiêu Lưu</span>
+              <span className="font-semibold">{adventureProgressPercentage.toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-[var(--secondary-bg)] rounded-full h-3.5 shadow-inner">
+              <div 
+                className="bg-[var(--accent-color)] h-3.5 rounded-full transition-all duration-500 ease-out" 
+                style={{ width: `${adventureProgressPercentage}%` }}
+                aria-valuenow={adventureProgressPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              ></div>
+            </div>
+          </div>
+
           <p className="text-center text-[var(--primary-text)] opacity-90 mb-1 text-2xl">Lớp: {GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {islandsForCurrentGrade.map((island) => {
@@ -1199,7 +1220,8 @@ const GameScreen: React.FC = () => {
     const canAttempt = !isQuestionResolved && !userAttemptShown;
     
     const mainCardExtraClasses = theme === Theme.GIRLY ? '' : (themeConfig.frostedGlassOpacity || '');
-    const progressPercentage = questionsForCurrentIsland.length > 0 ? (currentQuestionIndexInIsland / questionsForCurrentIsland.length) * 100 : 0;
+    const progressPercentage = questionsForCurrentIsland.length > 0 ? ((currentQuestionIndexInIsland + 1) / questionsForCurrentIsland.length) * 100 : 0;
+
 
     return (
       <div className="w-full animate-fadeInScale">
@@ -1224,13 +1246,15 @@ const GameScreen: React.FC = () => {
                 <span>Tiến độ</span>
                 <span>Câu {currentQuestionIndexInIsland + 1}/{questionsForCurrentIsland.length}</span>
               </div>
-              <div className="w-full bg-[var(--secondary-bg)] rounded-full h-2.5">
+              <div className="w-full bg-[var(--secondary-bg)] rounded-full h-2.5 shadow-inner">
                 <div 
                   className="bg-[var(--accent-color)] h-2.5 rounded-full transition-all duration-500 ease-out" 
                   style={{ width: `${progressPercentage}%` }}
                   aria-valuenow={progressPercentage}
                   aria-valuemin={0}
                   aria-valuemax={100}
+                  role="progressbar"
+                  aria-label={`Tiến độ câu hỏi: ${progressPercentage.toFixed(0)}%`}
                 ></div>
               </div>
             </div>
