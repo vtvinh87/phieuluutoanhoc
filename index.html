@@ -8,11 +8,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Orbitron:wght@400;500;700&family=EB+Garamond:wght@400;700&family=Arial&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Orbitron:wght@400;500;700&family=EB+Garamond:wght@400;700&family=Inter:wght@400;700&family=Arial&display=swap" rel="stylesheet">
   <style>
     body {
       /* font-family will be set by JS via CSS var --font-family-theme */
-      /* background-image will be set by JS */
+      /* background-image will be set by JS by ThemeProvider */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -20,6 +20,7 @@
       display: flex;
       flex-direction: column;
       transition: background-image 0.5s ease-in-out; /* Smooth background transition */
+      font-family: 'Inter', var(--font-family-theme, 'Arial', sans-serif); /* Default to Inter, then theme, then Arial */
     }
     /* Custom scrollbar for better aesthetics */
     ::-webkit-scrollbar {
@@ -139,7 +140,7 @@
       --question-display-text: #000000;
       --question-display-image-border: #007bff;
       --spinner-border-color: '#007bff'; /* Updated variable name, actual value from theme */
-      --font-family-theme: 'Arial', sans-serif;
+      --font-family-theme: 'Arial', sans-serif; /* Default theme font set by ThemeProvider */
     }
   </style>
 <script type="importmap">

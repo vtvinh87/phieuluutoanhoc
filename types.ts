@@ -19,9 +19,10 @@ export enum IslandDifficulty {
 }
 
 export enum Theme {
-  DEFAULT = 'default', // A neutral or initial theme
+  DEFAULT = 'default', // Will be overridden by FRUTIGER_AERO as the functional default
   NEON = 'neon',
   GIRLY = 'girly',
+  FRUTIGER_AERO = 'frutiger_aero',
 }
 
 export interface Question {

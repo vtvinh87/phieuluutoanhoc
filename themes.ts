@@ -1,4 +1,3 @@
-
 import { Theme } from './types';
 
 export interface ThemeConfig {
@@ -15,9 +14,9 @@ export interface ThemeConfig {
   // Button specific
   buttonPrimaryBg: string;
   buttonPrimaryText: string;
-  buttonSecondaryBg: string; // Added for secondary buttons
-  buttonSecondaryText: string; // Added for secondary buttons
-  buttonAnswerOptionBg: string; // For AnswerOption default
+  buttonSecondaryBg: string; 
+  buttonSecondaryText: string; 
+  buttonAnswerOptionBg: string; 
   buttonAnswerOptionText: string;
   buttonAnswerOptionRing: string;
   buttonAnswerOptionSelectedBg: string;
@@ -53,76 +52,122 @@ export interface ThemeConfig {
   questionDisplayText: string;
   questionDisplayImageBorder: string;
   // Spinner Color
-  spinnerColor: string; // Now a direct color string, e.g., '#FFFFFF'
+  spinnerColor: string; 
   // General UI elements
-  appContainerBg: string; // Applied to the main GameScreen div
+  appContainerBg: string; 
   // Special
-  frostedGlassOpacity?: string; // e.g. 'bg-opacity-70 backdrop-blur-md'
+  frostedGlassOpacity?: string; 
   fontFamily: string; 
 }
 
 export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
-  [Theme.DEFAULT]: {
-    name: "Mặc định",
-    // Placeholder - replace with a fitting default theme background
-    backgroundUrl: 'https://images.unsplash.com/photo-1536514498073-50e69d996523?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjE3MDA0MHw&ixlib=rb-4.0.3&q=80&w=1920',
-    primaryBg: '#0284c7', // sky-600
-    primaryText: '#f0f9ff', // sky-50
-    secondaryBg: 'rgba(255, 255, 255, 0.1)', 
-    secondaryText: '#075985', // sky-800
-    accent: '#f59e0b', // amber-500
-    accentText: '#78350f', // amber-900
-    buttonPrimaryBg: '#f59e0b', 
-    buttonPrimaryText: '#78350f',
-    buttonSecondaryBg: '#cbd5e1', // slate-300
-    buttonSecondaryText: '#1e293b', // slate-800
-    buttonAnswerOptionBg: '#0ea5e9', 
-    buttonAnswerOptionText: 'white',
-    buttonAnswerOptionRing: '#7dd3fc', 
-    buttonAnswerOptionSelectedBg: '#facc15', 
-    buttonAnswerOptionSelectedText: '#713f12', 
-    buttonAnswerOptionSelectedRing: '#fde047', 
+  [Theme.DEFAULT]: { // This will now effectively be Frutiger Aero due to constants.ts change
+    name: "Frutiger Aero",
+    backgroundUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', // Abstract light blue/cyan, airy
+    primaryBg: 'bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/30', // For cards within appContainer
+    primaryText: '#075985', // sky-800
+    secondaryBg: 'bg-sky-50/50 backdrop-blur-sm rounded-xl shadow-md border border-white/20',
+    secondaryText: '#0c4a6e', // sky-900
+    accent: '#22d3ee', // cyan-400
+    accentText: '#083344', // cyan-950 (dark for contrast on light cyan buttons)
+    buttonPrimaryBg: 'linear-gradient(to bottom, #67e8f9, #22d3ee)', // cyan-300 to cyan-400
+    buttonPrimaryText: '#083344', // cyan-950
+    buttonSecondaryBg: 'linear-gradient(to bottom, #f8fafc, #f1f5f9)', // slate-50 to slate-100
+    buttonSecondaryText: '#334155', // slate-700
+    buttonAnswerOptionBg: 'bg-white/75 hover:bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-slate-200/50',
+    buttonAnswerOptionText: '#0ea5e9', // sky-500
+    buttonAnswerOptionRing: '#67e8f9', // cyan-300
+    buttonAnswerOptionSelectedBg: 'linear-gradient(to bottom, #22d3ee, #06b6d4)', // cyan-400 to cyan-500
+    buttonAnswerOptionSelectedText: 'white',
+    buttonAnswerOptionSelectedRing: '#15b3c5',// Darker cyan for selected ring
+    correctBg: '#22c55e', // green-500
+    correctText: 'white',
+    correctRing: '#4ade80', // green-400
+    incorrectBg: '#ef4444', // red-500
+    incorrectText: 'white',
+    incorrectRing: '#f87171', // red-400
+    modalBgBackdrop: 'rgba(0, 100, 150, 0.3)', // Semi-transparent blueish
+    modalContentBg: 'bg-gradient-to-br from-white/85 via-sky-100/80 to-cyan-100/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40',
+    modalHeaderText: '#075985', // sky-800
+    borderColor: '#e0f2fe', // sky-100
+    ringColorFocus: '#22d3ee', // cyan-400
+    titleTextGradientFrom: '#22d3ee', // cyan-400
+    titleTextGradientTo: '#06b6d4', // cyan-500
+    islandButtonLockedBg: 'bg-slate-300/60 backdrop-blur-sm',
+    islandButtonUnlockedBg: 'bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-500 shadow-lg',
+    islandButtonCompletedBg: 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg',
+    islandButtonLockedText: '#475569', // slate-600
+    islandButtonUnlockedText: 'white',
+    islandButtonCompletedText: 'white',
+    islandButtonRingColor: '#67e8f9', // cyan-300
+    questionDisplayBg: 'bg-white/60 backdrop-blur-md rounded-xl shadow-lg border border-white/20',
+    questionDisplayText: '#075985', // sky-800
+    questionDisplayImageBorder: '#67e8f9', // cyan-300
+    spinnerColor: '#22d3ee', // cyan-400
+    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50', // Main game area wrapper
+    frostedGlassOpacity: 'bg-opacity-70 backdrop-blur-xl shadow-xl border border-white/20', // For elements like modals, applied with their own base bg (e.g. bg-white then this)
+    fontFamily: "'Inter', 'Arial', sans-serif",
+  },
+  [Theme.FRUTIGER_AERO]: { // Explicit definition for Frutiger Aero
+    name: "Frutiger Aero",
+    backgroundUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920',
+    primaryBg: 'bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/30',
+    primaryText: '#075985', 
+    secondaryBg: 'bg-sky-50/50 backdrop-blur-sm rounded-xl shadow-md border border-white/20',
+    secondaryText: '#0c4a6e', 
+    accent: '#22d3ee', 
+    accentText: '#083344', 
+    buttonPrimaryBg: 'linear-gradient(to bottom, #67e8f9, #22d3ee)', 
+    buttonPrimaryText: '#083344', 
+    buttonSecondaryBg: 'linear-gradient(to bottom, #f8fafc, #f1f5f9)', 
+    buttonSecondaryText: '#334155', 
+    buttonAnswerOptionBg: 'bg-white/75 hover:bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-slate-200/50',
+    buttonAnswerOptionText: '#0ea5e9', 
+    buttonAnswerOptionRing: '#67e8f9', 
+    buttonAnswerOptionSelectedBg: 'linear-gradient(to bottom, #22d3ee, #06b6d4)', 
+    buttonAnswerOptionSelectedText: 'white',
+    buttonAnswerOptionSelectedRing: '#15b3c5',
     correctBg: '#22c55e', 
     correctText: 'white',
-    correctRing: '#86efac',
+    correctRing: '#4ade80', 
     incorrectBg: '#ef4444', 
     incorrectText: 'white',
-    incorrectRing: '#fca5a5', 
-    modalBgBackdrop: 'rgba(0, 0, 0, 0.65)',
-    modalContentBg: 'linear-gradient(to bottom right, #0ea5e9, #0369a1)', 
-    modalHeaderText: '#fde047', 
-    borderColor: '#38bdf8', 
-    ringColorFocus: '#7dd3fc', 
-    titleTextGradientFrom: '#fde047', 
-    titleTextGradientTo: '#f59e0b', 
-    islandButtonLockedBg: '#94a3b8', 
-    islandButtonUnlockedBg: '#f59e0b', 
-    islandButtonCompletedBg: '#22c55e', 
-    islandButtonLockedText: '#e2e8f0', 
-    islandButtonUnlockedText: '#78350f',
+    incorrectRing: '#f87171', 
+    modalBgBackdrop: 'rgba(0, 100, 150, 0.3)', 
+    modalContentBg: 'bg-gradient-to-br from-white/85 via-sky-100/80 to-cyan-100/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40',
+    modalHeaderText: '#075985', 
+    borderColor: '#e0f2fe', 
+    ringColorFocus: '#22d3ee', 
+    titleTextGradientFrom: '#22d3ee', 
+    titleTextGradientTo: '#06b6d4', 
+    islandButtonLockedBg: 'bg-slate-300/60 backdrop-blur-sm',
+    islandButtonUnlockedBg: 'bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-500 shadow-lg',
+    islandButtonCompletedBg: 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg',
+    islandButtonLockedText: '#475569', 
+    islandButtonUnlockedText: 'white',
     islandButtonCompletedText: 'white',
-    islandButtonRingColor: '#eab308', 
-    questionDisplayBg: 'rgba(3, 105, 161, 0.7)', 
-    questionDisplayText: '#fde047', 
-    questionDisplayImageBorder: '#f59e0b', 
-    spinnerColor: '#fde047',
-    appContainerBg: 'bg-sky-800 bg-opacity-70 backdrop-blur-sm',
-    frostedGlassOpacity: undefined,
-    fontFamily: "'Arial', sans-serif",
+    islandButtonRingColor: '#67e8f9', 
+    questionDisplayBg: 'bg-white/60 backdrop-blur-md rounded-xl shadow-lg border border-white/20',
+    questionDisplayText: '#075985', 
+    questionDisplayImageBorder: '#67e8f9', 
+    spinnerColor: '#22d3ee', 
+    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50',
+    frostedGlassOpacity: 'bg-opacity-70 backdrop-blur-xl shadow-xl border border-white/20',
+    fontFamily: "'Inter', 'Arial', sans-serif",
   },
   [Theme.NEON]: {
     name: "Chiến Binh Neon",
     backgroundUrl: 'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjE3MDExMXw&ixlib=rb-4.0.3&q=80&w=1920', // Neon/Synthwave style
     primaryBg: '#0a0f14', 
     primaryText: '#00f5d4', 
-    secondaryBg: 'rgba(12, 29, 45, 0.9)', // Slightly more opaque for better text contrast in modals if needed
+    secondaryBg: 'rgba(12, 29, 45, 0.95)', 
     secondaryText: '#7DF9FF', 
     accent: '#fa2772', 
     accentText: '#0a0f14',
     buttonPrimaryBg: '#00f5d4', 
     buttonPrimaryText: '#0a0f14',
-    buttonSecondaryBg: '#334155', // slate-700
-    buttonSecondaryText: '#00f5d4', // bright cyan text
+    buttonSecondaryBg: '#334155', 
+    buttonSecondaryText: '#00f5d4', 
     buttonAnswerOptionBg: '#1a2b3c', 
     buttonAnswerOptionText: '#7DF9FF', 
     buttonAnswerOptionRing: '#00f5d4', 
@@ -136,7 +181,7 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     incorrectText: 'white',
     incorrectRing: '#FF7F7F',
     modalBgBackdrop: 'rgba(0, 0, 0, 0.85)',
-    modalContentBg: 'linear-gradient(135deg, rgba(13, 26, 38, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%)', // Dark gradient with high opacity
+    modalContentBg: 'linear-gradient(135deg, rgba(13, 26, 38, 0.98) 0%, rgba(0, 0, 0, 0.99) 100%)', 
     modalHeaderText: '#00f5d4',
     borderColor: '#00f5d4',
     ringColorFocus: '#7DF9FF',
@@ -149,59 +194,59 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     islandButtonUnlockedText: '#0a0f14',
     islandButtonCompletedText: '#0a0f14',
     islandButtonRingColor: '#7DF9FF',
-    questionDisplayBg: 'rgba(12, 29, 45, 0.9)',
+    questionDisplayBg: 'rgba(12, 29, 45, 0.92)',
     questionDisplayText: '#00f5d4',
     questionDisplayImageBorder: '#fa2772',
     spinnerColor: '#00f5d4',
-    appContainerBg: 'bg-black bg-opacity-70 backdrop-blur-md border-2 border-[var(--border-color)]',
-    frostedGlassOpacity: undefined, 
+    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-black/80 backdrop-blur-lg rounded-[28px] shadow-2xl border-2 border-[var(--border-color)]',
+    frostedGlassOpacity: 'bg-opacity-80 backdrop-blur-md shadow-xl border border-gray-700/70', 
     fontFamily: "'Orbitron', sans-serif",
   },
   [Theme.GIRLY]: {
     name: "Công Chúa Lấp Lánh",
     backgroundUrl: 'https://png.pngtree.com/background/20250208/original/pngtree-glimmering-pink-background-with-textured-glitter-design-picture-image_13423197.jpg',
-    primaryBg: '#ffffff', // Changed for contrast: Solid white main card
-    primaryText: '#86198f', 
-    secondaryBg: '#fdf2f8', // Was rgba(255, 235, 245, 0.85) - now a more solid light pink (e.g. for modals)
-    secondaryText: '#9d174d', 
-    accent: '#f472b6', 
+    primaryBg: 'bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-pink-200/50', 
+    primaryText: '#86198f', // purple-800
+    secondaryBg: 'bg-pink-50/70 backdrop-blur-sm rounded-xl shadow-md border border-pink-100/50', 
+    secondaryText: '#9d174d', // pink-800
+    accent: '#f472b6', // pink-400
     accentText: 'white',
-    buttonPrimaryBg: '#ec4899', 
+    buttonPrimaryBg: '#ec4899', // pink-500
     buttonPrimaryText: 'white',
     buttonSecondaryBg: '#f0abfc', // fuchsia-300
-    buttonSecondaryText: '#ffffff', // white text
-    buttonAnswerOptionBg: '#f9a8d4', 
-    buttonAnswerOptionText: '#831843', 
-    buttonAnswerOptionRing: '#fbcfe8', 
-    buttonAnswerOptionSelectedBg: '#db2777', 
+    buttonSecondaryText: '#a21caf', // fuchsia-700
+    buttonAnswerOptionBg: 'bg-pink-100/80 hover:bg-pink-100/95 backdrop-blur-sm rounded-lg shadow-md border border-pink-200/70',
+    buttonAnswerOptionText: '#db2777', // pink-600
+    buttonAnswerOptionRing: '#f9a8d4', // pink-300
+    buttonAnswerOptionSelectedBg: '#db2777', // pink-600
     buttonAnswerOptionSelectedText: 'white',
-    buttonAnswerOptionSelectedRing: '#f9a8d4',
-    correctBg: '#84cc16', 
+    buttonAnswerOptionSelectedRing: '#f472b6', // pink-400
+    correctBg: '#84cc16', // lime-500
     correctText: 'white',
-    correctRing: '#a3e635',
-    incorrectBg: '#fb7185', 
+    correctRing: '#a3e635', // lime-400
+    incorrectBg: '#fb7185', // rose-400
     incorrectText: 'white',
-    incorrectRing: '#fda4af',
-    modalBgBackdrop: 'rgba(236, 72, 153, 0.3)', 
-    modalContentBg: 'linear-gradient(to bottom right, rgba(255,255,255,0.92), rgba(253,242,248,0.97))', 
-    modalHeaderText: '#c026d3', 
-    borderColor: '#f9a8d4', 
-    ringColorFocus: '#f472b6', 
-    titleTextGradientFrom: '#f9a8d4', 
-    titleTextGradientTo: '#ec4899', 
-    islandButtonLockedBg: '#fdf2f8', 
-    islandButtonUnlockedBg: '#f472b6', 
-    islandButtonCompletedBg: '#a3e635', 
-    islandButtonLockedText: '#be185d', 
+    incorrectRing: '#fda4af', // rose-300
+    modalBgBackdrop: 'rgba(236, 72, 153, 0.35)', 
+    modalContentBg: 'bg-gradient-to-br from-white/90 via-pink-50/85 to-fuchsia-100/85 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50', 
+    modalHeaderText: '#c026d3', // fuchsia-600
+    borderColor: '#fbcfe8', // pink-200
+    ringColorFocus: '#f472b6', // pink-400
+    titleTextGradientFrom: '#f9a8d4', // pink-300
+    titleTextGradientTo: '#ec4899', // pink-500
+    islandButtonLockedBg: 'bg-pink-100/70 backdrop-blur-sm',
+    islandButtonUnlockedBg: 'bg-gradient-to-br from-pink-400 to-fuchsia-500 shadow-lg',
+    islandButtonCompletedBg: 'bg-gradient-to-br from-lime-400 to-green-500 shadow-lg',
+    islandButtonLockedText: '#be185d', // pink-700
     islandButtonUnlockedText: 'white',
-    islandButtonCompletedText: '#3f6212', 
-    islandButtonRingColor: '#ec4899',
-    questionDisplayBg: '#fce7f3', // Changed: solid pink-100 for contrast on white primaryBg
-    questionDisplayText: '#c026d3', 
-    questionDisplayImageBorder: '#f472b6', 
-    spinnerColor: '#f472b6',
-    appContainerBg: 'bg-pink-200 bg-opacity-75 backdrop-blur-lg', // Changed: darker page bg (pink-200)
-    frostedGlassOpacity: 'backdrop-blur-lg bg-opacity-75', // Still available for other elements like modals
+    islandButtonCompletedText: 'white',
+    islandButtonRingColor: '#ec4899', // pink-500
+    questionDisplayBg: 'bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-pink-100/60',
+    questionDisplayText: '#c026d3', // fuchsia-600
+    questionDisplayImageBorder: '#f472b6', // pink-400
+    spinnerColor: '#ec4899', // pink-500
+    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-pink-100/40 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/60',
+    frostedGlassOpacity: 'bg-opacity-75 backdrop-blur-xl shadow-xl border border-white/30',
     fontFamily: "'EB Garamond', serif",
   },
 };

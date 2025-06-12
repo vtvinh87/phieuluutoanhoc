@@ -1,4 +1,3 @@
-
 import { GradeLevel, IslandConfig, IslandDifficulty, Theme } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
@@ -546,5 +545,5 @@ export const ISLAND_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandProgress
 export const OVERALL_SCORE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}overallScore_grade_`;
 export const ISLAND_STAR_RATINGS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandStarRatings_grade_`;
 export const PRELOADED_QUESTIONS_CACHE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}preloadedQuestions_grade_`; // For persistence if needed, though usually in-memory is fine.
-export const DEFAULT_THEME = Theme.DEFAULT;
+export const DEFAULT_THEME = Theme.FRUTIGER_AERO; // Updated Default Theme
 export const SELECTED_THEME_KEY = `${LOCAL_STORAGE_PREFIX}selectedTheme`;
