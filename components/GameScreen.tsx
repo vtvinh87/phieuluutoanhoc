@@ -60,8 +60,8 @@ import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
 import ThemeSelectionScreen from './ThemeSelectionScreen'; 
+import FireworksCanvas from './FireworksCanvas'; // Import the new component
 import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken } from './icons'; 
-import confetti from 'canvas-confetti';
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
 
@@ -112,6 +112,7 @@ const GameScreen: React.FC = () => {
   const audioCache = useRef<Record<string, HTMLAudioElement>>({});
 
   const [preloadedQuestionsCache, setPreloadedQuestionsCache] = useState<PreloadedQuestionsCache>({});
+  const [showCustomFireworks, setShowCustomFireworks] = useState(false);
 
   const unlockAudioContext = useCallback(() => {
     if (!audioUnlocked) {
@@ -212,91 +213,29 @@ const GameScreen: React.FC = () => {
     }
   }, [gameState, transitionDetails]);
 
-  const triggerConfettiStars = useCallback(() => { 
-    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
-    const duration = 2 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
-      const particleCount = 70 * (timeLeft / duration); 
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#FFC107', '#FFEB3B', '#CDDC39', '#FFFFFF', '#4CAF50'] });
-    }, 250);
-  }, [playSound, audioUnlocked]);
-
-  const triggerStarRainEffect = useCallback(() => {
-    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
-
-      confetti({
-        particleCount: 4, 
-        startVelocity: 0,
-        ticks: 300 + Math.random() * 200, 
-        origin: { x: Math.random(), y: Math.random() * 0.4 - 0.2 }, 
-        colors: ['#FFD700', '#FFFFE0', '#FFFACD', '#F0E68C'],
-        shapes: ['star'],
-        gravity: 0.2 + Math.random() * 0.2, 
-        scalar: Math.random() * 0.5 + 0.5,
-        drift: Math.random() * 0.5 - 0.25,
-        zIndex: 1000,
-      });
-    }, 100);
-  }, [playSound, audioUnlocked]);
-
-  const triggerFireworksEffect = useCallback(() => {
-    if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.8); 
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 25, spread: 360, ticks: 100, zIndex: 1000, gravity: 0.6 };
-
-    function fire(particleRatio: number, opts: confetti.Options) {
-      confetti(Object.assign({}, defaults, opts, {
-        particleCount: Math.floor(250 * particleRatio) 
-      }));
-    }
-    
-    const interval = setInterval(() => {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <=0) return clearInterval(interval);
-        const randomX = () => Math.random();
-        const randomY = () => Math.random() * 0.5 + 0.1; 
-
-        fire(0.25, { spread: 26, startVelocity: 55, origin: { x: randomX(), y: randomY() } });
-        fire(0.2, { spread: 60, origin: { x: randomX(), y: randomY() } });
-        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: randomX(), y: randomY() } });
-        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, origin: { x: randomX(), y: randomY() } });
-        fire(0.1, { spread: 120, startVelocity: 45, origin: { x: randomX(), y: randomY() } });
-    }, 400);
-
-  }, [playSound, audioUnlocked]);
-
+  // Effect for custom fireworks duration and cleanup
   useEffect(() => {
-    if (gameState === 'IslandComplete' && currentIslandId && selectedIslandDifficulty) {
-        const starsAchievedForEffect = islandStarRatings[currentIslandId] || 0;
-        const perfectRun = starsAchievedForEffect === 5;
-
-        if (perfectRun) {
-            if (selectedIslandDifficulty === IslandDifficulty.HARD) {
-                triggerFireworksEffect();
-            } else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) {
-                triggerStarRainEffect();
-            } else { 
-                triggerConfettiStars(); 
-            }
-        } else {
-            if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6); 
-        }
+    let fireworksTimer: NodeJS.Timeout | null = null;
+    if (showCustomFireworks) {
+      if (gameState === 'IslandComplete') {
+        // Fireworks are on, and we are on the correct screen
+        fireworksTimer = setTimeout(() => {
+          setShowCustomFireworks(false);
+        }, 7000); // Custom fireworks last 7 seconds
+      } else {
+        // Fireworks are on, but we are NOT on IslandComplete screen (e.g., navigated away)
+        // Turn them off immediately.
+        setShowCustomFireworks(false); 
+      }
     }
-  }, [gameState, selectedIslandDifficulty, triggerConfettiStars, triggerStarRainEffect, triggerFireworksEffect, playSound, audioUnlocked, islandStarRatings, currentIslandId]);
+    // If showCustomFireworks is false, no timer needed, no action.
+  
+    return () => {
+      if (fireworksTimer) {
+        clearTimeout(fireworksTimer);
+      }
+    };
+  }, [showCustomFireworks, gameState]);
 
 
   const currentIslandConfig = currentIslandId ? islandsForCurrentGrade.find(island => island.islandId === currentIslandId) : null;
@@ -615,7 +554,7 @@ const GameScreen: React.FC = () => {
     if (currentQuestionIndexInIsland < questionsForCurrentIsland.length - 1) {
       resetForNewQuestion(); 
       setCurrentQuestionIndexInIsland(prev => prev + 1);
-    } else {
+    } else { // Island is complete
       const completedIslandId = currentIslandId;
       let starsEarned = 0; 
       
@@ -641,11 +580,6 @@ const GameScreen: React.FC = () => {
         const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1];
         if (nextIslandInGrade) {
             updatedProgress[nextIslandInGrade.islandId] = 'unlocked';
-            // For the newly unlocked island, preload all its difficulties when returning to map,
-            // or rely on the N+1 preloader if player immediately goes to next island.
-            // The existing IslandMap preloader will cover this.
-            // If the player chooses to go to Next Island immediately, the N+1 preloader 
-            // will try to load the *same difficulty* for it.
         }
       }
       setIslandProgress(updatedProgress);
@@ -654,12 +588,17 @@ const GameScreen: React.FC = () => {
       const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgress[island.islandId] === 'completed');
       
       if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
+          if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); // Consider if GradeComplete also needs fireworks
+          setShowCustomFireworks(true); // For GradeComplete as well, potentially
           setGameState('GradeComplete');
       } else {
-          setGameState('IslandComplete');
+          // Island is complete, but not the whole grade
+          if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
+          setShowCustomFireworks(true); // Trigger fireworks immediately
+          setGameState('IslandComplete'); // Then show the modal
       }
     }
-  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings]);
+  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
@@ -728,6 +667,25 @@ const GameScreen: React.FC = () => {
         }
     });
     setGameState('Transitioning');
+  };
+
+  const handlePlayIslandAgain = () => {
+    unlockAudioContext();
+    playSound(BUTTON_CLICK_SOUND_URL);
+    if (currentIslandId && selectedGrade && selectedIslandDifficulty && currentIslandConfig) {
+      resetForNewIslandPlay(); 
+      // Questions for the current island are already set, so no need to fetch them again.
+      
+      setTransitionDetails({
+        message: STARTING_ISLAND_TEXT(currentIslandConfig.name, ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]),
+        duration: 700,
+        onComplete: () => setGameState('IslandPlaying')
+      });
+      setGameState('Transitioning');
+    } else {
+      console.warn("Cannot play island again: missing island context.");
+      handleBackToMap(); // Fallback if context is lost
+    }
   };
   
   const handlePlayThisGradeAgain = () => {
@@ -1128,7 +1086,8 @@ const GameScreen: React.FC = () => {
 
     return (
       <div className="w-full animate-fadeInScale">
-        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+        {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} />}
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
           {specialCelebrationText && (
             <div className="my-3 flex items-center justify-center gap-2 animate-subtle-shine">
               <p className="text-4xl font-extrabold text-[var(--title-text-gradient-from)] drop-shadow-lg">{specialCelebrationText}</p>
@@ -1145,13 +1104,20 @@ const GameScreen: React.FC = () => {
 
           <p className="text-3xl font-bold mb-4">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
           <p className="text-xl mb-4">Bạn được thưởng +1 lượt thử! Hiện có: {playerLives}/{MAX_PLAYER_LIVES} lượt.</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
               <button
-              onClick={handleBackToMap}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-              className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
+                onClick={handleBackToMap}
+                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
               >
-              {BACK_TO_MAP_TEXT}
+                {BACK_TO_MAP_TEXT}
+              </button>
+              <button
+                onClick={handlePlayIslandAgain}
+                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
+              >
+                {PLAY_AGAIN_TEXT}
               </button>
               {canGoToNextIsland && nextIsland && (
                   <button
@@ -1171,7 +1137,8 @@ const GameScreen: React.FC = () => {
   if (gameState === 'GradeComplete' && selectedGrade) {
      return (
       <div className="w-full animate-fadeInScale">
-        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
+      {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} />} {/* Ensure fireworks can show on GradeComplete too */}
+        <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-[990]`}>
           <SparklesIcon className="w-24 h-24 mx-auto mb-6 text-white animate-subtle-shine"/>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1>
           <p className="text-2xl mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>
@@ -1320,3 +1287,4 @@ const GameScreen: React.FC = () => {
 };
 
 export default GameScreen;
+    
