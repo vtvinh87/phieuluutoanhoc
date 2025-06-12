@@ -4,6 +4,8 @@ import { Theme } from './types';
 export interface ThemeConfig {
   name: string;
   backgroundUrl: string;
+  backgroundUrlSideBySideLayout?: string; // For desktop-like layout (panels next to each other)
+  backgroundUrlStackedLayout?: string;    // For mobile-like layout (panels stacked)
   // Primary colors
   primaryBg: string; 
   primaryText: string;
@@ -65,6 +67,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   [Theme.DEFAULT]: { // This will now effectively be Frutiger Aero due to constants.ts change
     name: "Frutiger Aero",
     backgroundUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', // Abstract light blue/cyan, airy
+    backgroundUrlSideBySideLayout: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', 
+    backgroundUrlStackedLayout: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', 
     primaryBg: 'bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/30', // For cards within appContainer
     primaryText: '#075985', // sky-800
     secondaryBg: 'bg-sky-50/50 backdrop-blur-sm rounded-xl shadow-md border border-white/20',
@@ -112,6 +116,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   [Theme.FRUTIGER_AERO]: { // Explicit definition for Frutiger Aero
     name: "Frutiger Aero",
     backgroundUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920',
+    backgroundUrlSideBySideLayout: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', 
+    backgroundUrlStackedLayout: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjI1MDI2NHw&ixlib=rb-4.0.3&q=80&w=1920', 
     primaryBg: 'bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/30',
     primaryText: '#075985', 
     secondaryBg: 'bg-sky-50/50 backdrop-blur-sm rounded-xl shadow-md border border-white/20',
@@ -158,7 +164,9 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   },
   [Theme.NEON]: {
     name: "Chiến Binh Neon",
-    backgroundUrl: 'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8cmFuZG9tfHx8fHx8fHx8MTcyMjE3MDExMXw&ixlib=rb-4.0.3&q=80&w=1920', // Neon/Synthwave style
+    backgroundUrl: 'https://i.ibb.co/fzDtLHPf/hinh-nen-neon.png', 
+    backgroundUrlSideBySideLayout: 'https://i.ibb.co/FLydf7tV/hinh-nen-neon-98.png', 
+    backgroundUrlStackedLayout: 'https://i.ibb.co/TDkFzj1B/hinh-nen-neon-89.png',    
     primaryBg: '#0a0f14', 
     primaryText: '#00f5d4', 
     secondaryBg: 'rgba(12, 29, 45, 0.95)', 
@@ -205,7 +213,9 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   },
   [Theme.GIRLY]: {
     name: "Công Chúa Lấp Lánh",
-    backgroundUrl: 'https://png.pngtree.com/background/20250208/original/pngtree-glimmering-pink-background-with-textured-glitter-design-picture-image_13423197.jpg',
+    backgroundUrl: 'https://i.ibb.co/wbKNxhc/Hinh-nen-girly.png',
+    backgroundUrlSideBySideLayout: 'https://i.ibb.co/nsc1hh6P/hinh-nen-girly-89.png', // Swapped
+    backgroundUrlStackedLayout: 'https://i.ibb.co/DfRQBrs7/hinh-nen-girly-98.png',   // Swapped 
     primaryBg: 'bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-pink-200/50', 
     primaryText: '#86198f', // purple-800
     secondaryBg: 'bg-pink-50/70 backdrop-blur-sm rounded-xl shadow-md border border-pink-100/50', 
