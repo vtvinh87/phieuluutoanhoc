@@ -40,15 +40,15 @@ import {
   LAST_SELECTED_GRADE_KEY,
   ISLAND_PROGRESS_KEY_PREFIX,
   OVERALL_SCORE_KEY_PREFIX,
-  HOVER_SOUND_URL,
-  GRADE_SELECT_SOUND_URL,
-  ISLAND_SELECT_SOUND_URL,
-  ANSWER_SELECT_SOUND_URL,
-  CHECK_ANSWER_SOUND_URL,
-  CORRECT_ANSWER_SOUND_URL,
-  INCORRECT_ANSWER_SOUND_URL,
-  VICTORY_FANFARE_SOUND_URL,
-  BUTTON_CLICK_SOUND_URL,
+  HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL,
+  GRADE_SELECT_SOUND_FILENAME, GRADE_SELECT_SOUND_REMOTE_URL,
+  ISLAND_SELECT_SOUND_FILENAME, ISLAND_SELECT_SOUND_REMOTE_URL,
+  ANSWER_SELECT_SOUND_FILENAME, ANSWER_SELECT_SOUND_REMOTE_URL,
+  CHECK_ANSWER_SOUND_FILENAME, CHECK_ANSWER_SOUND_REMOTE_URL,
+  CORRECT_ANSWER_SOUND_FILENAME, CORRECT_ANSWER_SOUND_REMOTE_URL,
+  INCORRECT_ANSWER_SOUND_FILENAME, INCORRECT_ANSWER_SOUND_REMOTE_URL,
+  VICTORY_FANFARE_SOUND_FILENAME, VICTORY_FANFARE_SOUND_REMOTE_URL,
+  BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL,
   SELECTED_THEME_KEY,
   DEFAULT_THEME,
 } from '../constants';
@@ -123,33 +123,70 @@ const GameScreen: React.FC = () => {
     }
   }, [audioUnlocked]);
 
-  const playSound = useCallback((soundUrl: string, volume: number = 0.5) => {
+  const playSound = useCallback((filename: string, remoteUrl: string, volume: number = 0.5) => {
     if (!audioUnlocked) return;
-    if (!soundUrl || soundUrl.startsWith("YOUR_") || soundUrl.endsWith("_HERE")) return;
+    if (!filename || !remoteUrl) {
+        console.warn("playSound called with missing filename or remoteUrl");
+        return;
+    }
 
-    try {
-      let audio = audioCache.current[soundUrl];
-      if (!audio) {
-        audio = new Audio(soundUrl);
+    const cachedAudio = audioCache.current[filename];
+    if (cachedAudio && cachedAudio.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        cachedAudio.currentTime = 0;
+        cachedAudio.volume = volume;
+        cachedAudio.play().catch(e => console.error("Cached sound play error:", e, cachedAudio.src));
+        return;
+    } else if (cachedAudio) { // Cached but not ready
+        delete audioCache.current[filename]; // Force reload
+    }
+
+    const localSoundPath = `/sounds/${filename}`;
+    let audio: HTMLAudioElement | null = new Audio(localSoundPath);
+    audio.volume = volume;
+
+    const playAudioAndCache = (loadedAudio: HTMLAudioElement, source: string) => {
+        loadedAudio.currentTime = 0;
+        loadedAudio.play().catch(e => console.error(`${source} sound play error:`, e, loadedAudio.src));
+        audioCache.current[filename] = loadedAudio;
+    };
+
+    const tryRemote = () => {
+        if (!audio) return; // Should not happen if error leads here
+        console.warn(`Local sound ${localSoundPath} failed. Trying remote: ${remoteUrl}`);
+        
+        // Clean up the failed local audio object before creating a new one
+        audio.src = ''; // Detach src
+        audio.load(); // Abort current load if any
+        
+        audio = new Audio(remoteUrl);
         audio.volume = volume;
-        audio.onerror = () => { delete audioCache.current[soundUrl]; };
-        audioCache.current[soundUrl] = audio;
-      }
-      
-      if (audio.readyState >= 2) { 
-        audio.currentTime = 0; 
-        audio.play().catch(_e => {});
-      } else {
-        const playWhenReady = () => {
-            audio.currentTime = 0;
-            audio.play().catch(_e => {});
-            audio.removeEventListener('canplaythrough', playWhenReady);
-        };
-        audio.addEventListener('canplaythrough', playWhenReady);
-        audio.load(); 
-      }
-    } catch (error) {}
-  }, [audioUnlocked, audioCache]);
+
+        audio.addEventListener('canplaythrough', () => {
+            if (!audio) return;
+            playAudioAndCache(audio, 'Remote');
+        }, { once: true });
+
+        audio.addEventListener('error', () => {
+            console.error(`Remote sound ${remoteUrl} also failed to load.`);
+            delete audioCache.current[filename];
+            audio = null; // Release
+        }, { once: true });
+        audio.load();
+    };
+
+    audio.addEventListener('canplaythrough', () => {
+        if (!audio) return;
+        playAudioAndCache(audio, 'Local');
+    }, { once: true });
+
+    audio.addEventListener('error', () => {
+        if (!audio) return; 
+        tryRemote();
+    }, { once: true });
+
+    audio.load();
+
+}, [audioUnlocked, audioCache]);
 
 
   const loadLastSelectedGrade = (): GradeLevel | null => {
@@ -190,7 +227,11 @@ const GameScreen: React.FC = () => {
       applyNewTheme(DEFAULT_THEME);
     }
     document.addEventListener('click', unlockAudioContext, { once: true });
-    return () => document.removeEventListener('click', unlockAudioContext);
+    document.addEventListener('touchstart', unlockAudioContext, { once: true });
+    return () => {
+        document.removeEventListener('click', unlockAudioContext);
+        document.removeEventListener('touchstart', unlockAudioContext);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlockAudioContext, applyNewTheme]); 
 
@@ -454,7 +495,7 @@ const GameScreen: React.FC = () => {
   const handleGradeSelect = (grade: GradeLevel, isAutoLoading = false) => {
     if (!isAutoLoading) { 
         unlockAudioContext(); 
-        playSound(GRADE_SELECT_SOUND_URL, 0.7);
+        playSound(GRADE_SELECT_SOUND_FILENAME, GRADE_SELECT_SOUND_REMOTE_URL, 0.7);
     }
     resetForNewGradeJourney(); 
     setSelectedGrade(grade);
@@ -500,18 +541,18 @@ const GameScreen: React.FC = () => {
     const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandId);
 
     if (islandConfig && (status === 'unlocked' || status === 'completed')) {
-        playSound(ISLAND_SELECT_SOUND_URL, 0.6);
+        playSound(ISLAND_SELECT_SOUND_FILENAME, ISLAND_SELECT_SOUND_REMOTE_URL, 0.6);
         setCurrentIslandId(islandId); 
         setShowDifficultySelectionModalForIslandId(islandId);
     } else {
-        playSound(INCORRECT_ANSWER_SOUND_URL, 0.3);
+        playSound(INCORRECT_ANSWER_SOUND_FILENAME, INCORRECT_ANSWER_SOUND_REMOTE_URL, 0.3);
         alert(LOCKED_ISLAND_TEXT); 
     }
   };
 
   const handleDifficultySelected = (difficulty: IslandDifficulty) => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (!currentIslandId) return; 
     
     const islandConfigToLoad = islandsForCurrentGrade.find(i => i.islandId === currentIslandId);
@@ -578,11 +619,11 @@ const GameScreen: React.FC = () => {
       const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgress[island.islandId] === 'completed');
       
       if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
-          if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
+          if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_FILENAME, VICTORY_FANFARE_SOUND_REMOTE_URL, 0.7); 
           setShowCustomFireworks(true); 
           setGameState('GradeComplete');
       } else {
-          if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
+          if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_FILENAME, VICTORY_FANFARE_SOUND_REMOTE_URL, 0.6);
           setShowCustomFireworks(true); 
           setGameState('IslandComplete'); 
       }
@@ -592,12 +633,12 @@ const GameScreen: React.FC = () => {
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
     if (!selectedAnswer || !currentQuestion || !selectedGrade) return;
-    playSound(CHECK_ANSWER_SOUND_URL, 0.6);
+    playSound(CHECK_ANSWER_SOUND_FILENAME, CHECK_ANSWER_SOUND_REMOTE_URL, 0.6);
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     setUserAttemptShown(true); 
 
     if (isCorrect) {
-      playSound(CORRECT_ANSWER_SOUND_URL, 0.5);
+      playSound(CORRECT_ANSWER_SOUND_FILENAME, CORRECT_ANSWER_SOUND_REMOTE_URL, 0.5);
       setFeedback({ isCorrect: true, message: "Chính xác! Tuyệt vời!" });
       setRevealSolution(true); 
       const pointsEarned = hintButtonUsed ? 2 : 5; 
@@ -609,7 +650,7 @@ const GameScreen: React.FC = () => {
         handleNextQuestionInIsland(); 
       }, 1500);
     } else {
-      playSound(INCORRECT_ANSWER_SOUND_URL, 0.4);
+      playSound(INCORRECT_ANSWER_SOUND_FILENAME, INCORRECT_ANSWER_SOUND_REMOTE_URL, 0.4);
       const newPlayerLives = playerLives - 1;
       
       if (newPlayerLives > 0) {
@@ -634,7 +675,7 @@ const GameScreen: React.FC = () => {
   
   const handleBackToMap = () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (!selectedGrade) return;
     const allGradeIslandsCompleted = islandsForCurrentGrade.every(island => islandProgress[island.islandId] === 'completed');
     
@@ -660,7 +701,7 @@ const GameScreen: React.FC = () => {
 
   const handlePlayIslandAgain = () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (currentIslandId && selectedGrade && selectedIslandDifficulty && currentIslandConfig) {
       resetForNewIslandPlay(); 
       setTransitionDetails({
@@ -677,7 +718,7 @@ const GameScreen: React.FC = () => {
   
   const handlePlayThisGradeAgain = () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (selectedGrade) {
       saveOverallScoreToStorage(selectedGrade, 0);
       const initialProgressForGrade: IslandProgressState = {};
@@ -693,7 +734,7 @@ const GameScreen: React.FC = () => {
 
   const handleChooseAnotherGrade = () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     setSelectedGrade(null);
     saveLastSelectedGrade(null); 
     resetForNewGradeJourney();
@@ -702,7 +743,7 @@ const GameScreen: React.FC = () => {
 
   const handleReturnToGradeSelection = () => {
       unlockAudioContext();
-      playSound(BUTTON_CLICK_SOUND_URL);
+      playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
       setSelectedGrade(null);
       saveLastSelectedGrade(null);
       resetForNewGradeJourney();
@@ -711,7 +752,7 @@ const GameScreen: React.FC = () => {
   
   const handleRetryFetchIsland = () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (currentIslandId && selectedGrade && selectedIslandDifficulty) { 
         setPreloadedQuestionsCache(prev => ({
             ...prev,
@@ -747,7 +788,7 @@ const GameScreen: React.FC = () => {
 
   const handleHintRequest = useCallback(async () => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     if (!currentQuestion || apiKeyMissing) {
         setHint(apiKeyMissing ? API_KEY_ERROR_MESSAGE : HINT_UNAVAILABLE_MESSAGE);
         setIsHintModalOpen(true);
@@ -782,7 +823,7 @@ const GameScreen: React.FC = () => {
 
   const handleThemeChange = (newTheme: Theme) => {
     unlockAudioContext();
-    playSound(BUTTON_CLICK_SOUND_URL);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
     applyNewTheme(newTheme);
   };
 
@@ -803,6 +844,7 @@ const GameScreen: React.FC = () => {
           // Always go to GradeSelection after selecting a theme
           setGameState('GradeSelection');
         }}
+        playSound={playSound}
       />
     );
   }
@@ -815,7 +857,7 @@ const GameScreen: React.FC = () => {
          <h1 className="text-3xl font-bold mb-4">Lỗi Cấu Hình</h1>
          <p className="text-xl mb-6">{API_KEY_ERROR_MESSAGE}</p>
           <button
-            onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); window.location.reload(); }}
+            onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL); window.location.reload(); }}
             className="bg-[var(--button-primary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-6 rounded-lg"
         >
             Tải Lại Trang
@@ -850,7 +892,7 @@ const GameScreen: React.FC = () => {
         <p className="text-xl mb-6">{loadingError || "Đã có lỗi xảy ra."}</p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
-              onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleReturnToGradeSelection(); }}
+              onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL); handleReturnToGradeSelection(); }}
               className="bg-[var(--button-secondary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-6 rounded-lg"
             >
               {RETURN_TO_GRADE_SELECTION_TEXT}
@@ -882,7 +924,7 @@ const GameScreen: React.FC = () => {
                 <button
                   key={gradeValue}
                   onClick={() => handleGradeSelect(gradeValue as GradeLevel)}
-                  onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                  onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                   className="p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 active:scale-95 active:brightness-90 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold text-2xl"
                 >
                   {GRADE_LEVEL_TEXT_MAP[gradeValue as GradeLevel]}
@@ -897,7 +939,7 @@ const GameScreen: React.FC = () => {
                   <button
                       key={themeItem}
                       onClick={() => handleThemeChange(themeItem)}
-                      onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                      onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                       className={`p-3 rounded-lg shadow-md transition-all transform hover:scale-105 active:scale-95 active:brightness-90 text-lg font-semibold w-full flex items-center justify-center gap-2 border-2
                                   ${theme === themeItem ? 'border-[var(--accent-color)] ring-4 ring-[var(--ring-color-focus)]' : 'border-transparent'}
                                   ${themeItem === Theme.NEON ? 'bg-[#0d1117] text-[#30c5ff]' : 'bg-[#fdf2f8] text-[#c026d3]'}`}
@@ -925,10 +967,11 @@ const GameScreen: React.FC = () => {
             islandName={islandForDifficultyModal.name}
             onClose={() => {
                 unlockAudioContext();
-                playSound(BUTTON_CLICK_SOUND_URL);
+                playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL);
                 setShowDifficultySelectionModalForIslandId(null);
             }}
             onSelectDifficulty={handleDifficultySelected}
+            playSound={playSound}
         />
     );
   }
@@ -970,7 +1013,7 @@ const GameScreen: React.FC = () => {
               </h1>
               <button 
                   onClick={handleChooseAnotherGrade}
-                  onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                  onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                   className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-4 rounded-lg shadow-md text-sm"
               >
                   {CHOOSE_ANOTHER_GRADE_TEXT}
@@ -1014,7 +1057,7 @@ const GameScreen: React.FC = () => {
                 <button
                   key={island.islandId}
                   onClick={() => !isDisabled && handleIslandSelect(island.islandId)}
-                  onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_URL, 0.2)}
+                  onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                   disabled={isDisabled}
                   className={`p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${currentBgColor} ${currentTextColor} min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ring-[var(--island-button-ring-color)] 
                               ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 active:brightness-90'}
@@ -1090,14 +1133,14 @@ const GameScreen: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
               <button
                 onClick={handleBackToMap}
-                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                 className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
               >
                 {BACK_TO_MAP_TEXT}
               </button>
               <button
                 onClick={handlePlayIslandAgain}
-                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                 className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
               >
                 {PLAY_AGAIN_TEXT}
@@ -1106,10 +1149,10 @@ const GameScreen: React.FC = () => {
                   <button
                       onClick={() => { 
                           unlockAudioContext(); 
-                          playSound(BUTTON_CLICK_SOUND_URL); 
+                          playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL); 
                           handleIslandSelect(nextIsland.islandId); 
                       }}
-                      onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                      onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
                       className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg"
                   >
                       {NEXT_ISLAND_BUTTON_TEXT}
@@ -1133,14 +1176,14 @@ const GameScreen: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button
               onClick={handlePlayThisGradeAgain}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               className="bg-[var(--correct-bg)] hover:opacity-90 active:brightness-90 text-[var(--correct-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
               >
               {PLAY_THIS_GRADE_AGAIN_TEXT}
               </button>
               <button
               onClick={handleChooseAnotherGrade}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
               >
               {CHOOSE_ANOTHER_GRADE_TEXT}
@@ -1165,7 +1208,7 @@ const GameScreen: React.FC = () => {
           <header className="mb-6 text-center relative">
             <button 
               onClick={handleBackToMap}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               className="absolute top-0 left-0 mt-[-8px] ml-[-8px] md:mt-0 md:ml-0 bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-3 rounded-lg shadow-md text-sm z-10"
               aria-label="Trở về bản đồ"
               disabled={userAttemptShown && !revealSolution && playerLives > 0} 
@@ -1212,7 +1255,7 @@ const GameScreen: React.FC = () => {
                 optionText={option}
                 onClick={() => { 
                   unlockAudioContext();
-                  playSound(ANSWER_SELECT_SOUND_URL, 0.4); 
+                  playSound(ANSWER_SELECT_SOUND_FILENAME, ANSWER_SELECT_SOUND_REMOTE_URL, 0.4); 
                   setSelectedAnswer(option); 
                 }}
                 disabled={!canAttempt || isQuestionResolved} 
@@ -1229,7 +1272,7 @@ const GameScreen: React.FC = () => {
           <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <button
               onClick={handleHintRequest}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               disabled={isHintLoading || hintButtonUsed || !canAttempt || isQuestionResolved}
               className="flex items-center justify-center gap-2 bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
             >
@@ -1239,7 +1282,7 @@ const GameScreen: React.FC = () => {
 
             <button
               onClick={handleAnswerSubmit}
-              onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               disabled={!selectedAnswer || !canAttempt || isQuestionResolved}
               className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 text-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 w-full md:w-auto"
             >
@@ -1259,7 +1302,7 @@ const GameScreen: React.FC = () => {
             isOpen={isHintModalOpen}
             onClose={() => { 
               unlockAudioContext();
-              playSound(BUTTON_CLICK_SOUND_URL); 
+              playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL); 
               setIsHintModalOpen(false); 
             }}
             hint={hint}

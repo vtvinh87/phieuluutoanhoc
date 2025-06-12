@@ -1,21 +1,26 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Theme } from '../types';
 import { THEME_CONFIGS, ThemeConfig } from '../themes';
-import { HOVER_SOUND_URL } from '../constants';
+import { HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL } from '../constants';
 
 interface ThemeSelectionScreenProps {
   onThemeSelect: (theme: Theme) => void;
+  playSound: (filename: string, remoteUrl: string, volume?: number) => void; // Added for click sound
 }
 
 interface ThemeOptionPanelProps {
   theme: Theme;
   config: ThemeConfig;
   onClick: () => void;
+  // playSound prop is not needed here if hover sound is handled internally
 }
 
 const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onClick }) => {
   const [currentBackgroundImageUrl, setCurrentBackgroundImageUrl] = useState(config.backgroundUrl);
+  // Audio object ref for hover sound to manage its lifecycle if needed (e.g., stop on mouse out)
+  const hoverAudioRef = useRef<HTMLAudioElement | null>(null);
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)'); // Tailwind's md breakpoint
@@ -53,15 +58,27 @@ const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onCl
   }, [config]);
 
 
-  const playHoverSound = () => {
-    try {
-      const audio = new Audio(HOVER_SOUND_URL);
-      audio.volume = 0.2;
-      audio.play().catch(e => console.warn("Theme hover sound play error:", e));
-    } catch (error) {
-      console.warn("Theme hover sound init error:", error);
-    }
-  };
+  const playHoverSound = useCallback(() => {
+    // Basic local/remote fallback for hover sound
+    // This is a simplified version, not using GameScreen's cache for this specific UI interaction.
+    const localPath = `/sounds/${HOVER_SOUND_FILENAME}`;
+    let audio = new Audio(localPath);
+    audio.volume = 0.2;
+
+    audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(e => console.warn("Theme hover (local) sound play error:", e));
+    }, { once: true });
+
+    audio.addEventListener('error', () => {
+        console.warn(`Local hover sound ${localPath} failed. Trying remote.`);
+        audio = new Audio(HOVER_SOUND_REMOTE_URL);
+        audio.volume = 0.2;
+        audio.play().catch(e => console.warn("Theme hover (remote) sound play error:", e));
+    }, { once: true });
+    
+    audio.load();
+    hoverAudioRef.current = audio; // Store for potential future control (e.g., stop)
+  }, []);
 
   const titleColor = "text-white"; 
   const titleShadow = "shadow-[0_2px_8px_rgba(0,0,0,0.7)]";
@@ -111,6 +128,8 @@ const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({ onThemeSele
   const girlyThemeConfig = THEME_CONFIGS[Theme.GIRLY];
 
   const handleSelect = (theme: Theme) => {
+    // The click sound for selecting a theme is handled by `handleThemeChange` in GameScreen,
+    // which is called by the `onThemeSelect` prop. So, no separate playSound call needed here for the *click*.
     onThemeSelect(theme);
   };
   

@@ -1,7 +1,12 @@
 
 import React from 'react';
 import { IslandDifficulty } from '../types';
-import { ISLAND_DIFFICULTY_TEXT_MAP, CHOOSE_ISLAND_DIFFICULTY_TEXT, BUTTON_CLICK_SOUND_URL, HOVER_SOUND_URL } from '../constants';
+import { 
+    ISLAND_DIFFICULTY_TEXT_MAP, 
+    CHOOSE_ISLAND_DIFFICULTY_TEXT, 
+    BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL,
+    HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL
+} from '../constants';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface DifficultySelectionModalProps {
@@ -9,6 +14,7 @@ interface DifficultySelectionModalProps {
   islandName: string;
   onClose: () => void;
   onSelectDifficulty: (difficulty: IslandDifficulty) => void;
+  playSound: (filename: string, remoteUrl: string, volume?: number) => void;
 }
 
 const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
@@ -16,22 +22,13 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
   islandName,
   onClose,
   onSelectDifficulty,
+  playSound,
 }) => {
   const { themeConfig } = useTheme();
   if (!isOpen) return null;
 
-  const playSoundLocal = (soundUrl: string, volume: number = 0.5) => {
-    try {
-        const audio = new Audio(soundUrl);
-        audio.volume = volume;
-        audio.play().catch(e => console.warn("Sound play error in modal:", e));
-    } catch (error) {
-        console.warn("Sound init error in modal:", error);
-    }
-  };
-
   const handleDifficultyClick = (difficulty: IslandDifficulty) => {
-    playSoundLocal(BUTTON_CLICK_SOUND_URL, 0.6);
+    playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL, 0.6);
     onSelectDifficulty(difficulty);
   };
 
@@ -63,7 +60,7 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
         onClick={(e) => e.stopPropagation()} 
       >
         <button
-          onClick={() => { playSoundLocal(BUTTON_CLICK_SOUND_URL); onClose(); }}
+          onClick={() => { playSound(BUTTON_CLICK_SOUND_FILENAME, BUTTON_CLICK_SOUND_REMOTE_URL); onClose(); }}
           className="absolute top-4 right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors" // Adjusted position
           aria-label="Đóng lựa chọn độ khó"
         >
@@ -87,7 +84,7 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
             <button
               key={difficulty}
               onClick={() => handleDifficultyClick(difficulty)}
-              onMouseEnter={() => playSoundLocal(HOVER_SOUND_URL, 0.2)}
+              onMouseEnter={() => playSound(HOVER_SOUND_FILENAME, HOVER_SOUND_REMOTE_URL, 0.2)}
               className={`w-full p-4 rounded-lg shadow-md transition-all duration-200 ease-in-out
                           text-lg md:text-xl font-semibold focus:outline-none focus:ring-4 transform hover:scale-105 active:scale-95 active:brightness-90
                           ${getDifficultyButtonColors(difficulty)}
