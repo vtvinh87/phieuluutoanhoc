@@ -28,39 +28,18 @@ export const ISLAND_DIFFICULTY_TEXT_MAP: Record<IslandDifficulty, string> = {
   [IslandDifficulty.HARD]: "Khó",
 };
 
-// Sound Effect Filenames and Remote URLs
-export const HOVER_SOUND_FILENAME = "click-21156.mp3";
-export const HOVER_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2022/02/17/audio_988aaf064c.mp3?filename=click-21156.mp3";
-
-export const GRADE_SELECT_SOUND_FILENAME = "select-003-337609.mp3";
-export const GRADE_SELECT_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
-
-export const ISLAND_SELECT_SOUND_FILENAME = "select-003-337609.mp3"; // Same as grade select
-export const ISLAND_SELECT_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
-
-export const ANSWER_SELECT_SOUND_FILENAME = "button-305770.mp3";
-export const ANSWER_SELECT_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/02/25/audio_07b0c21a3b.mp3?filename=button-305770.mp3";
-
-export const CHECK_ANSWER_SOUND_FILENAME = "impact-cinematic-boom-5-352465.mp3";
-export const CHECK_ANSWER_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/05/31/audio_be1e4daf3e.mp3?filename=impact-cinematic-boom-5-352465.mp3";
-
-export const CORRECT_ANSWER_SOUND_FILENAME = "level-up-5-326133.mp3";
-export const CORRECT_ANSWER_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/04/11/audio_3933ad0008.mp3?filename=level-up-5-326133.mp3";
-
-export const INCORRECT_ANSWER_SOUND_FILENAME = "error-11-352286.mp3";
-export const INCORRECT_ANSWER_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2025/05/31/audio_e9d22d9131.mp3?filename=error-11-352286.mp3";
-
-export const VICTORY_FANFARE_SOUND_FILENAME = "brass-fanfare-with-timpani-and-winchimes-reverberated-146260.mp3";
-export const VICTORY_FANFARE_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2023/04/13/audio_c18d89e292.mp3?filename=brass-fanfare-with-timpani-and-winchimes-reverberated-146260.mp3";
-
-export const BUTTON_CLICK_SOUND_FILENAME = "select-sound-121244.mp3";
-export const BUTTON_CLICK_SOUND_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
-
-export const FIREWORK_EXPLOSION_SOUND_1_FILENAME = "medium-explosion-40472.mp3";
-export const FIREWORK_EXPLOSION_SOUND_1_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_174242f3f4.mp3?filename=medium-explosion-40472.mp3";
-
-export const FIREWORK_EXPLOSION_SOUND_2_FILENAME = "firework_single-83058.mp3";
-export const FIREWORK_EXPLOSION_SOUND_2_REMOTE_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c64e01b884.mp3?filename=firework_single-83058.mp3";
+// Sound Effect URLs - Updated with user-provided Pixabay links
+export const HOVER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/02/17/audio_988aaf064c.mp3?filename=click-21156.mp3";
+export const GRADE_SELECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
+export const ISLAND_SELECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
+export const ANSWER_SELECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/02/25/audio_07b0c21a3b.mp3?filename=button-305770.mp3";
+export const CHECK_ANSWER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/31/audio_be1e4daf3e.mp3?filename=impact-cinematic-boom-5-352465.mp3";
+export const CORRECT_ANSWER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/04/11/audio_3933ad0008.mp3?filename=level-up-5-326133.mp3";
+export const INCORRECT_ANSWER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/31/audio_e9d22d9131.mp3?filename=error-11-352286.mp3";
+export const VICTORY_FANFARE_SOUND_URL = "https://cdn.pixabay.com/download/audio/2023/04/13/audio_c18d89e292.mp3?filename=brass-fanfare-with-timpani-and-winchimes-reverberated-146260.mp3";
+export const BUTTON_CLICK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
+export const FIREWORK_EXPLOSION_SOUND_1_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_174242f3f4.mp3?filename=medium-explosion-40472.mp3";
+export const FIREWORK_EXPLOSION_SOUND_2_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c64e01b884.mp3?filename=firework_single-83058.mp3";
 
 
 // Island Configuration - Updated based on curriculum summary

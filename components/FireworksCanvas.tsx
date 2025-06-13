@@ -1,13 +1,10 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
-import { 
-    FIREWORK_EXPLOSION_SOUND_1_FILENAME, FIREWORK_EXPLOSION_SOUND_1_REMOTE_URL,
-    FIREWORK_EXPLOSION_SOUND_2_FILENAME, FIREWORK_EXPLOSION_SOUND_2_REMOTE_URL 
-} from '../constants';
+import { FIREWORK_EXPLOSION_SOUND_1_URL, FIREWORK_EXPLOSION_SOUND_2_URL } from '../constants';
 
 interface FireworksCanvasProps {
   isActive: boolean; // Controls if animation runs and new fireworks are launched
-  playSound: (filename: string, remoteUrl: string, volume?: number) => void;
+  playSound: (soundUrl: string, volume?: number) => void;
   audioUnlocked: boolean;
 }
 
@@ -92,7 +89,7 @@ interface FireworkData {
   countdown: number;
   hasExploded: boolean;
   particlesArrayRef: React.MutableRefObject<ParticleData[]>;
-  playSoundFunc?: (filename: string, remoteUrl: string, volume?: number) => void;
+  playSoundFunc?: (soundUrl: string, volume?: number) => void;
   audioUnlockedStatus?: boolean;
   draw: (ctx: CanvasRenderingContext2D) => void;
   update: (canvasHeight: number) => void;
@@ -109,7 +106,7 @@ class Firework implements FireworkData {
   countdown: number;
   hasExploded: boolean;
   particlesArrayRef: React.MutableRefObject<ParticleData[]>;
-  playSoundFunc?: (filename: string, remoteUrl: string, volume?: number) => void;
+  playSoundFunc?: (soundUrl: string, volume?: number) => void;
   audioUnlockedStatus?: boolean;
 
 
@@ -118,7 +115,7 @@ class Firework implements FireworkData {
     startY: number, 
     particlesArrayRef: React.MutableRefObject<ParticleData[]>, 
     targetY: number | undefined,
-    playSound: (filename: string, remoteUrl: string, volume?: number) => void,
+    playSound: (soundUrl: string, volume?: number) => void,
     audioUnlocked: boolean
     ) {
     this.x = x;
@@ -171,12 +168,9 @@ class Firework implements FireworkData {
     this.hasExploded = true;
 
     if (this.playSoundFunc && this.audioUnlockedStatus) {
-        const sounds = [
-            { filename: FIREWORK_EXPLOSION_SOUND_1_FILENAME, remoteUrl: FIREWORK_EXPLOSION_SOUND_1_REMOTE_URL },
-            { filename: FIREWORK_EXPLOSION_SOUND_2_FILENAME, remoteUrl: FIREWORK_EXPLOSION_SOUND_2_REMOTE_URL }
-        ];
+        const sounds = [FIREWORK_EXPLOSION_SOUND_1_URL, FIREWORK_EXPLOSION_SOUND_2_URL];
         const soundToPlay = sounds[Math.floor(Math.random() * sounds.length)];
-        this.playSoundFunc(soundToPlay.filename, soundToPlay.remoteUrl, 0.35); 
+        this.playSoundFunc(soundToPlay, 0.35); 
     }
 
     const explosionSize = random(120, 200); 

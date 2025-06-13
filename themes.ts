@@ -221,9 +221,9 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   },
   [Theme.GIRLY]: {
     name: "Công Chúa Lấp Lánh",
-    backgroundUrl: 'https://i.ibb.co/mFVMGDcD/hinh-nen-girly-98.png', // General fallback for Girly
-    backgroundUrlSideBySideLayout: 'https://i.ibb.co/mFVMGDcD/hinh-nen-girly-98.png', 
-    backgroundUrlStackedLayout: 'https://i.ibb.co/Mx9mFLcc/hinh-nen-girly-89.png',   
+    backgroundUrl: 'https://i.ibb.co/C3yKRPrh/hinh-nen-girly-98.png', 
+    backgroundUrlSideBySideLayout: 'https://i.ibb.co/C3yKRPrh/hinh-nen-girly-98.png', 
+    backgroundUrlStackedLayout: 'https://i.ibb.co/dJpY6M0M/hinh-nen-girly-89.png',   
     localBackgroundUrlSideBySideLayout: '/pictures/background/hinh-nen-girly-98.png',
     localBackgroundUrlStackedLayout: '/pictures/background/hinh-nen-girly-89.png',
     primaryBg: 'bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-pink-200/50', 

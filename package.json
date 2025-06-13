@@ -4,8 +4,8 @@
   "description": "Một ứng dụng học Toán vui vẻ và hấp dẫn cho học sinh tiểu học (lớp 1-5) trong kỳ nghỉ hè, giúp ôn tập kiến thức và duy trì hứng thú học tập thông qua trò chơi phiêu lưu trên Đảo Kho Báu.",
   "type": "module",
   "scripts": {
-    "dev": "esbuild index.tsx --bundle --outfile=index.js --platform=browser --format=esm --jsx=automatic --external:react --external:react-dom --external:react/jsx-runtime --external:@google/genai --external:uuid --external:canvas-confetti --servedir=. --watch",
-    "build": "rimraf dist && mkdir dist && esbuild index.tsx --bundle --outfile=dist/index.js --platform=browser --format=esm --jsx=automatic --minify --sourcemap --external:react --external:react-dom --external:react/jsx-runtime --external:@google/genai --external:uuid --external:canvas-confetti --define:process.env.API_KEY='\"'$API_KEY'\"' && cp index.html dist/index.html && cp metadata.json dist/metadata.json && node -e \"let fs=require('fs'); let html=fs.readFileSync('dist/index.html','utf8'); html=html.replace('src=\\\"/index.tsx\\\"','src=\\\"/index.js\\\"'); fs.writeFileSync('dist/index.html',html);\"",
+    "dev": "esbuild index.tsx --bundle --outfile=index.js --platform=browser --format=esm --jsx=automatic --servedir=. --watch --define:process.env.API_KEY='\"'$API_KEY'\"'",
+    "build": "rimraf dist && mkdir dist && esbuild index.tsx --bundle --outfile=dist/index.js --platform=browser --format=esm --jsx=automatic --minify --sourcemap --define:process.env.API_KEY='\"'$API_KEY'\"' && cp index.html dist/index.html && cp metadata.json dist/metadata.json && node -e \"let fs=require('fs'); let html=fs.readFileSync('dist/index.html','utf8'); html=html.replace('src=\\\"/index.tsx\\\"','src=\\\"/index.js\\\"'); fs.writeFileSync('dist/index.html',html);\"",
     "start": "npm run dev"
   },
   "dependencies": {
