@@ -170,9 +170,9 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   },
   [Theme.NEON]: {
     name: "Chiến Binh Neon",
-    backgroundUrl: 'https://i.ibb.co/5V0vDTJ/hinh-nen-neon-98.png', // General fallback for Neon
-    backgroundUrlSideBySideLayout: 'https://i.ibb.co/5V0vDTJ/hinh-nen-neon-98.png', 
-    backgroundUrlStackedLayout: 'https://i.ibb.co/KjRHFXD8/hinh-nen-neon-89.png',    
+    backgroundUrl: 'https://i.ibb.co/p65w470f/hinh-nen-neon-98.png', 
+    backgroundUrlSideBySideLayout: 'https://i.ibb.co/p65w470f/hinh-nen-neon-98.png', 
+    backgroundUrlStackedLayout: 'https://i.ibb.co/SDZd6Ppm/hinh-nen-neon-89.png',    
     localBackgroundUrlSideBySideLayout: '/pictures/background/hinh-nen-neon-98.png',
     localBackgroundUrlStackedLayout: '/pictures/background/hinh-nen-neon-89.png',
     primaryBg: '#0a0f14', 
@@ -221,9 +221,9 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   },
   [Theme.GIRLY]: {
     name: "Công Chúa Lấp Lánh",
-    backgroundUrl: 'https://i.ibb.co/C3yKRPrh/hinh-nen-girly-98.png', 
-    backgroundUrlSideBySideLayout: 'https://i.ibb.co/C3yKRPrh/hinh-nen-girly-98.png', 
-    backgroundUrlStackedLayout: 'https://i.ibb.co/dJpY6M0M/hinh-nen-girly-89.png',   
+    backgroundUrl: 'https://i.ibb.co/3ysmb9MB/hinh-nen-girly-98.png', 
+    backgroundUrlSideBySideLayout: 'https://i.ibb.co/3ysmb9MB/hinh-nen-girly-98.png', 
+    backgroundUrlStackedLayout: 'https://i.ibb.co/qLGY6TVd/hinh-nen-girly-89.png',   
     localBackgroundUrlSideBySideLayout: '/pictures/background/hinh-nen-girly-98.png',
     localBackgroundUrlStackedLayout: '/pictures/background/hinh-nen-girly-89.png',
     primaryBg: 'bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-pink-200/50', 
