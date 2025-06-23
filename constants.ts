@@ -1,4 +1,3 @@
-
 import { GradeLevel, IslandConfig, IslandDifficulty, Theme } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
@@ -40,6 +39,7 @@ export const VICTORY_FANFARE_SOUND_URL = "https://cdn.pixabay.com/download/audio
 export const BUTTON_CLICK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
 export const FIREWORK_EXPLOSION_SOUND_1_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_174242f3f4.mp3?filename=medium-explosion-40472.mp3";
 export const FIREWORK_EXPLOSION_SOUND_2_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c64e01b884.mp3?filename=firework_single-83058.mp3";
+export const ACHIEVEMENT_UNLOCKED_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
 
 
 // Island Configuration - Updated based on curriculum summary
@@ -547,6 +547,21 @@ export const LAST_SELECTED_GRADE_KEY = `${LOCAL_STORAGE_PREFIX}lastSelectedGrade
 export const ISLAND_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandProgress_grade_`;
 export const OVERALL_SCORE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}overallScore_grade_`;
 export const ISLAND_STAR_RATINGS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandStarRatings_grade_`;
+export const ALL_GRADES_STAR_RATINGS_KEY = `${LOCAL_STORAGE_PREFIX}allGradesStarRatings`;
 export const PRELOADED_QUESTIONS_CACHE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}preloadedQuestions_grade_`; // For persistence if needed, though usually in-memory is fine.
 export const DEFAULT_THEME = Theme.FRUTIGER_AERO; // Updated Default Theme
 export const SELECTED_THEME_KEY = `${LOCAL_STORAGE_PREFIX}selectedTheme`;
+export const ACHIEVED_ACHIEVEMENTS_KEY = `${LOCAL_STORAGE_PREFIX}achievedAchievements`;
+export const HARD_MODE_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}hardModeProgress_grade_`;
+
+
+// Achievement UI Text
+export const ACHIEVEMENTS_SCREEN_TITLE = "Bộ Sưu Tập Huy Hiệu";
+export const ACHIEVEMENT_UNLOCKED_TOAST_TITLE = "Huy Hiệu Mới!";
+export const VIEW_ACHIEVEMENTS_BUTTON_TEXT = "Huy Hiệu";
+export const NO_ACHIEVEMENTS_YET_TEXT = "Bạn chưa đạt được huy hiệu nào. Hãy bắt đầu cuộc phiêu lưu và chinh phục thử thách nhé!";
+export const ACHIEVED_ON_TEXT = "Đạt được vào:";
+export const FILTER_ALL_ACHIEVEMENTS_TEXT = "Tất Cả Huy Hiệu";
+export const FILTER_GRADE_ACHIEVEMENTS_TEXT = (grade: GradeLevel) => `Lớp ${GRADE_LEVEL_TEXT_MAP[grade]}`;
+export const FILTER_GLOBAL_ACHIEVEMENTS_TEXT = "Toàn Cầu";
+export const CLOSE_BUTTON_TEXT = "Đóng";

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, Theme } from '../types';
+import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, Theme, AchievedAchievementsState, AchievedAchievement, ToastMessage, AchievementId, AllGradesStarRatingsState } from '../types';
 import { 
   MAX_PLAYER_LIVES,
   API_KEY_ERROR_MESSAGE,
@@ -51,6 +51,11 @@ import {
   BUTTON_CLICK_SOUND_URL,
   SELECTED_THEME_KEY,
   DEFAULT_THEME,
+  ACHIEVED_ACHIEVEMENTS_KEY,
+  ACHIEVEMENT_UNLOCKED_TOAST_TITLE,
+  VIEW_ACHIEVEMENTS_BUTTON_TEXT,
+  ACHIEVEMENT_UNLOCKED_SOUND_URL,
+  ALL_GRADES_STAR_RATINGS_KEY, // Added for new state
 } from '../constants';
 import { getMathHint, generateMathQuestionsForIslandSet, delay as apiDelay } from '../services/geminiService';
 import QuestionDisplay from './QuestionDisplay';
@@ -61,9 +66,13 @@ import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
 import ThemeSelectionScreen from './ThemeSelectionScreen'; 
 import FireworksCanvas from './FireworksCanvas';
-import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken } from './icons'; 
+import AchievementsScreen from './AchievementsScreen';
+import ToastNotification from './ToastNotification';
+import { ALL_ACHIEVEMENTS } from '../achievements';
+import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken, TrophyIcon, CollectionIcon } from './icons'; 
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
+import { v4 as uuidv4 } from 'uuid';
 
 
 type GameState = 'ThemeSelection' | 'GradeSelection' | 'IslandMap' | 'IslandPlaying' | 'IslandComplete' | 'GradeComplete' | 'Transitioning' | 'Error';
@@ -103,6 +112,7 @@ const GameScreen: React.FC = () => {
   const [hint, setHint] = useState<string | null>(null);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [hintButtonUsed, setHintButtonUsed]  = useState(false);
+  const [hintUsedThisIslandRun, setHintUsedThisIslandRun] = useState(false); // For achievements
 
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [userAttemptShown, setUserAttemptShown] = useState(false);
@@ -113,6 +123,32 @@ const GameScreen: React.FC = () => {
 
   const [preloadedQuestionsCache, setPreloadedQuestionsCache] = useState<PreloadedQuestionsCache>({});
   const [showCustomFireworks, setShowCustomFireworks] = useState(false);
+
+  // Achievement System State
+  const [achievedAchievements, setAchievedAchievements] = useState<AchievedAchievementsState>({});
+  const [showAchievementsScreen, setShowAchievementsScreen] = useState(false);
+  const [currentToast, setCurrentToast] = useState<ToastMessage | null>(null);
+  
+  const [allGradesProgress, setAllGradesProgress] = useState<Record<GradeLevel, IslandProgressState>>(() => {
+    const initialProgress: Partial<Record<GradeLevel, IslandProgressState>> = {};
+    (Object.values(GradeLevel).filter(g => typeof g === 'number') as GradeLevel[]).forEach(grade => {
+        initialProgress[grade] = {};
+    });
+    return initialProgress as Record<GradeLevel, IslandProgressState>;
+  });
+
+  const [allGradesStarRatings, setAllGradesStarRatings] = useState<AllGradesStarRatingsState>(() => {
+    // Explicitly define the initial state to satisfy AllGradesStarRatingsState
+    return {
+      [GradeLevel.GRADE_1]: {},
+      [GradeLevel.GRADE_2]: {},
+      [GradeLevel.GRADE_3]: {},
+      [GradeLevel.GRADE_4]: {},
+      [GradeLevel.GRADE_5]: {},
+    };
+  });
+  const [themeChangedForAchievement, setThemeChangedForAchievement] = useState(false);
+
 
   const unlockAudioContext = useCallback(() => {
     if (!audioUnlocked) {
@@ -152,35 +188,37 @@ const GameScreen: React.FC = () => {
   }, [audioUnlocked, audioCache]);
 
 
-  const loadLastSelectedGrade = (): GradeLevel | null => {
-    const savedGrade = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
-    return savedGrade ? parseInt(savedGrade) as GradeLevel : null;
+  // --- LocalStorage Load/Save Functions ---
+  const loadItem = <T,>(key: string, defaultValue: T): T => {
+    const savedItem = localStorage.getItem(key);
+    return savedItem ? JSON.parse(savedItem) : defaultValue;
   };
-  const saveLastSelectedGrade = (grade: GradeLevel | null) => {
-    if (grade) localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade.toString());
-    else localStorage.removeItem(LAST_SELECTED_GRADE_KEY);
+  const saveItem = <T,>(key: string, value: T) => {
+    localStorage.setItem(key, JSON.stringify(value));
   };
-  const loadIslandProgressFromStorage = (grade: GradeLevel): IslandProgressState | null => {
-    const savedProgress = localStorage.getItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`);
-    return savedProgress ? JSON.parse(savedProgress) : null;
+  
+  const loadLastSelectedGrade = (): GradeLevel | null => loadItem(LAST_SELECTED_GRADE_KEY, null);
+  const saveLastSelectedGrade = (grade: GradeLevel | null) => saveItem(LAST_SELECTED_GRADE_KEY, grade);
+  const loadIslandProgressFromStorage = (grade: GradeLevel): IslandProgressState => loadItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`, {});
+  const saveIslandProgressToStorage = (grade: GradeLevel, progress: IslandProgressState) => saveItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`, progress);
+  const loadOverallScoreFromStorage = (grade: GradeLevel): number => loadItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`, 0);
+  const saveOverallScoreToStorage = (grade: GradeLevel, score: number) => saveItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`, score);
+  const loadIslandStarRatingsFromStorage = (grade: GradeLevel): IslandStarRatingsState => loadItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, {});
+  const saveIslandStarRatingsToStorage = (grade: GradeLevel, ratings: IslandStarRatingsState) => saveItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, ratings);
+  
+  const loadAllGradesStarRatingsFromStorage = (): AllGradesStarRatingsState => {
+    const defaultValue: AllGradesStarRatingsState = {
+      [GradeLevel.GRADE_1]: {},
+      [GradeLevel.GRADE_2]: {},
+      [GradeLevel.GRADE_3]: {},
+      [GradeLevel.GRADE_4]: {},
+      [GradeLevel.GRADE_5]: {},
+    };
+    return loadItem(ALL_GRADES_STAR_RATINGS_KEY, defaultValue);
   };
-  const saveIslandProgressToStorage = (grade: GradeLevel, progress: IslandProgressState) => {
-    localStorage.setItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`, JSON.stringify(progress));
-  };
-  const loadOverallScoreFromStorage = (grade: GradeLevel): number | null => {
-    const savedScore = localStorage.getItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`);
-    return savedScore ? parseInt(savedScore) : null;
-  };
-  const saveOverallScoreToStorage = (grade: GradeLevel, score: number) => {
-    localStorage.setItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`, score.toString());
-  };
-  const loadIslandStarRatingsFromStorage = (grade: GradeLevel): IslandStarRatingsState | null => {
-    const savedRatings = localStorage.getItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`);
-    return savedRatings ? JSON.parse(savedRatings) : null;
-  };
-  const saveIslandStarRatingsToStorage = (grade: GradeLevel, ratings: IslandStarRatingsState) => {
-    localStorage.setItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, JSON.stringify(ratings));
-  };
+  const saveAllGradesStarRatingsToStorage = (ratings: AllGradesStarRatingsState) => saveItem(ALL_GRADES_STAR_RATINGS_KEY, ratings);
+  const loadAchievedAchievementsFromStorage = (): AchievedAchievementsState => loadItem(ACHIEVED_ACHIEVEMENTS_KEY, {});
+  const saveAchievedAchievementsToStorage = (achievements: AchievedAchievementsState) => saveItem(ACHIEVED_ACHIEVEMENTS_KEY, achievements);
 
  useEffect(() => {
     const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) as Theme | null;
@@ -190,6 +228,22 @@ const GameScreen: React.FC = () => {
       applyNewTheme(DEFAULT_THEME);
     }
     document.addEventListener('click', unlockAudioContext, { once: true });
+    setAchievedAchievements(loadAchievedAchievementsFromStorage());
+
+    // Load progress & star ratings for all grades for global achievements
+    const allProgressLoaded: Record<GradeLevel, IslandProgressState> = {} as Record<GradeLevel, IslandProgressState>;
+    const allStarsLoaded: Partial<AllGradesStarRatingsState> = {}; // Keep as partial for building
+    (Object.values(GradeLevel).filter(g => typeof g === 'number') as GradeLevel[]).forEach(grade => {
+        allProgressLoaded[grade] = loadIslandProgressFromStorage(grade);
+        const individualGradeStars = loadIslandStarRatingsFromStorage(grade);
+        // Ensure the key exists even if no stars are loaded for that grade
+        allStarsLoaded[grade] = individualGradeStars || {}; 
+    });
+    setAllGradesProgress(allProgressLoaded);
+    // Cast to AllGradesStarRatingsState after ensuring all GradeLevel keys are present
+    setAllGradesStarRatings(allStarsLoaded as AllGradesStarRatingsState);
+
+
     return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlockAudioContext, applyNewTheme]); 
@@ -245,6 +299,7 @@ const GameScreen: React.FC = () => {
     setCurrentQuestionIndexInIsland(0); 
     setPlayerLives(MAX_PLAYER_LIVES);
     setIslandScore(0);
+    setHintUsedThisIslandRun(false); // Reset hint usage for the new island run
   }, [resetForNewQuestion]);
 
   const resetForNewGradeJourney = useCallback(() => {
@@ -259,7 +314,84 @@ const GameScreen: React.FC = () => {
     setIslandStarRatings({});
     setPreloadedQuestionsCache({}); 
     setTransitionDetails(null); 
+    setThemeChangedForAchievement(false); // Reset theme swap achievement flag
   }, [resetForNewIslandPlay]);
+
+  // --- Achievement Logic ---
+  const showToast = (message: string, type: ToastMessage['type'] = 'success', icon?: React.ReactNode) => {
+    setCurrentToast({ id: uuidv4(), message, type, icon });
+  };
+
+  const awardAchievement = useCallback((achievementId: AchievementId) => {
+    if (achievedAchievements[achievementId]) return; // Already achieved
+
+    const newAchievementEntry: AchievedAchievement = {
+      id: achievementId,
+      achievedAt: Date.now(),
+      gradeContext: selectedGrade || undefined
+    };
+    
+    const achievementDef = ALL_ACHIEVEMENTS.find(a => a.id === achievementId);
+    if (achievementDef) {
+      playSound(ACHIEVEMENT_UNLOCKED_SOUND_URL, 0.6);
+      showToast(`${ACHIEVEMENT_UNLOCKED_TOAST_TITLE} ${achievementDef.name}`, 'success', <TrophyIcon className="w-7 h-7" />);
+    }
+
+    setAchievedAchievements(prev => {
+      const updated = { ...prev, [achievementId]: newAchievementEntry };
+      saveAchievedAchievementsToStorage(updated);
+      return updated;
+    });
+  }, [achievedAchievements, selectedGrade, playSound]);
+
+  const checkAndAwardAchievements = useCallback((
+    islandCompletionContext?: { difficulty: IslandDifficulty | null; hintUsed: boolean }
+  ) => {
+    ALL_ACHIEVEMENTS.forEach(achievement => {
+      if (achievedAchievements[achievement.id]) return; // Already achieved
+
+      const progressForCurrentGrade = selectedGrade ? islandProgress : {};
+      const starsForCurrentGrade = selectedGrade ? islandStarRatings : {};
+      
+      const currentAllGradesProg = {...allGradesProgress};
+      if(selectedGrade && islandProgress && Object.keys(islandProgress).length > 0) {
+        currentAllGradesProg[selectedGrade] = islandProgress;
+      }
+      const currentAllGradesStars = {...allGradesStarRatings};
+      if(selectedGrade && islandStarRatings && Object.keys(islandStarRatings).length > 0){
+        currentAllGradesStars[selectedGrade] = islandStarRatings;
+      }
+      
+      const conditionMet = achievement.condition ? achievement.condition(
+        selectedGrade,
+        progressForCurrentGrade,
+        starsForCurrentGrade,
+        islandsForCurrentGrade,
+        overallScore,
+        ISLAND_CONFIGS, 
+        currentAllGradesProg, 
+        themeChangedForAchievement,
+        islandCompletionContext?.difficulty,
+        islandCompletionContext?.hintUsed,
+        currentAllGradesStars
+      ) : false;
+
+      if (conditionMet) {
+        awardAchievement(achievement.id);
+      }
+    });
+  }, [achievedAchievements, selectedGrade, islandProgress, islandStarRatings, islandsForCurrentGrade, overallScore, awardAchievement, allGradesProgress, allGradesStarRatings, themeChangedForAchievement]);
+
+  // Call checkAndAwardAchievements when relevant states change
+  useEffect(() => {
+    // Debounce or strategically call this to avoid excessive checks
+    // This general check is for achievements not tied to immediate island completion events
+    const timeoutId = setTimeout(() => {
+        checkAndAwardAchievements();
+    }, 200); // Small delay to allow state to settle
+    return () => clearTimeout(timeoutId);
+  }, [islandProgress, islandStarRatings, overallScore, selectedGrade, themeChangedForAchievement, allGradesProgress, allGradesStarRatings, checkAndAwardAchievements]);
+  // --- End Achievement Logic ---
 
 
   const _fetchAndProcessQuestionSet = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty): Promise<Question[]> => {
@@ -469,7 +601,7 @@ const GameScreen: React.FC = () => {
       const savedScore = loadOverallScoreFromStorage(grade);
       const savedStarRatings = loadIslandStarRatingsFromStorage(grade);
 
-      if (savedProgress) {
+      if (Object.keys(savedProgress).length > 0) {
         setIslandProgress(savedProgress);
       } else {
         const initialProgress: IslandProgressState = {};
@@ -480,13 +612,11 @@ const GameScreen: React.FC = () => {
         saveIslandProgressToStorage(grade, initialProgress); 
       }
 
-      if (savedScore !== null) setOverallScore(savedScore);
-      else { setOverallScore(0); saveOverallScoreToStorage(grade, 0); }
-
-      if (savedStarRatings) setIslandStarRatings(savedStarRatings);
-      else { setIslandStarRatings({}); saveIslandStarRatingsToStorage(grade, {}); }
+      setOverallScore(savedScore); // Will be 0 if not found
+      setIslandStarRatings(savedStarRatings);
       
       setGameState('IslandMap'); 
+      setTimeout(() => checkAndAwardAchievements(), 100);
       
     } else {
       setGameState('Error');
@@ -539,7 +669,7 @@ const GameScreen: React.FC = () => {
 
 
   const handleNextQuestionInIsland = useCallback(() => {
-    if (!selectedGrade || !currentIslandId) return; 
+    if (!selectedGrade || !currentIslandId || !selectedIslandDifficulty) return; 
 
     if (currentQuestionIndexInIsland < questionsForCurrentIsland.length - 1) {
       resetForNewQuestion(); 
@@ -553,29 +683,45 @@ const GameScreen: React.FC = () => {
       if (livesAtCompletion === MAX_PLAYER_LIVES) starsEarned = 5;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 1) starsEarned = 4;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 2 && livesAtCompletion > 0) starsEarned = 3; 
-      else if (livesAtCompletion === 0) starsEarned = 2; 
+      else if (livesAtCompletion === 0) starsEarned = 2;
       else starsEarned = 3; 
 
 
-      const updatedStarRatings = { ...islandStarRatings, [completedIslandId]: Math.max(islandStarRatings[completedIslandId] || 0, starsEarned) }; 
-      setIslandStarRatings(updatedStarRatings);
-      saveIslandStarRatingsToStorage(selectedGrade, updatedStarRatings);
+      const updatedStarRatingsForGrade = { ...islandStarRatings, [completedIslandId]: Math.max(islandStarRatings[completedIslandId] || 0, starsEarned) }; 
+      setIslandStarRatings(updatedStarRatingsForGrade);
+      saveIslandStarRatingsToStorage(selectedGrade, updatedStarRatingsForGrade);
+      
+      // Update allGradesStarRatings for global achievements
+      setAllGradesStarRatings(prev => {
+        const updatedAllStars = {
+            ...prev,
+            [selectedGrade]: updatedStarRatingsForGrade
+        };
+        saveAllGradesStarRatingsToStorage(updatedAllStars);
+        return updatedAllStars;
+      });
+
 
       setPlayerLives(prevLives => Math.min(prevLives + 1, MAX_PLAYER_LIVES)); 
       
-      const updatedProgress = { ...islandProgress, [completedIslandId]: 'completed' as IslandStatus };
+      const updatedProgressForGrade = { ...islandProgress, [completedIslandId]: 'completed' as IslandStatus };
       
       const currentIslandInGradeIndex = islandsForCurrentGrade.findIndex(i => i.islandId === completedIslandId);
       if (currentIslandInGradeIndex !== -1 && currentIslandInGradeIndex < islandsForCurrentGrade.length - 1) {
         const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1];
-        if (nextIslandInGrade) {
-            updatedProgress[nextIslandInGrade.islandId] = 'unlocked';
+        if (nextIslandInGrade && updatedProgressForGrade[nextIslandInGrade.islandId] === 'locked') { 
+            updatedProgressForGrade[nextIslandInGrade.islandId] = 'unlocked';
         }
       }
-      setIslandProgress(updatedProgress);
-      saveIslandProgressToStorage(selectedGrade, updatedProgress); 
+      setIslandProgress(updatedProgressForGrade);
+      saveIslandProgressToStorage(selectedGrade, updatedProgressForGrade); 
       
-      const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgress[island.islandId] === 'completed');
+      setAllGradesProgress(prev => ({...prev, [selectedGrade]: updatedProgressForGrade}));
+
+      // Check achievements after updating progress and stars, including island completion context
+      setTimeout(() => checkAndAwardAchievements({ difficulty: selectedIslandDifficulty, hintUsed: hintUsedThisIslandRun }), 100);
+
+      const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgressForGrade[island.islandId] === 'completed');
       
       if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
           if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
@@ -587,7 +733,7 @@ const GameScreen: React.FC = () => {
           setGameState('IslandComplete'); 
       }
     }
-  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked]);
+  }, [currentQuestionIndexInIsland, questionsForCurrentIsland.length, resetForNewQuestion, currentIslandId, selectedIslandDifficulty, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked, checkAndAwardAchievements, allGradesProgress, allGradesStarRatings, hintUsedThisIslandRun]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
@@ -687,6 +833,12 @@ const GameScreen: React.FC = () => {
       saveIslandProgressToStorage(selectedGrade, initialProgressForGrade);
       saveIslandStarRatingsToStorage(selectedGrade, {}); 
       setPreloadedQuestionsCache({}); 
+      setAllGradesProgress(prev => ({...prev, [selectedGrade]: initialProgressForGrade})); 
+      setAllGradesStarRatings(prev => { // Also reset this grade's stars in the global state
+        const updatedAllStars = {...prev, [selectedGrade]: {}};
+        saveAllGradesStarRatingsToStorage(updatedAllStars);
+        return updatedAllStars;
+      });
       handleGradeSelect(selectedGrade); 
     }
   };
@@ -756,6 +908,7 @@ const GameScreen: React.FC = () => {
     setIsHintLoading(true);
     setIsHintModalOpen(true);
     setHintButtonUsed(true); 
+    setHintUsedThisIslandRun(true); // Mark hint used for this island run (for achievement)
     try {
       const fetchedHint = await getMathHint(currentQuestion.text, currentQuestion.targetGradeLevel);
       setHint(fetchedHint);
@@ -784,7 +937,15 @@ const GameScreen: React.FC = () => {
     unlockAudioContext();
     playSound(BUTTON_CLICK_SOUND_URL);
     applyNewTheme(newTheme);
+    setThemeChangedForAchievement(true);
+    setTimeout(() => checkAndAwardAchievements(), 100); 
   };
+
+  const handleToggleAchievementsScreen = () => {
+    unlockAudioContext();
+    playSound(BUTTON_CLICK_SOUND_URL);
+    setShowAchievementsScreen(prev => !prev);
+  }
 
 
   if (gameState === 'ThemeSelection') {
@@ -800,7 +961,6 @@ const GameScreen: React.FC = () => {
             return;
           }
           
-          // Always go to GradeSelection after selecting a theme
           setGameState('GradeSelection');
         }}
       />
@@ -870,11 +1030,23 @@ const GameScreen: React.FC = () => {
 
   if (gameState === 'GradeSelection') {
     return (
+      <>
       <div className="w-full animate-fadeInScale">
         <div className={`w-full max-w-xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-8 text-center">
-            {CHOOSE_GRADE_TEXT}
-          </h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] text-center flex-grow">
+                {CHOOSE_GRADE_TEXT}
+            </h1>
+            <button
+                onClick={handleToggleAchievementsScreen}
+                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                className="p-2 rounded-full bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:opacity-90 active:brightness-90 shadow-md"
+                aria-label={VIEW_ACHIEVEMENTS_BUTTON_TEXT}
+            >
+                <TrophyIcon className="w-7 h-7" />
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 mb-8">
             {(Object.keys(GradeLevel).filter(key => !isNaN(Number(GradeLevel[key as keyof typeof GradeLevel]))) as (keyof typeof GradeLevel)[]).map((gradeKey) => {
               const gradeValue = GradeLevel[gradeKey];
@@ -911,6 +1083,16 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
 
@@ -920,6 +1102,7 @@ const GameScreen: React.FC = () => {
 
   if (showDifficultySelectionModalForIslandId && islandForDifficultyModal) {
     return (
+      <>
         <DifficultySelectionModal
             isOpen={true}
             islandName={islandForDifficultyModal.name}
@@ -930,6 +1113,16 @@ const GameScreen: React.FC = () => {
             }}
             onSelectDifficulty={handleDifficultySelected}
         />
+        {showAchievementsScreen && (
+            <AchievementsScreen 
+            achievedAchievements={achievedAchievements}
+            onClose={handleToggleAchievementsScreen}
+            playSound={playSound}
+            currentGradeContext={selectedGrade}
+            />
+        )}
+        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
 
@@ -937,6 +1130,7 @@ const GameScreen: React.FC = () => {
   if (gameState === 'IslandMap' && selectedGrade) {
     if (islandsForCurrentGrade.length === 0 || islandsForCurrentGrade.length < ISLANDS_PER_GRADE) { 
         return (
+          <>
             <div className="w-full animate-fadeInScale">
              <div className={`p-8 rounded-lg shadow-xl text-center max-w-lg mx-auto bg-[var(--secondary-bg)] text-[var(--secondary-text)] ${themeConfig.frostedGlassOpacity || ''}`}>
                 <AlertTriangleIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent-color)]" />
@@ -955,6 +1149,16 @@ const GameScreen: React.FC = () => {
                 </button>
             </div>
           </div>
+          {showAchievementsScreen && (
+            <AchievementsScreen 
+            achievedAchievements={achievedAchievements}
+            onClose={handleToggleAchievementsScreen}
+            playSound={playSound}
+            currentGradeContext={selectedGrade}
+            />
+        )}
+        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+        </>
         );
     }
     const completedIslandsCount = islandsForCurrentGrade.filter(island => islandProgress[island.islandId] === 'completed').length;
@@ -962,19 +1166,30 @@ const GameScreen: React.FC = () => {
     const adventureProgressPercentage = totalIslandsForGrade > 0 ? (completedIslandsCount / totalIslandsForGrade) * 100 : 0;
 
     return (
+      <>
       <div className="w-full animate-fadeInScale">
         <div className={`w-full max-w-4xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
               <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-2 sm:mb-0">
               {CHOOSE_ISLAND_TEXT}
               </h1>
-              <button 
-                  onClick={handleChooseAnotherGrade}
-                  onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-                  className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-4 rounded-lg shadow-md text-sm"
-              >
-                  {CHOOSE_ANOTHER_GRADE_TEXT}
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                    onClick={handleChooseAnotherGrade}
+                    onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                    className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-2 px-4 rounded-lg shadow-md text-sm"
+                >
+                    {CHOOSE_ANOTHER_GRADE_TEXT}
+                </button>
+                 <button
+                    onClick={handleToggleAchievementsScreen}
+                    onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+                    className="p-2 rounded-full bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:opacity-90 active:brightness-90 shadow-md"
+                    aria-label={VIEW_ACHIEVEMENTS_BUTTON_TEXT}
+                >
+                    <TrophyIcon className="w-6 h-6" />
+                </button>
+              </div>
           </div>
           
           <div className="mb-5">
@@ -1038,6 +1253,16 @@ const GameScreen: React.FC = () => {
           <p className="text-center text-[var(--primary-text)] opacity-90 mt-8 text-2xl font-bold">Tổng Điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
         </div>
       </div>
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
   
@@ -1068,6 +1293,7 @@ const GameScreen: React.FC = () => {
     }
 
     return (
+      <>
       <div className="w-full animate-fadeInScale">
         {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked} />}
         <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-10`}>
@@ -1118,11 +1344,22 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
   
   if (gameState === 'GradeComplete' && selectedGrade) {
      return (
+      <>
       <div className="w-full animate-fadeInScale">
       {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>} 
         <div className={`p-8 md:p-12 rounded-xl shadow-2xl text-center max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] ${themeConfig.frostedGlassOpacity || ''} relative z-10`}>
@@ -1148,6 +1385,16 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
   
@@ -1160,6 +1407,7 @@ const GameScreen: React.FC = () => {
 
 
     return (
+      <>
       <div className="w-full animate-fadeInScale">
         <div className={`w-full max-w-3xl mx-auto p-4 md:p-6 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${mainCardExtraClasses}`}>
           <header className="mb-6 text-center relative">
@@ -1267,10 +1515,33 @@ const GameScreen: React.FC = () => {
           />
         </div>
       </div>
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
 
-  return <LoadingSpinner text="Đang chuẩn bị Đảo Kho Báu..." />;
+  return (
+    <>
+      <LoadingSpinner text="Đang chuẩn bị Đảo Kho Báu..." />
+      {showAchievementsScreen && (
+        <AchievementsScreen 
+          achievedAchievements={achievedAchievements}
+          onClose={handleToggleAchievementsScreen}
+          playSound={playSound}
+          currentGradeContext={selectedGrade}
+        />
+      )}
+      <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+    </>
+  );
 };
 
 export default GameScreen;

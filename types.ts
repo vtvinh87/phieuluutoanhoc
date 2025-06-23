@@ -57,6 +57,8 @@ export type IslandStatus = 'locked' | 'unlocked' | 'completed';
 
 export type IslandProgressState = Record<string, IslandStatus>; 
 export type IslandStarRatingsState = Record<string, number>; 
+export type AllGradesStarRatingsState = Record<GradeLevel, IslandStarRatingsState>;
+
 
 // For enhanced preloading
 export type PreloadedQuestionSet = Question[] | 'loading' | 'error' | 'pending';
@@ -137,4 +139,57 @@ export interface ThemeConfig {
   // Special
   frostedGlassOpacity?: string; 
   fontFamily: string; 
+}
+
+// Achievement System Types
+export type AchievementId = string; // Example: "ACH_ISLAND_EXPLORER_G1", "ACH_THEME_SWAPPER"
+
+export interface Achievement {
+  id: AchievementId;
+  name: string;
+  description: (param?: string | number) => string; // Function to allow dynamic descriptions
+  icon: string; // Emoji or key for an SVG icon
+  gradeSpecific: boolean; // True if this achievement is tied to a specific grade
+  isGlobal?: boolean; // True if this is a global achievement not tied to any grade progression (e.g. theme swapper)
+  condition?: (
+    selectedGrade: GradeLevel | null,
+    islandProgress: IslandProgressState, // For current grade
+    islandStarRatings: IslandStarRatingsState, // For current grade
+    islandsForGrade: IslandConfig[],
+    currentOverallScore?: number,
+    allGradeIslandConfigs?: IslandConfig[],
+    allGradesProgress?: Record<GradeLevel, IslandProgressState>,
+    themeSwapped?: boolean,
+    // Optional context for island completion achievements
+    currentIslandDifficulty?: IslandDifficulty | null,
+    hintUsedInLastIslandCompletion?: boolean,
+    allGradesStarRatings?: AllGradesStarRatingsState // For global star-based achievements
+  ) => boolean;
+}
+
+export interface AchievedAchievement {
+  id: AchievementId;
+  achievedAt: number; // Timestamp
+  gradeContext?: GradeLevel; // For displaying context if needed
+}
+
+export type AchievedAchievementsState = Record<AchievementId, AchievedAchievement>;
+
+
+// Hard mode progress (if needed for future achievements)
+export interface HardModeIslandStats {
+  completed: boolean;
+  mastered: boolean; // 5-starred on hard
+}
+export interface HardModeGradeProgress {
+  [islandId: string]: HardModeIslandStats;
+}
+export type HardModeProgressState = Record<GradeLevel, HardModeGradeProgress>;
+
+// Toast Notification
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: 'success' | 'info' | 'warning' | 'error';
+  icon?: React.ReactNode;
 }
