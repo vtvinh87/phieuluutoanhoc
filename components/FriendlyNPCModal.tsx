@@ -1,15 +1,15 @@
 
 import React from 'react';
 import type { FriendlyNPC, NPCInteraction, ThemeConfig } from '../types';
-import { 
-    FRIENDLY_NPC_MODAL_TITLE_PREFIX, 
-    FRIENDLY_NPC_RIDDLE_PROMPT, 
+import {
+    FRIENDLY_NPC_MODAL_TITLE_PREFIX,
+    FRIENDLY_NPC_RIDDLE_PROMPT,
     FRIENDLY_NPC_ANSWER_BUTTON_TEXT,
     CLOSE_BUTTON_TEXT,
     BUTTON_CLICK_SOUND_URL,
     HOVER_SOUND_URL
 } from '../constants';
-import { SparklesIcon, CheckCircleIcon, XCircleIcon } from './icons'; 
+import { SparklesIcon, CheckCircleIcon, XCircleIcon } from './icons';
 import { useTheme } from '../contexts/ThemeContext'; // Corrected import path
 
 interface FriendlyNPCModalProps {
@@ -88,8 +88,8 @@ const FriendlyNPCModal: React.FC<FriendlyNPCModalProps> = ({
                 <XCircleIcon className="w-12 h-12 mx-auto text-[var(--incorrect-bg)] mb-2" />
               )}
               <p className={`text-lg sm:text-xl font-semibold mb-1 ${isRiddleCorrect ? 'text-[var(--correct-text)]' : 'text-[var(--incorrect-text)]'}`}>
-                {isRiddleCorrect 
-                    ? `Tuyệt vời! Bạn nhận được ${interactionContent.points} điểm!` 
+                {isRiddleCorrect
+                    ? `Tuyệt vời! Bạn nhận được ${interactionContent.points} điểm!`
                     : `Tiếc quá! Chưa đúng rồi.`}
               </p>
               {!isRiddleCorrect && (
@@ -129,9 +129,9 @@ const FriendlyNPCModal: React.FC<FriendlyNPCModalProps> = ({
         </button>
 
         <header className="text-center mb-4">
-          <img 
-            src={npcData.imageUrl} 
-            alt={npcData.name} 
+          <img
+            src={npcData.imageUrl}
+            alt={npcData.name}
             className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full object-cover mb-3 border-4 border-[var(--accent-color)] shadow-lg"
           />
           <h2 id="npc-modal-title" className="text-xl md:text-2xl font-bold text-[var(--modal-header-text)]">
@@ -141,7 +141,7 @@ const FriendlyNPCModal: React.FC<FriendlyNPCModalProps> = ({
             Ghé thăm tại: <span className="font-semibold">{islandName}</span>
           </p>
         </header>
-        
+
         <div className={`my-4 p-4 rounded-lg bg-[var(--secondary-bg)] ${themeConfig.frostedGlassOpacity || 'bg-opacity-50'} min-h-[100px] flex items-center justify-center`}>
           {renderInteraction()}
         </div>

@@ -14,8 +14,27 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(undefine
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) as Theme | null;
-    return savedTheme && THEME_CONFIGS[savedTheme] ? savedTheme : DEFAULT_THEME;
+    const savedItem = localStorage.getItem(SELECTED_THEME_KEY);
+    if (savedItem) {
+        try {
+            // Attempt to parse as JSON. If it's already a valid JSON string (e.g., "\"girly\""), this will work.
+            const parsedTheme = JSON.parse(savedItem);
+            if (typeof parsedTheme === 'string' && THEME_CONFIGS[parsedTheme as Theme]) {
+                return parsedTheme as Theme;
+            }
+        } catch (e) {
+            // If JSON.parse fails, assume it's a raw string like "girly" (old format)
+            if (THEME_CONFIGS[savedItem as Theme]) {
+                // To migrate, save it back in the correct JSON format for the next load
+                localStorage.setItem(SELECTED_THEME_KEY, JSON.stringify(savedItem as Theme));
+                return savedItem as Theme;
+            }
+        }
+    }
+    // If nothing valid is found, or item doesn't exist, or it's corrupted beyond recognition
+    // It's safer to remove potentially bad value and start fresh with default
+    localStorage.removeItem(SELECTED_THEME_KEY); 
+    return DEFAULT_THEME;
   });
 
   const applyThemeToDocument = useCallback((theme: Theme) => {
@@ -34,7 +53,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       targetLocalPath = config.localBackgroundUrlStackedLayout;
       targetRemotePath = config.backgroundUrlStackedLayout || config.backgroundUrl;
     }
-    
+
     const setBodyBackground = (url: string) => {
       document.body.style.backgroundImage = `url('${url}')`;
     };
@@ -51,14 +70,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       setBodyBackground(targetRemotePath);
     }
-    
+
     // Update font family
     if (config.fontFamily) {
       document.documentElement.style.setProperty('--font-family-theme', config.fontFamily);
       document.body.style.fontFamily = 'var(--font-family-theme)';
     } else {
       document.documentElement.style.removeProperty('--font-family-theme');
-      document.body.style.fontFamily = "'Arial', sans-serif"; 
+      document.body.style.fontFamily = "'Arial', sans-serif";
     }
 
     // Set CSS Variables on :root
@@ -68,7 +87,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--secondary-text', config.secondaryText);
     document.documentElement.style.setProperty('--accent-color', config.accent);
     document.documentElement.style.setProperty('--accent-text', config.accentText);
-    
+
     document.documentElement.style.setProperty('--button-primary-bg', config.buttonPrimaryBg);
     document.documentElement.style.setProperty('--button-primary-text', config.buttonPrimaryText);
     document.documentElement.style.setProperty('--button-secondary-bg', config.buttonSecondaryBg);
@@ -90,7 +109,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--modal-bg-backdrop', config.modalBgBackdrop);
     document.documentElement.style.setProperty('--modal-content-bg', config.modalContentBg);
     document.documentElement.style.setProperty('--modal-header-text', config.modalHeaderText);
-    
+
     document.documentElement.style.setProperty('--border-color', config.borderColor);
     document.documentElement.style.setProperty('--ring-color-focus', config.ringColorFocus);
 
@@ -104,12 +123,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--island-unlocked-text', config.islandButtonUnlockedText);
     document.documentElement.style.setProperty('--island-completed-text', config.islandButtonCompletedText);
     document.documentElement.style.setProperty('--island-button-ring-color', config.islandButtonRingColor);
-    
+
     document.documentElement.style.setProperty('--question-display-bg', config.questionDisplayBg);
     document.documentElement.style.setProperty('--question-display-text', config.questionDisplayText);
     document.documentElement.style.setProperty('--question-display-image-border', config.questionDisplayImageBorder);
     document.documentElement.style.setProperty('--spinner-border-color', config.spinnerColor);
-    
+
     document.body.className = `theme-${theme}`;
 
   }, []);
@@ -128,13 +147,13 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const setTheme = (theme: Theme) => {
     if (THEME_CONFIGS[theme]) {
-      localStorage.setItem(SELECTED_THEME_KEY, theme);
+      localStorage.setItem(SELECTED_THEME_KEY, JSON.stringify(theme)); // Use JSON.stringify
       setCurrentTheme(theme);
     } else {
       console.warn(`Attempted to set invalid theme: ${theme}`);
     }
   };
-  
+
   const themeConfig = THEME_CONFIGS[currentTheme];
 
   return (

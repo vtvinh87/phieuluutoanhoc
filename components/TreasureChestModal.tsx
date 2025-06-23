@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { FunQuiz, ThemeConfig } from '../types';
-import { 
-    TREASURE_MODAL_TITLE, 
-    FUN_QUIZZES, 
-    TREASURE_REWARD_POINTS_MIN, 
-    TREASURE_REWARD_POINTS_MAX, 
-    TREASURE_QUIZ_REWARD_POINTS_MIN, 
+import {
+    TREASURE_MODAL_TITLE,
+    FUN_QUIZZES,
+    TREASURE_REWARD_POINTS_MIN,
+    TREASURE_REWARD_POINTS_MAX,
+    TREASURE_QUIZ_REWARD_POINTS_MIN,
     TREASURE_QUIZ_REWARD_POINTS_MAX,
     TREASURE_CHEST_THANKS_MESSAGE,
     TREASURE_CHEST_POINTS_MESSAGE,
@@ -55,7 +55,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
     if (rand < 0.75) return 'quiz';   // 25% chance for quiz (0.50 + 0.25)
     return 'nothing';                // 25% chance for nothing
   };
-  
+
   const getRandomInt = (min: number, max: number) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
@@ -72,7 +72,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
       setPointsFromChest(0);
 
       playSound(TREASURE_OPEN_SOUND_URL, 0.6); // Sound when modal appears (chest appears)
-      
+
       // Simulate chest opening animation
       const openTimer = setTimeout(() => {
         setIsOpening(false);
@@ -109,7 +109,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
       setPointsFromChest(0);
     }
   };
-  
+
   const handleCloseModal = () => {
     playSound(BUTTON_CLICK_SOUND_URL);
     onClose(pointsFromChest);
@@ -139,7 +139,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
                     onClick={() => setQuizAnswer(opt)}
                     onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
                     className={`w-full p-2.5 sm:p-3 rounded-lg text-sm sm:text-base border-2 transition-colors
-                                ${quizAnswer === opt ? 'bg-[var(--button-answer-option-selected-bg)] text-[var(--button-answer-option-selected-text)] border-[var(--button-answer-option-selected-ring)]' 
+                                ${quizAnswer === opt ? 'bg-[var(--button-answer-option-selected-bg)] text-[var(--button-answer-option-selected-text)] border-[var(--button-answer-option-selected-ring)]'
                                                     : 'bg-[var(--button-answer-option-bg)] text-[var(--button-answer-option-text)] border-[var(--button-answer-option-ring)] hover:opacity-90'}`}
                   >
                     {opt}
@@ -175,7 +175,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
           ) : (
             <XCircleIcon className="w-12 h-12 mx-auto text-[var(--incorrect-bg)] mb-2" />
           )}
-          <p className={`text-lg sm:text-xl font-semibold mb-1 ${isQuizCorrect ? 'text-[var(--correct-bg)]' : 'text-[var(--incorrect-bg)]'}`}>
+          <p className={`text-lg sm:text-xl font-semibold mb-1 ${isQuizCorrect ? 'text-[var(--correct-text)]' : 'text-[var(--incorrect-text)]'}`}>
             {isQuizCorrect ? TREASURE_CHEST_QUIZ_CORRECT_MESSAGE(pointsFromChest) : TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE}
           </p>
           {!isQuizCorrect && <p className="text-sm sm:text-base text-[var(--secondary-text)]">Đáp án đúng là: {currentQuiz.answer}</p>}
@@ -231,12 +231,12 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
           )}
           {chestOpened && !isOpening && (
             <>
-                {!rewardType && <LoadingSpinner text="Xem nào..."/>} 
+                {!rewardType && <LoadingSpinner text="Xem nào..."/>}
                 {rewardType && renderRewardContent()}
             </>
           )}
         </div>
-        
+
         {chestOpened && !isOpening && rewardType && (quizPhase === 'question' && rewardType === 'quiz' ? null : ( // Don't show close button during quiz question phase
             <button
                 onClick={handleCloseModal}

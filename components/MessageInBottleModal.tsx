@@ -70,7 +70,7 @@ const MessageInBottleModal: React.FC<MessageInBottleModalProps> = ({
             Tìm thấy tại: <span className="font-semibold">{islandName}</span>
           </p>
         </header>
-        
+
         <div className={`my-4 p-4 rounded-lg bg-[var(--secondary-bg)] ${themeConfig.frostedGlassOpacity || 'bg-opacity-50'}`}>
           <p className="text-md md:text-lg text-[var(--secondary-text)] leading-relaxed text-center italic">
             "{message.text}"

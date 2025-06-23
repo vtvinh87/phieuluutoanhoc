@@ -57,10 +57,10 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
       aria-labelledby="difficulty-modal-title"
     >
       <div
-        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl relative transform transition-all duration-300 scale-100 animate-slideUp 
+        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl relative transform transition-all duration-300 scale-100 animate-slideUp
                    text-[var(--primary-text)]`} // Changed max-w-lg to max-w-2xl
         style={{ background: themeConfig.modalContentBg }} // Allow gradient
-        onClick={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => { playSoundLocal(BUTTON_CLICK_SOUND_URL); onClose(); }}
@@ -72,14 +72,14 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
           </svg>
         </button>
 
-        <h2 
-          id="difficulty-modal-title" 
+        <h2
+          id="difficulty-modal-title"
           className="text-xl md:text-2xl font-bold text-[var(--modal-header-text)] mb-4 text-center leading-snug break-words" // Added break-words for safety
         >
           {CHOOSE_ISLAND_DIFFICULTY_TEXT(islandName)}
         </h2>
-        <p className={`text-center text-[var(--primary-text)] opacity-80 mb-8 text-base md:text-md`}> 
-            Đảo: <span className="font-semibold break-words">{islandName}</span> 
+        <p className={`text-center text-[var(--primary-text)] opacity-80 mb-8 text-base md:text-md`}>
+            Đảo: <span className="font-semibold break-words">{islandName}</span>
         </p>
 
         <div className="space-y-4">

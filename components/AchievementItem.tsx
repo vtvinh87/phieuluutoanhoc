@@ -1,21 +1,22 @@
+
 import React from 'react';
 import { Achievement, AchievedAchievement, GradeLevel } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { GRADE_LEVEL_TEXT_MAP, ACHIEVED_ON_TEXT } from '../constants';
-import { CheckCircleIcon, LockClosedIcon } from './icons'; 
+import { CheckCircleIcon, LockClosedIcon } from './icons';
 
 interface AchievementItemProps {
   achievement: Achievement;
   achievedData: AchievedAchievement | undefined;
-  currentGradeForFiltering?: GradeLevel | null; 
+  currentGradeForFiltering?: GradeLevel | null;
 }
 
 const AchievementItem: React.FC<AchievementItemProps> = ({ achievement, achievedData, currentGradeForFiltering }) => {
   const { themeConfig } = useTheme();
   const isAchieved = !!achievedData;
 
-  const descriptionText = typeof achievement.description === 'function' 
-    ? achievement.description(currentGradeForFiltering ? GRADE_LEVEL_TEXT_MAP[currentGradeForFiltering] : undefined) 
+  const descriptionText = typeof achievement.description === 'function'
+    ? achievement.description(currentGradeForFiltering ? GRADE_LEVEL_TEXT_MAP[currentGradeForFiltering] : undefined)
     : achievement.description;
 
   const formatDate = (timestamp: number): string => {
@@ -27,20 +28,20 @@ const AchievementItem: React.FC<AchievementItemProps> = ({ achievement, achieved
       minute: '2-digit'
     });
   };
-  
+
   const iconColor = isAchieved ? 'text-[var(--accent-color)]' : 'text-[var(--secondary-text)] opacity-60';
   const textColor = isAchieved ? 'text-[var(--primary-text)]' : 'text-[var(--secondary-text)] opacity-80';
   const titleColor = isAchieved ? 'text-[var(--accent-color)] font-semibold' : textColor;
 
-  const bgColorClass = isAchieved 
+  const bgColorClass = isAchieved
     ? `bg-[var(--secondary-bg)] shadow-md border-[var(--accent-color)]`
     : `bg-[var(--secondary-bg)] opacity-80 border-[var(--border-color)]`;
 
   return (
-    <div 
+    <div
       className={`
-        p-3 sm:p-4 rounded-xl border-2 flex items-start gap-3 sm:gap-4 transition-all duration-300 transform 
-        ${bgColorClass} 
+        p-3 sm:p-4 rounded-xl border-2 flex items-start gap-3 sm:gap-4 transition-all duration-300 transform
+        ${bgColorClass}
         ${isAchieved ? 'hover:shadow-lg hover:scale-[1.015]' : 'cursor-default'}
         ${themeConfig.frostedGlassOpacity || ''}
       `}
