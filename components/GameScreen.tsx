@@ -830,18 +830,22 @@ const GameScreen: React.FC = () => {
 
   // Friendly NPC Logic
   const trySpawnFriendlyNPC = useCallback(() => {
-    if (activeNPCData) return;
+    if (activeNPCData || !selectedGrade) return; // Only one NPC active, ensure grade is selected
 
-    const allCompletedIslandsThisGrade = islandsForCurrentGrade.filter(island => {
-        return islandProgress[island.islandId] === 'completed' &&
+    const eligibleIslandsForNPC = islandsForCurrentGrade.filter(island => {
+        const islandState = islandProgress[island.islandId];
+        // NPC can spawn on unlocked or completed islands
+        return (islandState === 'completed' || islandState === 'unlocked') &&
+               // Ensure no treasure chest on this island for this grade
                (!activeTreasureChests[island.targetGradeLevel] || !activeTreasureChests[island.targetGradeLevel]?.[island.islandId]) &&
+               // Ensure no message bottle on this island (bottles are global but checked by islandId)
                (!activeMessageBottle || !activeMessageBottle[island.islandId]);
     });
 
-    if (allCompletedIslandsThisGrade.length === 0) return;
+    if (eligibleIslandsForNPC.length === 0) return;
 
     if (Math.random() < FRIENDLY_NPC_SPAWN_CHANCE) {
-        const randomIsland = allCompletedIslandsThisGrade[Math.floor(Math.random() * allCompletedIslandsThisGrade.length)];
+        const randomIsland = eligibleIslandsForNPC[Math.floor(Math.random() * eligibleIslandsForNPC.length)];
         const randomNPCFromList = FRIENDLY_NPCS[Math.floor(Math.random() * FRIENDLY_NPCS.length)];
         
         let possibleInteractions = NPC_INTERACTIONS.filter(
@@ -858,7 +862,7 @@ const GameScreen: React.FC = () => {
             npc: randomNPCFromList,
             interaction: randomInteraction,
             islandId: randomIsland.islandId,
-            grade: randomIsland.targetGradeLevel,
+            grade: randomIsland.targetGradeLevel, // Should be same as selectedGrade
         };
         setActiveNPCData(newNPCData);
         saveActiveNPCToStorage({
@@ -869,7 +873,7 @@ const GameScreen: React.FC = () => {
         });
         playSound(NPC_SPAWN_SOUND_URL, 0.4);
     }
-  }, [islandsForCurrentGrade, islandProgress, activeNPCData, activeTreasureChests, activeMessageBottle, playSound]);
+  }, [islandsForCurrentGrade, islandProgress, activeNPCData, activeTreasureChests, activeMessageBottle, playSound, selectedGrade]);
 
   const handleNPCInteraction = (islandId: string) => {
     if (activeNPCData && activeNPCData.islandId === islandId) {
@@ -878,7 +882,6 @@ const GameScreen: React.FC = () => {
         setNpcRiddlePhase('question');
         setIsNpcRiddleCorrect(null);
         setShowNPCModal(true);
-        // setGameState('FriendlyNPCInteraction'); // Keep current GameState (IslandMap) until modal interaction completes
     }
   };
 
@@ -920,7 +923,6 @@ const GameScreen: React.FC = () => {
     setShowNPCModal(false);
     setActiveNPCData(null);
     saveActiveNPCToStorage(null);
-    // No need to change GameState here if it was already IslandMap
   };
 
 
@@ -976,20 +978,24 @@ const GameScreen: React.FC = () => {
     if (islandConfig && (status === 'unlocked' || status === 'completed')) {
         playSound(ISLAND_SELECT_SOUND_URL, 0.6);
 
-        if (activeNPCData && activeNPCData.islandId === islandId && status === 'completed' && selectedGrade && activeNPCData.grade === selectedGrade) {
+        // NPC interaction takes precedence if NPC is on this island
+        if (activeNPCData && activeNPCData.islandId === islandId && selectedGrade && activeNPCData.grade === selectedGrade) {
             handleNPCInteraction(islandId);
             return;
         }
-        if (activeMessageBottle[islandId] && status === 'completed') {
+        // Then message bottle
+        if (activeMessageBottle[islandId] && status === 'completed') { // Bottle only on completed
             handleMessageBottleOpened(islandId);
             return;
         }
-        if (status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[islandId]) {
+        // Then treasure chest
+        if (status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[islandId]) { // Treasure only on completed
             playSound(TREASURE_OPEN_SOUND_URL, 0.7);
             setShowTreasureModalForIslandId(islandId);
             return;
         }
         
+        // If none of the above, proceed to difficulty selection
         setCurrentIslandId(islandId); 
         setShowDifficultySelectionModalForIslandId(islandId);
     } else {
@@ -1135,7 +1141,7 @@ const GameScreen: React.FC = () => {
     
     if (showTreasureModalForIslandId) setShowTreasureModalForIslandId(null);
     if (showBottleModalForIslandId) setShowBottleModalForIslandId(null);
-    if (showNPCModal) setShowNPCModal(false); // Changed from null to false
+    if (showNPCModal) setShowNPCModal(false); 
 
 
     const allGradeIslandsCompleted = islandsForCurrentGrade.every(island => islandProgress[island.islandId] === 'completed');
@@ -1674,7 +1680,7 @@ const GameScreen: React.FC = () => {
               const isUnlockedAndNotCompleted = status === 'unlocked';
               const hasTreasure = status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[island.islandId];
               const hasBottle = status === 'completed' && activeMessageBottle[island.islandId];
-              const hasNPC = status === 'completed' && activeNPCData && activeNPCData.islandId === island.islandId && activeNPCData.grade === selectedGrade;
+              const hasNPC = (status === 'completed' || status === 'unlocked') && activeNPCData && activeNPCData.islandId === island.islandId && activeNPCData.grade === selectedGrade;
               
               const pulseAnimation = isUnlockedAndNotCompleted || hasTreasure || hasBottle || hasNPC;
               
@@ -1700,7 +1706,7 @@ const GameScreen: React.FC = () => {
                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}
                     >
-                      {hasNPC && activeNPCData ? <img src={activeNPCData.npc.imageUrl} alt={activeNPCData.npc.name} className="w-full h-full object-contain rounded-full" /> : 
+                      {hasNPC && activeNPCData && activeNPCData.islandId === island.islandId ? <img src={activeNPCData.npc.imageUrl} alt={activeNPCData.npc.name} className="w-full h-full object-contain rounded-full" /> : 
                        hasTreasure ? TREASURE_CHEST_ICON_EMOJI : 
                        hasBottle ? MESSAGE_IN_BOTTLE_ICON_EMOJI : ''}
                     </span>
@@ -1713,7 +1719,8 @@ const GameScreen: React.FC = () => {
                   <div className="mt-2 h-6">
                       {isDisabled && <LockIcon className="w-6 h-6 text-[var(--incorrect-bg)] opacity-70" />}
                       {status === 'completed' && !hasTreasure && !hasBottle && !hasNPC ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
-                      {(status === 'completed' && (hasTreasure || hasBottle || hasNPC)) ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
+                      {((status === 'completed' || status === 'unlocked') && (hasTreasure || hasBottle || (hasNPC && activeNPCData && activeNPCData.islandId === island.islandId ))) ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
+                      {status === 'unlocked' && !hasTreasure && !hasBottle && !(hasNPC && activeNPCData && activeNPCData.islandId === island.islandId) ? <span className="text-xs opacity-80">(Chưa hoàn thành)</span> : null}
                   </div>
                 </button>
               );

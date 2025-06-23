@@ -637,7 +637,7 @@ export const SHOOTING_STAR_MAX_ACTIVE_MS = SHOOTING_STAR_ANIMATION_DURATION_MS +
 
 
 // Friendly NPC Constants
-export const FRIENDLY_NPC_SPAWN_CHANCE = 0.20; // 20% chance
+export const FRIENDLY_NPC_SPAWN_CHANCE = 0.50; // 50% chance - UPDATED
 export const FRIENDLY_NPC_MODAL_TITLE_PREFIX = "Gặp gỡ"; // e.g., "Gặp gỡ Pháp Sư Thông Thái"
 export const FRIENDLY_NPC_LOADING_TEXT = "Đang trò chuyện...";
 export const FRIENDLY_NPC_RIDDLE_PROMPT = "Thử giải câu đố này nhé:";
