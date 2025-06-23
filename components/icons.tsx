@@ -105,3 +105,17 @@ export const AcademicCapIcon: React.FC<{ className?: string }> = ({ className = 
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75L4.5 8.25v7.5L12 21l7.5-5.25v-7.5L12 3.75z" />
  </svg>
 );
+
+export const TreasureChestIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12.507 4.208C12.194 4.072 11.806 4.072 11.493 4.208L3.018 7.875C2.378 8.143 2.25 8.974 2.715 9.542L4.018 11.25H20.007L21.285 9.542C21.75 8.974 21.622 8.143 20.982 7.875L12.507 4.208Z" />
+    <path fillRule="evenodd" d="M2.25 12.75V18A.75.75 0 0 0 3 18.75h18A.75.75 0 0 0 21.75 18v-5.25H2.25ZM12 14.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
+  </svg>
+);
+
+export const GiftIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12.75 2.25a.75.75 0 0 0-1.5 0v1.5h-2.25V2.25a.75.75 0 0 0-1.5 0V3.75A2.25 2.25 0 0 0 5.25 6H3.75a.75.75 0 0 0 0 1.5H12v8.25H3.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5H12V7.5h8.25a.75.75 0 0 0 0-1.5H14.25A2.25 2.25 0 0 0 12 3.75V2.25ZM9.75 17.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM11.25 6a.75.75 0 0 0-.75.75v3.75a.75.75 0 0 0 1.5 0V6.75a.75.75 0 0 0-.75-.75Z" />
+    <path fillRule="evenodd" d="M5.25 6H11.25V3.75A2.25 2.25 0 0 0 9 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 5.25 3.75V6ZM14.25 6V3.75A2.25 2.25 0 0 0 12 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 8.25 3.75V6h6Z" clipRule="evenodd" />
+  </svg>
+);

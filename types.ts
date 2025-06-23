@@ -193,3 +193,26 @@ export interface ToastMessage {
   type: 'success' | 'info' | 'warning' | 'error';
   icon?: React.ReactNode;
 }
+
+// Treasure Chest Feature
+export type ActiveTreasureChestsState = Partial<Record<GradeLevel, Record<string, boolean>>>;
+
+export interface FunQuiz {
+  id: string;
+  question: string;
+  options?: string[]; // For multiple choice
+  answer: string; // Correct option text for MC, or the direct answer for fill-in-the-blank
+  points: number;
+  type: 'mc' | 'fill'; // Type of quiz
+}
+
+export type GameState = 
+  'ThemeSelection' | 
+  'GradeSelection' | 
+  'IslandMap' | 
+  'IslandPlaying' | 
+  'IslandComplete' | 
+  'GradeComplete' | 
+  'Transitioning' | 
+  'Error' |
+  'TreasureChestOpening'; // New state for treasure chest modal

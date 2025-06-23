@@ -1,4 +1,5 @@
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme } from './types';
+
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -40,6 +41,11 @@ export const BUTTON_CLICK_SOUND_URL = "https://cdn.pixabay.com/download/audio/20
 export const FIREWORK_EXPLOSION_SOUND_1_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_174242f3f4.mp3?filename=medium-explosion-40472.mp3";
 export const FIREWORK_EXPLOSION_SOUND_2_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c64e01b884.mp3?filename=firework_single-83058.mp3";
 export const ACHIEVEMENT_UNLOCKED_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
+export const TREASURE_OPEN_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_7dd45f4b50.mp3?filename=briefcase-open-2-83060.mp3";
+export const TREASURE_SPARKLE_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/01/24/audio_383cd89e76.mp3?filename=magic-wand-2-100806.mp3";
+
+// Icon URLs
+export const ACHIEVEMENT_BUTTON_ICON_URL = "https://i.ibb.co/84xpddHn/icon-huy-hieu.png";
 
 
 // Island Configuration - Updated based on curriculum summary
@@ -553,6 +559,7 @@ export const DEFAULT_THEME = Theme.FRUTIGER_AERO; // Updated Default Theme
 export const SELECTED_THEME_KEY = `${LOCAL_STORAGE_PREFIX}selectedTheme`;
 export const ACHIEVED_ACHIEVEMENTS_KEY = `${LOCAL_STORAGE_PREFIX}achievedAchievements`;
 export const HARD_MODE_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}hardModeProgress_grade_`;
+export const ACTIVE_TREASURE_CHESTS_KEY = `${LOCAL_STORAGE_PREFIX}activeTreasureChests`;
 
 
 // Achievement UI Text
@@ -565,3 +572,27 @@ export const FILTER_ALL_ACHIEVEMENTS_TEXT = "Tất Cả Huy Hiệu";
 export const FILTER_GRADE_ACHIEVEMENTS_TEXT = (grade: GradeLevel) => `Lớp ${GRADE_LEVEL_TEXT_MAP[grade]}`;
 export const FILTER_GLOBAL_ACHIEVEMENTS_TEXT = "Toàn Cầu";
 export const CLOSE_BUTTON_TEXT = "Đóng";
+
+// Treasure Chest Feature Constants
+export const TREASURE_CHEST_SPAWN_CHANCE = 0.20; // 20% chance
+export const TREASURE_MODAL_TITLE = "Rương Báu Bí Ẩn!";
+export const TREASURE_REWARD_POINTS_MIN = 5;
+export const TREASURE_REWARD_POINTS_MAX = 15;
+export const TREASURE_QUIZ_REWARD_POINTS_MIN = 10;
+export const TREASURE_QUIZ_REWARD_POINTS_MAX = 25;
+export const TREASURE_CHEST_ICON_EMOJI = "🎁"; // or "💰"
+export const TREASURE_CHEST_THANKS_MESSAGE = "Chiếc rương lần này trống trơn, nhưng cảm ơn bạn đã dày công khám phá!";
+export const TREASURE_CHEST_POINTS_MESSAGE = (points: number) => `Bạn tìm thấy ${points} điểm!`;
+export const TREASURE_CHEST_QUIZ_CORRECT_MESSAGE = (points: number) => `Tuyệt vời! Bạn thật thông minh! +${points} điểm.`;
+export const TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE = "Không sao, lần sau thử lại nhé!";
+
+export const FUN_QUIZZES: FunQuiz[] = [
+  { id: "fq1", question: "Con gì đầu dê đuôi ốc?", type: 'fill', answer: "Con dốc", points: 15 },
+  { id: "fq2", question: "Trong một cuộc thi chạy, nếu bạn vượt qua người thứ hai, bạn sẽ đứng thứ mấy?", type: 'mc', options: ["Thứ nhất", "Thứ hai", "Thứ ba"], answer: "Thứ hai", points: 20 },
+  { id: "fq3", question: "Bỏ ngoài nướng trong, ăn ngoài bỏ trong là gì?", type: 'fill', answer: "Bắp ngô", points: 15 },
+  { id: "fq4", question: "Có một đàn vịt, hai con đi trước, hai con đi sau, hai con đi giữa. Hỏi có mấy con?", type: 'mc', options: ["Ba con", "Bốn con", "Sáu con"], answer: "Ba con", points: 20 },
+  { id: "fq5", question: "Cái gì luôn đến mà không bao giờ đến nơi?", type: 'fill', answer: "Ngày mai", points: 15 },
+  { id: "fq6", question: "Một bó que có 100 que, người ta bó thành từng bó nhỏ, mỗi bó 10 que. Hỏi bó được bao nhiêu bó nhỏ?", type: 'mc', options: ["5 bó", "10 bó", "15 bó"], answer: "10 bó", points: 10 },
+  { id: "fq7", question: "Tìm một số, biết rằng nếu lấy số đó nhân với 2 rồi cộng thêm 3 thì được 13.", type: 'fill', answer: "5", points: 20 },
+  { id: "fq8", question: "Cầu gì không bắc qua sông?", type: 'mc', options: ["Cầu vồng", "Cầu lông", "Cầu thủ"], answer: "Cầu lông", points: 10 },
+];

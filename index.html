@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -125,6 +126,27 @@
     }
     .animate-fadeInScale {
       animation: fadeInScale 0.4s ease-out;
+    }
+
+    @keyframes trophy-glow-animation {
+      0%, 100% {
+        filter: 
+          drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.25)) /* Base shadow for 3D effect */
+          drop-shadow(0px 0px 8px var(--accent-color)) /* Accent glow */
+          brightness(1.2); /* Base brightness */
+        transform: translateY(0px) scale(1);
+      }
+      50% {
+        filter: 
+          drop-shadow(0px 10px 12px rgba(0, 0, 0, 0.35)) /* Lifted shadow for 3D effect */
+          drop-shadow(0px 0px 28px var(--accent-color)) /* Stronger accent glow */
+          drop-shadow(0px 0px 15px var(--accent-color)) /* Inner accent glow */
+          brightness(1.7); /* Peak brightness */
+        transform: translateY(-8px) scale(1.18); /* Lift up and pulse bigger */
+      }
+    }
+    .animate-trophy-glow {
+      animation: trophy-glow-animation 1.8s infinite ease-in-out;
     }
 
     /* Basic style for :root variables, primarily for Tailwind JIT to pick them up during dev.
