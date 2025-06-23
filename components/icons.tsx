@@ -150,3 +150,16 @@ export const KeyIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
   </svg>
 );
+
+export const CalendarCheckIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-12-3.75h.008v.008H9v-.008Zm3.75 0h.008v.008h-.008Zm0 0L12 15l1.25-1.25M15 15h.008v.008H15v-.008Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="m9 12.75 2.25 2.25 4.5-4.5" />
+  </svg>
+);
+
+export const GemIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path fillRule="evenodd" d="M11.213 2.213a.75.75 0 0 1 1.574 0l1.456 3.948a.75.75 0 0 0 .708.513l4.137.319a.75.75 0 0 1 .43 1.285l-3.262 2.768a.75.75 0 0 0-.24 1.01l.933 3.996a.75.75 0 0 1-1.077.842l-3.646-2.181a.75.75 0 0 0-.896 0L8.03 20.91a.75.75 0 0 1-1.077-.842l.933-3.996a.75.75 0 0 0-.24-1.01L4.384 8.278a.75.75 0 0 1 .43-1.285l4.137-.319a.75.75 0 0 0 .708-.513l1.456-3.948ZM12 7.756l-.682-1.848a2.25 2.25 0 0 1-2.124-1.538L8.14 1.08a2.25 2.25 0 0 0-4.723 0l-1.255 3.29a2.25 2.25 0 0 1-2.124 1.538L-.002 6.092a2.25 2.25 0 0 0-1.289 3.854l2.566 2.176a2.25 2.25 0 0 1 .72 3.03l-1.011 4.328a2.25 2.25 0 0 0 3.232 2.525l3.111-1.86a2.25 2.25 0 0 1 2.688 0l3.111 1.86a2.25 2.25 0 0 0 3.232-2.525l-1.011-4.328a2.25 2.25 0 0 1 .72-3.03l2.566-2.176a2.25 2.25 0 0 0-1.29-3.854l-4.04-.184a2.25 2.25 0 0 1-2.124-1.538L12 2.112v5.644Z" clipRule="evenodd" />
+  </svg>
+);

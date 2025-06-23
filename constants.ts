@@ -1,4 +1,5 @@
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem } from './types';
+
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -91,8 +92,8 @@ export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn đ�
 // Endless Mode
 export const ENDLESS_MODE_LIVES = 5;
 export const ENDLESS_QUESTIONS_BATCH_SIZE = 10;
-export const ENDLESS_MODE_DIFFICULTY: IslandDifficulty = IslandDifficulty.MEDIUM; // Default difficulty for endless
-export const ENDLESS_MODE_GRADE_COMPLETE_MESSAGE = (grade: string) => `Chúc mừng! Bạn đã mở khóa Chế độ Vô tận cho ${grade}!`; // Not used in current GameScreen but defined
+export const ENDLESS_MODE_DIFFICULTY: IslandDifficulty = IslandDifficulty.MEDIUM;
+export const ENDLESS_MODE_GRADE_COMPLETE_MESSAGE = (grade: string) => `Chúc mừng! Bạn đã mở khóa Chế độ Vô tận cho ${grade}!`;
 export const ENDLESS_MODE_SUMMARY_TITLE = "Kết Quả Chế Độ Vô Tận";
 export const ENDLESS_MODE_SCORE_TEXT = "Điểm Vô Tận";
 export const ENDLESS_MODE_QUESTIONS_ANSWERED_TEXT = "Số Câu Đã Trả Lời";
@@ -106,6 +107,18 @@ export const FINAL_ISLAND_UNLOCK_MESSAGE = "Chúc mừng! Bạn đã mở khóa 
 export const FINAL_ISLAND_ACCESS_BUTTON_TEXT = "Đến Đảo Kho Báu";
 export const FINAL_ISLAND_GRADE_TITLE = "Đảo Kho Báu Cuối Cùng";
 
+// Daily Challenge System
+export const DAILY_CHALLENGE_MODAL_TITLE = "Thử Thách Hàng Ngày";
+export const DAILY_CHALLENGE_BUTTON_TEXT = "Thử Thách";
+export const DAILY_CHALLENGE_REWARD_TEXT = (gems: number) => `Phần thưởng: ${gems} Đá Quý`;
+export const DAILY_CHALLENGE_COMPLETED_TEXT = "Đã hoàn thành!";
+export const DAILY_CHALLENGE_CLAIM_REWARD_BUTTON_TEXT = "Nhận Thưởng";
+export const DAILY_CHALLENGE_REWARD_CLAIMED_TEXT = "Đã nhận thưởng!";
+export const DAILY_CHALLENGE_PROGRESS_TEXT = (current: number, target: number) => `${current}/${target}`;
+export const DAILY_CHALLENGE_NEW_AVAILABLE_TEXT = "Thử thách mới đã có!";
+export const DAILY_CHALLENGE_REFRESH_NOTICE_TEXT = (time: string) => `Làm mới sau: ${time}`;
+export const DAILY_CHALLENGE_SUCCESS_TOAST_TEXT = (reward: number) => `Bạn hoàn thành Thử Thách Hàng Ngày và nhận ${reward} Đá Quý!`;
+export const PLAYER_GEMS_TEXT = "Đá Quý";
 
 // Local Storage Keys
 export const LOCAL_STORAGE_PREFIX = "treasureIslandMath_";
@@ -123,10 +136,13 @@ export const ACTIVE_COLLECTIBLE_KEY = `${LOCAL_STORAGE_PREFIX}activeCollectible`
 export const COLLECTED_ITEMS_KEY = `${LOCAL_STORAGE_PREFIX}collectedItems`;
 export const ENDLESS_UNLOCKED_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}endlessUnlocked_`;
 export const FINAL_ISLAND_UNLOCKED_KEY = `${LOCAL_STORAGE_PREFIX}finalIslandUnlocked`;
+export const ACTIVE_DAILY_CHALLENGE_KEY = `${LOCAL_STORAGE_PREFIX}activeDailyChallenge`;
+export const PLAYER_GEMS_KEY = `${LOCAL_STORAGE_PREFIX}playerGems`;
+export const COMPLETED_DAILY_CHALLENGES_LOG_KEY = `${LOCAL_STORAGE_PREFIX}completedDailyChallengesLog`;
 
 
 // Default Theme
-export const DEFAULT_THEME: Theme = Theme.FRUTIGER_AERO; // Or Theme.NEON, Theme.GIRLY as per preference
+export const DEFAULT_THEME: Theme = Theme.FRUTIGER_AERO;
 
 // Sound Effect URLs
 export const HOVER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/02/17/audio_988aaf064c.mp3?filename=click-21156.mp3";
@@ -155,6 +171,11 @@ export const COLLECTIBLE_SPAWN_SOUND_URL = "https://cdn.pixabay.com/download/aud
 export const COLLECTIBLE_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
 export const ENDLESS_MODE_START_SOUND_URL = "https://cdn.pixabay.com/download/audio/2024/04/10/audio_606a246872.mp3?filename=energy-1-396956.mp3";
 export const FINAL_ISLAND_UNLOCK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/10/20/audio_1650b86a34.mp3?filename=secret-reveal-96570.mp3";
+export const DAILY_CHALLENGE_NEW_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c0e869766e.mp3?filename=notification-positive-bleep-82880.mp3";
+export const DAILY_CHALLENGE_PROGRESS_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
+export const DAILY_CHALLENGE_COMPLETE_SOUND_URL = ACHIEVEMENT_UNLOCKED_SOUND_URL;
+export const GEM_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/07/audio_c35a82894a.mp3?filename=bell-notification-1-93212.mp3";
+
 
 // Icon URLs & Emojis
 export const ACHIEVEMENT_BUTTON_ICON_URL = "https://i.ibb.co/84xpddHn/icon-huy-hieu.png";
@@ -164,17 +185,17 @@ export const TREASURE_CHEST_ICON_EMOJI = "🎁";
 
 
 // Game Mechanics Config
-export const TREASURE_CHEST_SPAWN_CHANCE = 0.2; // 20%
-export const MESSAGE_IN_BOTTLE_SPAWN_CHANCE = 0.1; // 10%
-export const SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS = 15000; // 15 seconds
-export const SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS = 45000; // 45 seconds
-export const SHOOTING_STAR_ANIMATION_DURATION_MS = 5000; // 5 seconds
+export const TREASURE_CHEST_SPAWN_CHANCE = 0.2;
+export const MESSAGE_IN_BOTTLE_SPAWN_CHANCE = 0.1;
+export const SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS = 15000;
+export const SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS = 45000;
+export const SHOOTING_STAR_ANIMATION_DURATION_MS = 5000;
 export const SHOOTING_STAR_REWARD_POINTS_MIN = 5;
 export const SHOOTING_STAR_REWARD_POINTS_MAX = 15;
 export const SHOOTING_STAR_BASE_SIZE_PX = 32;
-export const SHOOTING_STAR_MAX_ACTIVE_MS = 8000; // Max time a star is visible and clickable
-export const FRIENDLY_NPC_SPAWN_CHANCE = 0.15; // 15%
-export const COLLECTIBLE_SPAWN_CHANCE = 0.08; // 8%
+export const SHOOTING_STAR_MAX_ACTIVE_MS = 8000;
+export const FRIENDLY_NPC_SPAWN_CHANCE = 0.15;
+export const COLLECTIBLE_SPAWN_CHANCE = 0.08;
 
 // Treasure Chest Rewards
 export const TREASURE_REWARD_POINTS_MIN = 10;
@@ -185,6 +206,61 @@ export const TREASURE_QUIZ_REWARD_POINTS_MAX = 25;
 
 // Final Treasure Island ID
 export const FINAL_TREASURE_ISLAND_ID = "gFinal_main_treasure";
+
+// Daily Challenge Definitions
+import { CHALLENGE_ACTION_ISLAND_COMPLETED, CHALLENGE_ACTION_STAR_EARNED, CHALLENGE_ACTION_CORRECT_ANSWER, CHALLENGE_ACTION_TREASURE_CHEST_OPENED, CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED, CHALLENGE_ACTION_NPC_INTERACTED } from './types';
+
+export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
+  {
+    id: "complete_islands",
+    type: DailyChallengeType.COMPLETE_ISLANDS,
+    descriptionTemplate: (target) => `Hoàn thành ${target} hòn đảo bất kỳ.`,
+    generateTargetValue: () => Math.random() < 0.6 ? 1 : 2, // 60% for 1, 40% for 2
+    rewardGems: 30,
+    actionTypeToTrack: CHALLENGE_ACTION_ISLAND_COMPLETED,
+  },
+  {
+    id: "earn_stars",
+    type: DailyChallengeType.EARN_STARS,
+    descriptionTemplate: (target) => `Kiếm được tổng cộng ${target} ngôi sao từ việc hoàn thành đảo.`,
+    generateTargetValue: () => Math.floor(Math.random() * 6) + 5, // 5 to 10 stars
+    rewardGems: 40,
+    actionTypeToTrack: CHALLENGE_ACTION_STAR_EARNED,
+  },
+  {
+    id: "correct_answers_streak",
+    type: DailyChallengeType.CORRECT_ANSWERS_IN_A_ROW,
+    descriptionTemplate: (target) => `Trả lời đúng ${target} câu hỏi liên tiếp trong một lượt chơi đảo.`,
+    generateTargetValue: () => Math.floor(Math.random() * 3) + 3, // 3 to 5 correct answers in a row
+    rewardGems: 50,
+    actionTypeToTrack: CHALLENGE_ACTION_CORRECT_ANSWER,
+    streakChallenge: true,
+  },
+  {
+    id: "open_treasure_chests",
+    type: DailyChallengeType.OPEN_TREASURE_CHESTS,
+    descriptionTemplate: (target) => `Mở ${target} rương báu.`,
+    generateTargetValue: () => 1,
+    rewardGems: 25,
+    actionTypeToTrack: CHALLENGE_ACTION_TREASURE_CHEST_OPENED,
+  },
+  {
+    id: "collect_shooting_stars",
+    type: DailyChallengeType.COLLECT_SHOOTING_STARS,
+    descriptionTemplate: (target) => `Thu thập ${target} ngôi sao may mắn.`,
+    generateTargetValue: () => Math.floor(Math.random() * 2) + 1, // 1 to 2 stars
+    rewardGems: 20,
+    actionTypeToTrack: CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED,
+  },
+  {
+    id: "interact_with_npcs",
+    type: DailyChallengeType.INTERACT_WITH_NPCS,
+    descriptionTemplate: (target) => `Tương tác với ${target} nhân vật thân thiện trên đảo.`,
+    generateTargetValue: () => 1,
+    rewardGems: 15,
+    actionTypeToTrack: CHALLENGE_ACTION_NPC_INTERACTED,
+  }
+];
 
 // Island Configurations
 export const ISLAND_CONFIGS: IslandConfig[] = [
@@ -207,7 +283,6 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
     targetGradeLevel: GradeLevel.GRADE_1,
     mapIcon: "➕"
   },
-  // ... (add other 8 islands for Grade 1 following the pattern)
   { islandId: "g1_island_03_shapes_basic", islandNumber: 3, name: "Làng Hình Học Vui", description: "Nhận biết các hình cơ bản.", topics: ["hình vuông", "hình tròn", "hình tam giác", "hình chữ nhật"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "📐" },
   { islandId: "g1_island_04_counting_1_20", islandNumber: 4, name: "Rặng San Hô Số (1-20)", description: "Mở rộng đếm và so sánh số đến 20.", topics: ["đếm đến 20", "so sánh số trong phạm vi 20"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🐠" },
   { islandId: "g1_island_05_time_days_week", islandNumber: 5, name: "Đồng Hồ Thời Gian", description: "Học về các ngày trong tuần.", topics: ["các ngày trong tuần", "thứ tự ngày trong tuần"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🗓️" },
@@ -220,7 +295,6 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
   // --- GRADE 2 --- (10 Islands)
   { islandId: "g2_island_01_counting_1_100", islandNumber: 1, name: "Thảo Nguyên Trăm Số", description: "Đếm, đọc, viết, so sánh số trong phạm vi 100.", topics: ["số có hai chữ số", "so sánh số phạm vi 100", " cấu tạo số (chục, đơn vị)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "💯" },
   { islandId: "g2_island_02_addition_subtraction_100_no_carry", islandNumber: 2, name: "Biển Cộng Trừ Không Nhớ (P.vi 100)", description: "Cộng, trừ không nhớ trong phạm vi 100.", topics: ["cộng không nhớ phạm vi 100", "trừ không nhớ phạm vi 100"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌊" },
-  // ... (add other 8 islands for Grade 2)
   { islandId: "g2_island_03_addition_subtraction_100_with_carry", islandNumber: 3, name: "Núi Cộng Trừ Có Nhớ (P.vi 100)", description: "Cộng, trừ có nhớ trong phạm vi 100.", topics: ["cộng có nhớ phạm vi 100", "trừ có nhớ phạm vi 100"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏔️" },
   { islandId: "g2_island_04_multiplication_division_intro", islandNumber: 4, name: "Rừng Nhân Chia Bí Ẩn", description: "Làm quen phép nhân, chia.", topics: ["phép nhân (bảng 2, 5)", "phép chia (bảng 2, 5)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌳" },
   { islandId: "g2_island_05_time_clock_hours_halfhours", islandNumber: 5, name: "Tháp Đồng Hồ Chính Xác", description: "Xem giờ đúng, giờ rưỡi.", topics: ["xem giờ đúng", "xem giờ rưỡi"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "⏰" },
@@ -229,7 +303,6 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
   { islandId: "g2_island_08_problem_solving_multistep_simple", islandNumber: 8, name: "Mê Cung Toán Đố Lớp 2", description: "Giải toán đố nhiều bước đơn giản.", topics: ["toán đố kết hợp cộng trừ", "toán đố nhân chia đơn giản"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧩" },
   { islandId: "g2_island_09_data_simple_charts", islandNumber: 9, name: "Vườn Thống Kê Nhỏ", description: "Đọc biểu đồ tranh đơn giản.", topics: ["biểu đồ tranh"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "📊" },
   { islandId: "g2_island_10_review_grade2", islandNumber: 10, name: "Ngọn Hải Đăng Lớp 2", description: "Ôn tập kiến thức lớp 2.", topics: ["cộng trừ phạm vi 100", "nhân chia (bảng 2,3,4,5)", "thời gian", "đo lường"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "💡" },
-  // ... Add Grade 3, 4, 5 islands similarly ...
    // --- GRADE 3 --- (10 Islands)
   { islandId: "g3_island_01_numbers_1000", islandNumber: 1, name: "Vương Quốc Nghìn Số", description: "Số đến 1000, so sánh, làm tròn.", topics: ["số có ba chữ số", "so sánh số phạm vi 1000", "làm tròn số đến hàng chục, hàng trăm"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🏰" },
   { islandId: "g3_island_02_multiplication_division_tables", islandNumber: 2, name: "Đấu Trường Bảng Cửu Chương", description: "Hoàn thiện bảng nhân chia.", topics: ["bảng nhân 6,7,8,9", "bảng chia 6,7,8,9"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚔️" },
@@ -265,15 +338,14 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
   { islandId: "g5_island_08_number_sequences_patterns", islandNumber: 8, name: "Thung Lũng Dãy Số Thông Thái", description: "Tìm quy luật dãy số phức tạp.", topics: ["dãy số cách đều", "dãy số có quy luật phức tạp"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏞️" },
   { islandId: "g5_island_09_logic_reasoning_puzzles", islandNumber: 9, name: "Hang Động Tư Duy Logic", description: "Câu đố logic, suy luận toán học.", topics: ["suy luận logic", "toán vui"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🧠" },
   { islandId: "g5_island_10_review_grade5", islandNumber: 10, name: "Cổng Vinh Quang Lớp 5", description: "Tổng ôn kiến thức tiểu học.", topics: ["ôn tập số thập phân", "tỷ số phần trăm", "hình học không gian", "toán chuyển động"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🎓" },
-  
-  // Final Treasure Island (Example - this was missing required fields)
+
   {
     islandId: FINAL_TREASURE_ISLAND_ID,
-    islandNumber: 1, // Or a higher number if it's sequential after all grades
+    islandNumber: 1,
     name: "Đảo Kho Báu Cuối Cùng",
     description: "Thử thách cuối cùng với những câu đố hóc búa nhất!",
-    topics: ["Toán tổng hợp nâng cao", "Logic", "Mẹo toán"], // Example topics
-    targetGradeLevel: GradeLevel.FINAL, // Set to FINAL
+    topics: ["Toán tổng hợp nâng cao", "Logic", "Mẹo toán"],
+    targetGradeLevel: GradeLevel.FINAL,
     mapIcon: "💎"
   }
 ];
@@ -297,23 +369,19 @@ export const FUN_QUIZZES: FunQuiz[] = [
 
 // Friendly NPCs
 export const FRIENDLY_NPCS: FriendlyNPC[] = [
-  { id: "npc_owl", name: "Cú Thông Thái", imageUrl: "https://i.ibb.co/VvzK93T/npc-cu-thong-thai.png" }, // Replace with actual image URL
+  { id: "npc_owl", name: "Cú Thông Thái", imageUrl: "https://i.ibb.co/VvzK93T/npc-cu-thong-thai.png" },
   { id: "npc_squirrel", name: "Sóc Nhanh Nhẹn", imageUrl: "https://i.ibb.co/bJCqN70/npc-soc-nhanh-nhen.png" },
   { id: "npc_turtle", name: "Rùa Kiên Trì", imageUrl: "https://i.ibb.co/kSvFrCx/npc-rua-kien-tri.png" },
 ];
 
 // NPC Interactions
 export const NPC_INTERACTIONS: NPCInteraction[] = [
-  // Owl Interactions
   { id: "owl_fact1", npcIds: ["npc_owl"], type: "fact", text: "Bạn có biết rằng số Pi (π) là một hằng số toán học vô cùng thú vị không? Nó có vô hạn chữ số sau dấu phẩy đấy!", points: 5 },
   { id: "owl_riddle1", npcIds: ["npc_owl"], type: "riddle", text: "Tôi có các thành phố, nhưng không có nhà cửa. Tôi có núi, nhưng không có cây. Tôi có nước, nhưng không có cá. Tôi là gì?", answer: "Bản đồ", points: 15 },
-  // Squirrel Interactions
   { id: "squirrel_encouragement1", npcIds: ["npc_squirrel"], type: "encouragement", text: "Cố lên nào! Mỗi bài toán giải được là một bước tiến lớn đó!", points: 3 },
   { id: "squirrel_riddle1", npcIds: ["npc_squirrel"], type: "riddle", text: "Cái gì càng lấy đi càng lớn?", answer: "Cái hố", points: 10 },
-  // Turtle Interactions
   { id: "turtle_fact1", npcIds: ["npc_turtle"], type: "fact", text: "Từ từ mà chắc! Cũng giống như giải toán, cẩn thận từng bước sẽ giúp bạn đến đích.", points: 5 },
   { id: "turtle_riddle1", npcIds: ["npc_turtle"], type: "riddle", text: "Buổi sáng đi bằng 4 chân, buổi trưa đi bằng 2 chân, buổi tối đi bằng 3 chân. Đó là con gì?", answer: "Con người", points: 20 },
-  // Generic Interactions (if no specific NPC is targeted or as fallback)
   { id: "generic_encouragement", type: "encouragement", text: "Bạn đang làm rất tốt! Tiếp tục khám phá nhé!", points: 2 },
 ];
 
