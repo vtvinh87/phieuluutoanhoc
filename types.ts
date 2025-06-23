@@ -76,40 +76,48 @@ export type PreloadedQuestionsCache = {
 
 export interface ThemeConfig {
   name: string;
-  backgroundUrl: string;
-  backgroundUrlSideBySideLayout?: string;
-  backgroundUrlStackedLayout?: string;
-  localBackgroundUrlSideBySideLayout?: string;
-  localBackgroundUrlStackedLayout?: string;
-  primaryBg: string;
+  backgroundUrl: string; // General fallback remote URL
+  backgroundUrlSideBySideLayout?: string; // Specific remote URL for desktop/side-by-side
+  backgroundUrlStackedLayout?: string;    // Specific remote URL for mobile/stacked
+  localBackgroundUrlSideBySideLayout?: string; // Specific local path for desktop/side-by-side
+  localBackgroundUrlStackedLayout?: string;    // Specific local path for mobile/stacked
+  // Primary colors
+  primaryBg: string; 
   primaryText: string;
-  secondaryBg: string;
+  secondaryBg: string; 
   secondaryText: string;
+  // Accent colors
   accent: string;
   accentText: string;
+  // Button specific
   buttonPrimaryBg: string;
   buttonPrimaryText: string;
-  buttonSecondaryBg: string;
-  buttonSecondaryText: string;
-  buttonAnswerOptionBg: string;
+  buttonSecondaryBg: string; 
+  buttonSecondaryText: string; 
+  buttonAnswerOptionBg: string; 
   buttonAnswerOptionText: string;
   buttonAnswerOptionRing: string;
   buttonAnswerOptionSelectedBg: string;
   buttonAnswerOptionSelectedText: string;
   buttonAnswerOptionSelectedRing: string;
+  // Feedback colors
   correctBg: string;
   correctText: string;
   correctRing: string;
   incorrectBg: string;
   incorrectText: string;
   incorrectRing: string;
-  modalBgBackdrop: string;
+  // Modal specific
+  modalBgBackdrop: string; 
   modalContentBg: string;
   modalHeaderText: string;
+  // Borders and Rings
   borderColor: string;
-  ringColorFocus: string;
+  ringColorFocus: string; 
+  // Text for titles, headers
   titleTextGradientFrom: string;
   titleTextGradientTo: string;
+  // Island Map Button Styles
   islandButtonLockedBg: string;
   islandButtonUnlockedBg: string;
   islandButtonCompletedBg: string;
@@ -117,13 +125,17 @@ export interface ThemeConfig {
   islandButtonUnlockedText: string;
   islandButtonCompletedText: string;
   islandButtonRingColor: string;
+  // Question Display
   questionDisplayBg: string;
   questionDisplayText: string;
   questionDisplayImageBorder: string;
-  spinnerColor: string;
-  appContainerBg: string;
-  frostedGlassOpacity?: string;
-  fontFamily: string;
+  // Spinner Color
+  spinnerColor: string; 
+  // General UI elements
+  appContainerBg: string; 
+  // Special
+  frostedGlassOpacity?: string; 
+  fontFamily: string; 
 }
 
 export type AchievementId = string;
@@ -143,8 +155,9 @@ export interface AchievementContext {
     collectedItems?: CollectedItemsState;
     isEndlessUnlockedForGrade?: IsEndlessUnlockedForGradeState;
     isFinalIslandUnlocked?: boolean;
-    playerGems?: number; // Added for achievements related to gems
-    completedDailyChallengesCount?: number; // Added for achievements
+    playerGems?: number; 
+    completedDailyChallengesCount?: number;
+    completedWeeklyChallengesCount?: number; // Added for weekly challenge achievements
 }
 
 
@@ -273,52 +286,86 @@ export type CollectedItemsState = Record<string, boolean>;
 
 export type IsEndlessUnlockedForGradeState = Partial<Record<GradeLevel, boolean>>;
 
-// Daily Challenge System Types
+// --- Daily Challenge System Types ---
 export enum DailyChallengeType {
-  COMPLETE_ISLANDS = "COMPLETE_ISLANDS", // Complete X islands (any grade/difficulty)
-  EARN_STARS = "EARN_STARS",           // Earn X stars in total
-  CORRECT_ANSWERS_IN_A_ROW = "CORRECT_ANSWERS_IN_A_ROW", // Get X correct answers in a row (during one island play)
+  COMPLETE_ISLANDS = "COMPLETE_ISLANDS", 
+  EARN_STARS = "EARN_STARS",          
+  CORRECT_ANSWERS_IN_A_ROW = "CORRECT_ANSWERS_IN_A_ROW", 
   OPEN_TREASURE_CHESTS = "OPEN_TREASURE_CHESTS",
   COLLECT_SHOOTING_STARS = "COLLECT_SHOOTING_STARS",
   INTERACT_WITH_NPCS = "INTERACT_WITH_NPCS",
 }
 
-// Defines a potential challenge template
 export interface DailyChallengeDefinition {
-  id: string; // Unique identifier for the challenge definition (e.g., "complete_3_islands")
+  id: string; 
   type: DailyChallengeType;
-  descriptionTemplate: (targetValue: number) => string; // e.g., "Hoàn thành {targetValue} hòn đảo."
-  generateTargetValue: () => number; // Function to generate a random target (e.g., 1 to 3 islands)
+  descriptionTemplate: (targetValue: number) => string; 
+  generateTargetValue: () => number; 
   rewardGems: number;
-  actionTypeToTrack: string; // Used to link game events to challenge progress (e.g., "ISLAND_COMPLETED")
-  streakChallenge?: boolean; // True if this is a streak-based challenge
+  actionTypeToTrack: string; 
+  streakChallenge?: boolean; 
 }
 
-// Represents an active or stored daily challenge instance
 export interface DailyChallenge {
-  id: string; // Instance ID, unique for this specific generated challenge (uuidv4)
-  definitionId: string; // Links to DailyChallengeDefinition.id
+  id: string; 
+  definitionId: string; 
   type: DailyChallengeType;
-  description: string; // Generated from template
+  description: string; 
   targetValue: number;
   currentValue: number;
   rewardGems: number;
   generatedDate: string; // YYYY-MM-DD format
   isCompleted: boolean;
   rewardClaimed: boolean;
-  currentStreak?: number; // For streak challenges
+  currentStreak?: number; 
 }
 
 export type ActiveDailyChallengeState = DailyChallenge | null;
 export type PlayerGemsState = number;
-export type CompletedDailyChallengesLogState = Record<string, { date: string, challengeId: string }>; // Store YYYY-MM-DD -> {date, challengeId}
-                                                                                                 // To track completion history for achievements. Key is the challenge instance ID.
+export type CompletedDailyChallengesLogState = Record<string, { date: string, challengeId: string }>;
+
+
+// --- Weekly Challenge System Types ---
+export enum WeeklyChallengeType {
+  WC_COMPLETE_ISLANDS_ANY_DIFFICULTY = "WC_COMPLETE_ISLANDS_ANY_DIFFICULTY",
+  WC_EARN_TOTAL_STARS = "WC_EARN_TOTAL_STARS",
+  WC_COMPLETE_DAILY_CHALLENGES = "WC_COMPLETE_DAILY_CHALLENGES",
+  WC_UNLOCK_ACHIEVEMENTS = "WC_UNLOCK_ACHIEVEMENTS",
+  WC_TOTAL_CORRECT_ANSWERS = "WC_TOTAL_CORRECT_ANSWERS",
+}
+
+export interface WeeklyChallengeDefinition {
+  id: string;
+  type: WeeklyChallengeType;
+  descriptionTemplate: (targetValue: number) => string;
+  generateTargetValue: () => number;
+  rewardGems: number;
+  actionTypeToTrack: string; // Can be a game event or a meta-event like daily challenge completion
+}
+
+export interface WeeklyChallenge {
+  id: string; // Instance ID
+  definitionId: string;
+  type: WeeklyChallengeType;
+  description: string;
+  targetValue: number;
+  currentValue: number;
+  rewardGems: number;
+  generatedDate: string; // YYYY-MM-DD format (Monday of the week)
+  isCompleted: boolean;
+  rewardClaimed: boolean;
+}
+
+export type ActiveWeeklyChallengeState = WeeklyChallenge | null;
+export type CompletedWeeklyChallengesLogState = Record<string, { date: string, challengeId: string }>;
 
 
 // Action types for tracking challenge progress
 export const CHALLENGE_ACTION_ISLAND_COMPLETED = "ISLAND_COMPLETED";
-export const CHALLENGE_ACTION_STAR_EARNED = "STAR_EARNED"; // Could be total stars from an island completion
+export const CHALLENGE_ACTION_STAR_EARNED = "STAR_EARNED"; 
 export const CHALLENGE_ACTION_CORRECT_ANSWER = "CORRECT_ANSWER";
 export const CHALLENGE_ACTION_TREASURE_CHEST_OPENED = "TREASURE_CHEST_OPENED";
 export const CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED = "SHOOTING_STAR_COLLECTED";
 export const CHALLENGE_ACTION_NPC_INTERACTED = "NPC_INTERACTED";
+export const CHALLENGE_ACTION_DAILY_CHALLENGE_REWARD_CLAIMED = "DAILY_CHALLENGE_REWARD_CLAIMED"; // For weekly challenge tracking
+export const CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME = "ACHIEVEMENT_UNLOCKED_INGAME"; // For weekly challenge tracking

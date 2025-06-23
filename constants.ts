@@ -1,5 +1,5 @@
 
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType } from './types';
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -107,7 +107,7 @@ export const FINAL_ISLAND_UNLOCK_MESSAGE = "Chúc mừng! Bạn đã mở khóa 
 export const FINAL_ISLAND_ACCESS_BUTTON_TEXT = "Đến Đảo Kho Báu";
 export const FINAL_ISLAND_GRADE_TITLE = "Đảo Kho Báu Cuối Cùng";
 
-// Daily Challenge System
+// --- Daily Challenge System ---
 export const DAILY_CHALLENGE_MODAL_TITLE = "Thử Thách Hàng Ngày";
 export const DAILY_CHALLENGE_BUTTON_TEXT = "Thử Thách";
 export const DAILY_CHALLENGE_REWARD_TEXT = (gems: number) => `Phần thưởng: ${gems} Đá Quý`;
@@ -119,6 +119,20 @@ export const DAILY_CHALLENGE_NEW_AVAILABLE_TEXT = "Thử thách mới đã có!"
 export const DAILY_CHALLENGE_REFRESH_NOTICE_TEXT = (time: string) => `Làm mới sau: ${time}`;
 export const DAILY_CHALLENGE_SUCCESS_TOAST_TEXT = (reward: number) => `Bạn hoàn thành Thử Thách Hàng Ngày và nhận ${reward} Đá Quý!`;
 export const PLAYER_GEMS_TEXT = "Đá Quý";
+export const DAILY_CHALLENGE_TAB_TEXT = "Hàng Ngày";
+
+
+// --- Weekly Challenge System ---
+export const WEEKLY_CHALLENGE_MODAL_TITLE = "Thử Thách Hàng Tuần";
+export const WEEKLY_CHALLENGE_TAB_TEXT = "Hàng Tuần";
+export const WEEKLY_CHALLENGE_REWARD_TEXT = (gems: number) => `Phần thưởng lớn: ${gems} Đá Quý!`;
+export const WEEKLY_CHALLENGE_COMPLETED_TEXT = "Thử thách tuần hoàn thành!";
+export const WEEKLY_CHALLENGE_CLAIM_REWARD_BUTTON_TEXT = "Nhận Thưởng Tuần";
+export const WEEKLY_CHALLENGE_REWARD_CLAIMED_TEXT = "Đã nhận thưởng tuần!";
+export const WEEKLY_CHALLENGE_NEW_AVAILABLE_TEXT = "Thử thách tuần mới đã có!";
+export const WEEKLY_CHALLENGE_REFRESH_NOTICE_TEXT = (time: string) => `Làm mới sau: ${time}`;
+export const WEEKLY_CHALLENGE_SUCCESS_TOAST_TEXT = (reward: number) => `Xuất sắc! Bạn hoàn thành Thử Thách Tuần và nhận ${reward} Đá Quý!`;
+
 
 // Local Storage Keys
 export const LOCAL_STORAGE_PREFIX = "treasureIslandMath_";
@@ -136,9 +150,15 @@ export const ACTIVE_COLLECTIBLE_KEY = `${LOCAL_STORAGE_PREFIX}activeCollectible`
 export const COLLECTED_ITEMS_KEY = `${LOCAL_STORAGE_PREFIX}collectedItems`;
 export const ENDLESS_UNLOCKED_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}endlessUnlocked_`;
 export const FINAL_ISLAND_UNLOCKED_KEY = `${LOCAL_STORAGE_PREFIX}finalIslandUnlocked`;
+
+// Daily Challenge Storage Keys
 export const ACTIVE_DAILY_CHALLENGE_KEY = `${LOCAL_STORAGE_PREFIX}activeDailyChallenge`;
 export const PLAYER_GEMS_KEY = `${LOCAL_STORAGE_PREFIX}playerGems`;
 export const COMPLETED_DAILY_CHALLENGES_LOG_KEY = `${LOCAL_STORAGE_PREFIX}completedDailyChallengesLog`;
+
+// Weekly Challenge Storage Keys
+export const ACTIVE_WEEKLY_CHALLENGE_KEY = `${LOCAL_STORAGE_PREFIX}activeWeeklyChallenge`;
+export const COMPLETED_WEEKLY_CHALLENGES_LOG_KEY = `${LOCAL_STORAGE_PREFIX}completedWeeklyChallengesLog`;
 
 
 // Default Theme
@@ -171,10 +191,15 @@ export const COLLECTIBLE_SPAWN_SOUND_URL = "https://cdn.pixabay.com/download/aud
 export const COLLECTIBLE_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
 export const ENDLESS_MODE_START_SOUND_URL = "https://cdn.pixabay.com/download/audio/2024/04/10/audio_606a246872.mp3?filename=energy-1-396956.mp3";
 export const FINAL_ISLAND_UNLOCK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/10/20/audio_1650b86a34.mp3?filename=secret-reveal-96570.mp3";
+
+// Challenge Sounds
 export const DAILY_CHALLENGE_NEW_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c0e869766e.mp3?filename=notification-positive-bleep-82880.mp3";
 export const DAILY_CHALLENGE_PROGRESS_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
 export const DAILY_CHALLENGE_COMPLETE_SOUND_URL = ACHIEVEMENT_UNLOCKED_SOUND_URL;
 export const GEM_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/07/audio_c35a82894a.mp3?filename=bell-notification-1-93212.mp3";
+export const WEEKLY_CHALLENGE_NEW_SOUND_URL = DAILY_CHALLENGE_NEW_SOUND_URL; // Can be same or different
+export const WEEKLY_CHALLENGE_PROGRESS_SOUND_URL = DAILY_CHALLENGE_PROGRESS_SOUND_URL; // Placeholder
+export const WEEKLY_CHALLENGE_COMPLETE_SOUND_URL = VICTORY_FANFARE_SOUND_URL; // More grand for weekly
 
 
 // Icon URLs & Emojis
@@ -208,14 +233,14 @@ export const TREASURE_QUIZ_REWARD_POINTS_MAX = 25;
 export const FINAL_TREASURE_ISLAND_ID = "gFinal_main_treasure";
 
 // Daily Challenge Definitions
-import { CHALLENGE_ACTION_ISLAND_COMPLETED, CHALLENGE_ACTION_STAR_EARNED, CHALLENGE_ACTION_CORRECT_ANSWER, CHALLENGE_ACTION_TREASURE_CHEST_OPENED, CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED, CHALLENGE_ACTION_NPC_INTERACTED } from './types';
+import { CHALLENGE_ACTION_ISLAND_COMPLETED, CHALLENGE_ACTION_STAR_EARNED, CHALLENGE_ACTION_CORRECT_ANSWER, CHALLENGE_ACTION_TREASURE_CHEST_OPENED, CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED, CHALLENGE_ACTION_NPC_INTERACTED, CHALLENGE_ACTION_DAILY_CHALLENGE_REWARD_CLAIMED, CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME } from './types';
 
 export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
   {
     id: "complete_islands",
     type: DailyChallengeType.COMPLETE_ISLANDS,
     descriptionTemplate: (target) => `Hoàn thành ${target} hòn đảo bất kỳ.`,
-    generateTargetValue: () => Math.random() < 0.6 ? 1 : 2, // 60% for 1, 40% for 2
+    generateTargetValue: () => Math.random() < 0.6 ? 1 : 2, 
     rewardGems: 30,
     actionTypeToTrack: CHALLENGE_ACTION_ISLAND_COMPLETED,
   },
@@ -223,7 +248,7 @@ export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
     id: "earn_stars",
     type: DailyChallengeType.EARN_STARS,
     descriptionTemplate: (target) => `Kiếm được tổng cộng ${target} ngôi sao từ việc hoàn thành đảo.`,
-    generateTargetValue: () => Math.floor(Math.random() * 6) + 5, // 5 to 10 stars
+    generateTargetValue: () => Math.floor(Math.random() * 6) + 5, 
     rewardGems: 40,
     actionTypeToTrack: CHALLENGE_ACTION_STAR_EARNED,
   },
@@ -231,7 +256,7 @@ export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
     id: "correct_answers_streak",
     type: DailyChallengeType.CORRECT_ANSWERS_IN_A_ROW,
     descriptionTemplate: (target) => `Trả lời đúng ${target} câu hỏi liên tiếp trong một lượt chơi đảo.`,
-    generateTargetValue: () => Math.floor(Math.random() * 3) + 3, // 3 to 5 correct answers in a row
+    generateTargetValue: () => Math.floor(Math.random() * 3) + 3, 
     rewardGems: 50,
     actionTypeToTrack: CHALLENGE_ACTION_CORRECT_ANSWER,
     streakChallenge: true,
@@ -248,7 +273,7 @@ export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
     id: "collect_shooting_stars",
     type: DailyChallengeType.COLLECT_SHOOTING_STARS,
     descriptionTemplate: (target) => `Thu thập ${target} ngôi sao may mắn.`,
-    generateTargetValue: () => Math.floor(Math.random() * 2) + 1, // 1 to 2 stars
+    generateTargetValue: () => Math.floor(Math.random() * 2) + 1, 
     rewardGems: 20,
     actionTypeToTrack: CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED,
   },
@@ -261,6 +286,51 @@ export const DAILY_CHALLENGE_DEFINITIONS: DailyChallengeDefinition[] = [
     actionTypeToTrack: CHALLENGE_ACTION_NPC_INTERACTED,
   }
 ];
+
+// Weekly Challenge Definitions
+export const WEEKLY_CHALLENGE_DEFINITIONS: WeeklyChallengeDefinition[] = [
+  {
+    id: "wc_complete_islands_any_difficulty",
+    type: WeeklyChallengeType.WC_COMPLETE_ISLANDS_ANY_DIFFICULTY,
+    descriptionTemplate: (target) => `Hoàn thành ${target} hòn đảo bất kỳ trong tuần.`,
+    generateTargetValue: () => Math.floor(Math.random() * 4) + 7, // 7 to 10 islands
+    rewardGems: 150,
+    actionTypeToTrack: CHALLENGE_ACTION_ISLAND_COMPLETED,
+  },
+  {
+    id: "wc_earn_total_stars",
+    type: WeeklyChallengeType.WC_EARN_TOTAL_STARS,
+    descriptionTemplate: (target) => `Kiếm được tổng cộng ${target} ngôi sao trong tuần.`,
+    generateTargetValue: () => Math.floor(Math.random() * 21) + 30, // 30 to 50 stars
+    rewardGems: 200,
+    actionTypeToTrack: CHALLENGE_ACTION_STAR_EARNED,
+  },
+  {
+    id: "wc_complete_daily_challenges",
+    type: WeeklyChallengeType.WC_COMPLETE_DAILY_CHALLENGES,
+    descriptionTemplate: (target) => `Hoàn thành và nhận thưởng ${target} thử thách hàng ngày trong tuần.`,
+    generateTargetValue: () => Math.floor(Math.random() * 2) + 4, // 4 to 5 daily challenges
+    rewardGems: 250,
+    actionTypeToTrack: CHALLENGE_ACTION_DAILY_CHALLENGE_REWARD_CLAIMED,
+  },
+  {
+    id: "wc_unlock_achievements",
+    type: WeeklyChallengeType.WC_UNLOCK_ACHIEVEMENTS,
+    descriptionTemplate: (target) => `Mở khóa ${target} huy hiệu mới trong tuần.`,
+    generateTargetValue: () => Math.floor(Math.random() * 2) + 2, // 2 to 3 new achievements
+    rewardGems: 180,
+    actionTypeToTrack: CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME,
+  },
+  {
+    id: "wc_total_correct_answers",
+    type: WeeklyChallengeType.WC_TOTAL_CORRECT_ANSWERS,
+    descriptionTemplate: (target) => `Trả lời đúng tổng cộng ${target} câu hỏi trong tuần.`,
+    generateTargetValue: () => Math.floor(Math.random() * 26) + 50, // 50 to 75 correct answers
+    rewardGems: 120,
+    actionTypeToTrack: CHALLENGE_ACTION_CORRECT_ANSWER, // Track individual correct answers
+  }
+];
+
 
 // Island Configurations
 export const ISLAND_CONFIGS: IslandConfig[] = [
