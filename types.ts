@@ -215,4 +215,60 @@ export type GameState =
   'GradeComplete' | 
   'Transitioning' | 
   'Error' |
-  'TreasureChestOpening'; // New state for treasure chest modal
+  'TreasureChestOpening' |
+  'MessageInBottleReading' |
+  'FriendlyNPCInteraction'; // New state for Friendly NPC modal
+
+// Message in a Bottle
+export type ActiveMessageBottlesState = Record<string, { grade: GradeLevel; messageId: string } | undefined>; // islandId -> { grade, messageId }
+
+export interface MessageInBottleContent {
+  id: string;
+  text: string;
+  type: 'wish' | 'quote' | 'hint';
+}
+
+// Shooting Star
+export interface ShootingStarData {
+  id: string;
+  startX: string; // percentage string e.g., "0%"
+  startY: string; // percentage string
+  endX: string;   // percentage string
+  endY: string;   // percentage string
+  duration: number; // ms
+  size: number; // px
+  delay: number; // ms, for animation start
+  visible: boolean;
+  clicked: boolean;
+}
+
+// Friendly NPC
+export interface FriendlyNPC {
+  id: string;
+  name: string;
+  imageUrl: string;
+}
+
+export interface NPCInteraction {
+  id: string;
+  npcIds?: string[]; // Optional: if specific to an NPC or set of NPCs. If undefined, it's generic.
+  type: 'fact' | 'encouragement' | 'riddle';
+  text: string;
+  answer?: string; // For riddles
+  options?: string[]; // For MC riddles
+  points: number; 
+}
+
+export interface ActiveNPCInfo {
+  npc: FriendlyNPC;
+  interaction: NPCInteraction;
+  islandId: string;
+  grade: GradeLevel; // Grade of the island where NPC spawned
+}
+
+export type StoredActiveNPCInfo = {
+  npcId: string;
+  interactionId: string;
+  islandId: string;
+  grade: GradeLevel;
+} | null;

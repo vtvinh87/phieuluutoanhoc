@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, Theme, AchievedAchievementsState, AchievedAchievement, ToastMessage, AchievementId, AllGradesStarRatingsState, ActiveTreasureChestsState, GameState as AppGameState } from '../types'; // Renamed GameState to AppGameState
+import { Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState, IslandDifficulty, PreloadedQuestionsCache, Theme, AchievedAchievementsState, AchievedAchievement, ToastMessage, AchievementId, AllGradesStarRatingsState, ActiveTreasureChestsState, GameState as AppGameState, ActiveMessageBottlesState, ShootingStarData, MessageInBottleContent, StoredActiveNPCInfo, ActiveNPCInfo, FriendlyNPC, NPCInteraction } from '../types'; // Renamed GameState to AppGameState
 import { 
   MAX_PLAYER_LIVES,
   API_KEY_ERROR_MESSAGE,
@@ -61,7 +61,32 @@ import {
   TREASURE_OPEN_SOUND_URL,
   TREASURE_SPARKLE_SOUND_URL,
   TREASURE_CHEST_ICON_EMOJI,
-  ACHIEVEMENT_BUTTON_ICON_URL, // Import the new constant
+  ACHIEVEMENT_BUTTON_ICON_URL,
+  MESSAGE_IN_BOTTLE_SPAWN_CHANCE, 
+  MESSAGE_IN_BOTTLE_ICON_EMOJI, 
+  MESSAGES_IN_BOTTLE, 
+  ACTIVE_MESSAGE_BOTTLE_KEY, 
+  BOTTLE_SPAWN_SOUND_URL, 
+  BOTTLE_OPEN_SOUND_URL, 
+  SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS, 
+  SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS, 
+  SHOOTING_STAR_ANIMATION_DURATION_MS, 
+  SHOOTING_STAR_REWARD_POINTS_MIN, 
+  SHOOTING_STAR_REWARD_POINTS_MAX, 
+  SHOOTING_STAR_CLICK_SUCCESS_MESSAGE, 
+  SHOOTING_STAR_APPEAR_SOUND_URL, 
+  SHOOTING_STAR_CLICK_SOUND_URL, 
+  SHOOTING_STAR_EMOJI, 
+  SHOOTING_STAR_BASE_SIZE_PX, 
+  SHOOTING_STAR_MAX_ACTIVE_MS,
+  FRIENDLY_NPC_SPAWN_CHANCE,
+  FRIENDLY_NPCS,
+  NPC_INTERACTIONS,
+  ACTIVE_FRIENDLY_NPC_KEY,
+  NPC_SPAWN_SOUND_URL,
+  NPC_INTERACTION_SOUND_URL,
+  NPC_RIDDLE_SUCCESS_SOUND_URL,
+  NPC_RIDDLE_FAIL_SOUND_URL,
 } from '../constants';
 import { getMathHint, generateMathQuestionsForIslandSet, delay as apiDelay } from '../services/geminiService';
 import QuestionDisplay from './QuestionDisplay';
@@ -74,9 +99,13 @@ import ThemeSelectionScreen from './ThemeSelectionScreen';
 import FireworksCanvas from './FireworksCanvas';
 import AchievementsScreen from './AchievementsScreen';
 import ToastNotification from './ToastNotification';
-import TreasureChestModal from './TreasureChestModal'; // New Modal
+import TreasureChestModal from './TreasureChestModal';
+import MessageInBottleModal from './MessageInBottleModal'; 
+import ShootingStar from './ShootingStar'; 
+import FriendlyNPCModal from './FriendlyNPCModal'; // Ensure this is a relative path
+
 import { ALL_ACHIEVEMENTS } from '../achievements';
-import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken, TrophyIcon, CollectionIcon, GiftIcon } from './icons'; 
+import { LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken, TrophyIcon, CollectionIcon, GiftIcon, MailIcon as MessageIcon } from './icons'; 
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
 import { v4 as uuidv4 } from 'uuid';
@@ -117,7 +146,7 @@ const GameScreen: React.FC = () => {
   const [hint, setHint] = useState<string | null>(null);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [hintButtonUsed, setHintButtonUsed]  = useState(false);
-  const [hintUsedThisIslandRun, setHintUsedThisIslandRun] = useState(false); // For achievements
+  const [hintUsedThisIslandRun, setHintUsedThisIslandRun] = useState(false); 
 
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [userAttemptShown, setUserAttemptShown] = useState(false);
@@ -129,7 +158,6 @@ const GameScreen: React.FC = () => {
   const [preloadedQuestionsCache, setPreloadedQuestionsCache] = useState<PreloadedQuestionsCache>({});
   const [showCustomFireworks, setShowCustomFireworks] = useState(false);
 
-  // Achievement System State
   const [achievedAchievements, setAchievedAchievements] = useState<AchievedAchievementsState>({});
   const [showAchievementsScreen, setShowAchievementsScreen] = useState(false);
   const [currentToast, setCurrentToast] = useState<ToastMessage | null>(null);
@@ -153,9 +181,24 @@ const GameScreen: React.FC = () => {
   });
   const [themeChangedForAchievement, setThemeChangedForAchievement] = useState(false);
 
-  // Treasure Chest State
   const [activeTreasureChests, setActiveTreasureChests] = useState<ActiveTreasureChestsState>({});
   const [showTreasureModalForIslandId, setShowTreasureModalForIslandId] = useState<string | null>(null);
+
+  // Message in a Bottle State
+  const [activeMessageBottle, setActiveMessageBottle] = useState<ActiveMessageBottlesState>({});
+  const [showBottleModalForIslandId, setShowBottleModalForIslandId] = useState<string | null>(null);
+  const [currentBottleMessageContent, setCurrentBottleMessageContent] = useState<MessageInBottleContent | null>(null);
+  
+  // Shooting Star State
+  const [shootingStar, setShootingStar] = useState<ShootingStarData | null>(null);
+  const shootingStarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Friendly NPC State
+  const [activeNPCData, setActiveNPCData] = useState<ActiveNPCInfo | null>(null);
+  const [showNPCModal, setShowNPCModal] = useState(false);
+  const [npcRiddleAnswer, setNpcRiddleAnswer] = useState('');
+  const [npcRiddlePhase, setNpcRiddlePhase] = useState<'question' | 'feedback'>('question');
+  const [isNpcRiddleCorrect, setIsNpcRiddleCorrect] = useState<boolean | null>(null);
 
 
   const unlockAudioContext = useCallback(() => {
@@ -196,13 +239,21 @@ const GameScreen: React.FC = () => {
   }, [audioUnlocked, audioCache]);
 
 
-  // --- LocalStorage Load/Save Functions ---
   const loadItem = <T,>(key: string, defaultValue: T): T => {
-    const savedItem = localStorage.getItem(key);
-    return savedItem ? JSON.parse(savedItem) : defaultValue;
+    try {
+      const savedItem = localStorage.getItem(key);
+      return savedItem ? JSON.parse(savedItem) : defaultValue;
+    } catch (error) {
+      console.warn(`Error parsing item ${key} from localStorage:`, error);
+      return defaultValue;
+    }
   };
   const saveItem = <T,>(key: string, value: T) => {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.warn(`Error saving item ${key} to localStorage:`, error);
+    }
   };
   
   const loadLastSelectedGrade = (): GradeLevel | null => loadItem(LAST_SELECTED_GRADE_KEY, null);
@@ -216,11 +267,7 @@ const GameScreen: React.FC = () => {
   
   const loadAllGradesStarRatingsFromStorage = (): AllGradesStarRatingsState => {
     const defaultValue: AllGradesStarRatingsState = {
-      [GradeLevel.GRADE_1]: {},
-      [GradeLevel.GRADE_2]: {},
-      [GradeLevel.GRADE_3]: {},
-      [GradeLevel.GRADE_4]: {},
-      [GradeLevel.GRADE_5]: {},
+      [GradeLevel.GRADE_1]: {}, [GradeLevel.GRADE_2]: {}, [GradeLevel.GRADE_3]: {}, [GradeLevel.GRADE_4]: {}, [GradeLevel.GRADE_5]: {},
     };
     return loadItem(ALL_GRADES_STAR_RATINGS_KEY, defaultValue);
   };
@@ -229,6 +276,11 @@ const GameScreen: React.FC = () => {
   const saveAchievedAchievementsToStorage = (achievements: AchievedAchievementsState) => saveItem(ACHIEVED_ACHIEVEMENTS_KEY, achievements);
   const loadActiveTreasureChestsFromStorage = (): ActiveTreasureChestsState => loadItem(ACTIVE_TREASURE_CHESTS_KEY, {});
   const saveActiveTreasureChestsToStorage = (chests: ActiveTreasureChestsState) => saveItem(ACTIVE_TREASURE_CHESTS_KEY, chests);
+  const loadActiveMessageBottlesFromStorage = (): ActiveMessageBottlesState => loadItem(ACTIVE_MESSAGE_BOTTLE_KEY, {});
+  const saveActiveMessageBottlesToStorage = (bottles: ActiveMessageBottlesState) => saveItem(ACTIVE_MESSAGE_BOTTLE_KEY, bottles);
+  const loadActiveNPCFromStorage = (): StoredActiveNPCInfo | null => loadItem(ACTIVE_FRIENDLY_NPC_KEY, null);
+  const saveActiveNPCToStorage = (npcInfo: StoredActiveNPCInfo | null) => saveItem(ACTIVE_FRIENDLY_NPC_KEY, npcInfo);
+
 
  useEffect(() => {
     const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) as Theme | null;
@@ -240,10 +292,27 @@ const GameScreen: React.FC = () => {
     document.addEventListener('click', unlockAudioContext, { once: true });
     setAchievedAchievements(loadAchievedAchievementsFromStorage());
     setActiveTreasureChests(loadActiveTreasureChestsFromStorage());
+    setActiveMessageBottle(loadActiveMessageBottlesFromStorage());
 
-    // Load progress & star ratings for all grades for global achievements
+    const storedNPC = loadActiveNPCFromStorage();
+    if (storedNPC) {
+        const npc = FRIENDLY_NPCS.find(n => n.id === storedNPC.npcId);
+        const interaction = NPC_INTERACTIONS.find(i => i.id === storedNPC.interactionId);
+        if (npc && interaction) {
+            setActiveNPCData({
+                npc,
+                interaction,
+                islandId: storedNPC.islandId,
+                grade: storedNPC.grade,
+            });
+        } else {
+           saveActiveNPCToStorage(null); // Clear invalid stored NPC
+        }
+    }
+
+
     const allProgressLoaded: Record<GradeLevel, IslandProgressState> = {} as Record<GradeLevel, IslandProgressState>;
-    const allStarsLoaded: Partial<AllGradesStarRatingsState> = {}; // Keep as partial for building
+    const allStarsLoaded: Partial<AllGradesStarRatingsState> = {}; 
     (Object.values(GradeLevel).filter(g => typeof g === 'number') as GradeLevel[]).forEach(grade => {
         allProgressLoaded[grade] = loadIslandProgressFromStorage(grade);
         const individualGradeStars = loadIslandStarRatingsFromStorage(grade);
@@ -251,7 +320,6 @@ const GameScreen: React.FC = () => {
     });
     setAllGradesProgress(allProgressLoaded);
     setAllGradesStarRatings(allStarsLoaded as AllGradesStarRatingsState);
-
 
     return () => document.removeEventListener('click', unlockAudioContext);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -278,7 +346,7 @@ const GameScreen: React.FC = () => {
 
   useEffect(() => {
     if (gameState === 'IslandComplete' || gameState === 'GradeComplete') {
-      // Intentionally empty or handle fireworks logic
+      setShowCustomFireworks(true);
     } else {
       if (showCustomFireworks) {
         setShowCustomFireworks(false);
@@ -320,7 +388,10 @@ const GameScreen: React.FC = () => {
     setPreloadedQuestionsCache({}); 
     setTransitionDetails(null); 
     setThemeChangedForAchievement(false); 
-    setShowTreasureModalForIslandId(null); // Reset treasure modal too
+    setShowTreasureModalForIslandId(null); 
+    setShowBottleModalForIslandId(null); 
+    setActiveNPCData(null); 
+    saveActiveNPCToStorage(null);
   }, [resetForNewIslandPlay]);
 
 
@@ -594,14 +665,18 @@ const GameScreen: React.FC = () => {
         let updatedGradeChests = { ...(prevChests[grade] || {}) };
         let chestSpawnedThisTime = false;
 
-        // Only allow one active chest per grade at a time for simplicity
         const existingChestInGrade = Object.keys(updatedGradeChests).find(islandId => updatedGradeChests[islandId]);
         if (existingChestInGrade) {
-            return prevChests; // Do nothing if a chest already exists in this grade
+            return prevChests; 
         }
 
         completedIslandsInGrade.forEach(island => {
-            if (!chestSpawnedThisTime && Math.random() < TREASURE_CHEST_SPAWN_CHANCE) {
+            if (
+                !chestSpawnedThisTime &&
+                (!activeMessageBottle || !activeMessageBottle[island.islandId]) &&
+                (!activeNPCData || activeNPCData.islandId !== island.islandId || activeNPCData.grade !== grade) && 
+                Math.random() < TREASURE_CHEST_SPAWN_CHANCE
+            ) {
                 updatedGradeChests[island.islandId] = true;
                 chestSpawnedThisTime = true;
                 playSound(TREASURE_SPARKLE_SOUND_URL, 0.3);
@@ -613,28 +688,240 @@ const GameScreen: React.FC = () => {
             saveActiveTreasureChestsToStorage(newChestsState);
             return newChestsState;
         }
-        return prevChests; // No changes
+        return prevChests; 
     });
-  }, [islandsForCurrentGrade, islandProgress, playSound]);
+  }, [islandsForCurrentGrade, islandProgress, playSound, activeMessageBottle, activeNPCData]);
+
 
   const handleTreasureChestOpened = useCallback((grade: GradeLevel, islandId: string, pointsAwarded: number) => {
-    if (pointsAwarded > 0) {
+    if (pointsAwarded > 0 && selectedGrade) { 
         const newOverallScore = overallScore + pointsAwarded;
         setOverallScore(newOverallScore);
-        saveOverallScoreToStorage(grade, newOverallScore);
+        saveOverallScoreToStorage(selectedGrade, newOverallScore);
         showToast(pointsAwarded > 0 ? `Bạn nhận được ${pointsAwarded} điểm từ rương báu!` : "Tiếc quá, rương này không có điểm!", 'info', <GiftIcon className="w-6 h-6"/>);
     }
     
     setActiveTreasureChests(prevChests => {
         const updatedGradeChests = { ...(prevChests[grade] || {}) };
-        delete updatedGradeChests[islandId]; // Remove chest from this island
+        delete updatedGradeChests[islandId]; 
         const newChestsState = { ...prevChests, [grade]: updatedGradeChests };
         saveActiveTreasureChestsToStorage(newChestsState);
         return newChestsState;
     });
     setShowTreasureModalForIslandId(null);
-    setGameState('IslandMap'); // Return to map after closing treasure modal
-  }, [overallScore, playSound]);
+    setGameState('IslandMap'); 
+  }, [overallScore, playSound, selectedGrade]);
+
+  // Message in a Bottle Logic
+  const trySpawnMessageBottle = useCallback(() => {
+    if (Object.keys(activeMessageBottle).length > 0) return; 
+
+    const allCompletedIslands = ISLAND_CONFIGS.filter(island => {
+        const gradeProgress = allGradesProgress[island.targetGradeLevel];
+        return gradeProgress && gradeProgress[island.islandId] === 'completed' &&
+               (!activeTreasureChests[island.targetGradeLevel] || !activeTreasureChests[island.targetGradeLevel]?.[island.islandId]) &&
+               (!activeNPCData || activeNPCData.islandId !== island.islandId || activeNPCData.grade !== island.targetGradeLevel);
+    });
+
+    if (allCompletedIslands.length === 0) return;
+
+    if (Math.random() < MESSAGE_IN_BOTTLE_SPAWN_CHANCE) {
+        const randomIsland = allCompletedIslands[Math.floor(Math.random() * allCompletedIslands.length)];
+        const randomMessage = MESSAGES_IN_BOTTLE[Math.floor(Math.random() * MESSAGES_IN_BOTTLE.length)];
+        
+        const newBottleState = { [randomIsland.islandId]: { grade: randomIsland.targetGradeLevel, messageId: randomMessage.id } };
+        setActiveMessageBottle(newBottleState);
+        saveActiveMessageBottlesToStorage(newBottleState);
+        playSound(BOTTLE_SPAWN_SOUND_URL, 0.4);
+    }
+  }, [allGradesProgress, activeMessageBottle, activeTreasureChests, playSound, activeNPCData]);
+
+  const handleMessageBottleOpened = useCallback((islandId: string) => {
+    const bottleData = activeMessageBottle[islandId];
+    if (bottleData) {
+        const messageContent = MESSAGES_IN_BOTTLE.find(m => m.id === bottleData.messageId);
+        setCurrentBottleMessageContent(messageContent || MESSAGES_IN_BOTTLE[0]); 
+        setShowBottleModalForIslandId(islandId);
+        playSound(BOTTLE_OPEN_SOUND_URL, 0.5);
+    }
+  }, [activeMessageBottle, playSound]);
+
+  const handleMessageBottleClosed = () => {
+    setShowBottleModalForIslandId(null);
+    setActiveMessageBottle({}); 
+    saveActiveMessageBottlesToStorage({});
+    setGameState('IslandMap');
+  };
+
+  // Shooting Star Logic
+  const spawnShootingStar = useCallback(() => {
+    if (shootingStar || gameState !== 'IslandMap') return;
+
+    playSound(SHOOTING_STAR_APPEAR_SOUND_URL, 0.3);
+    const id = uuidv4();
+    const size = SHOOTING_STAR_BASE_SIZE_PX + Math.random() * 16 - 8; 
+    const duration = SHOOTING_STAR_ANIMATION_DURATION_MS + Math.random() * 1000 - 500;
+    const delay = Math.random() * 500; 
+
+    const startsLeft = Math.random() < 0.5;
+    const startY = (Math.random() * 60 + 5) + '%'; 
+    const endY = (Math.random() * 60 + 5) + '%'; 
+
+    const newStar: ShootingStarData = {
+      id,
+      startX: startsLeft ? "-10%" : "110%",
+      startY,
+      endX: startsLeft ? "110%" : "-10%",
+      endY,
+      duration,
+      size,
+      delay,
+      visible: true,
+      clicked: false,
+    };
+    setShootingStar(newStar);
+
+    setTimeout(() => {
+        setShootingStar(prevStar => {
+            if (prevStar && prevStar.id === id && !prevStar.clicked) {
+                return null; 
+            }
+            return prevStar;
+        });
+    }, SHOOTING_STAR_MAX_ACTIVE_MS + delay);
+
+  }, [shootingStar, gameState, playSound]);
+  
+  useEffect(() => {
+    if (gameState === 'IslandMap') {
+      const scheduleNextStar = () => {
+        if (shootingStarTimerRef.current) clearTimeout(shootingStarTimerRef.current);
+        const interval = Math.random() * (SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS - SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS) + SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS;
+        shootingStarTimerRef.current = setTimeout(() => {
+          spawnShootingStar();
+          scheduleNextStar(); 
+        }, interval);
+      };
+      scheduleNextStar();
+    } else {
+      if (shootingStarTimerRef.current) clearTimeout(shootingStarTimerRef.current);
+      setShootingStar(null); 
+    }
+    return () => {
+      if (shootingStarTimerRef.current) clearTimeout(shootingStarTimerRef.current);
+    };
+  }, [gameState, spawnShootingStar]);
+
+
+  const handleShootingStarClick = useCallback((starId: string) => {
+    if (shootingStar && shootingStar.id === starId && !shootingStar.clicked) {
+      playSound(SHOOTING_STAR_CLICK_SOUND_URL, 0.6);
+      setShootingStar(prev => prev ? { ...prev, clicked: true, visible: false } : null);
+      
+      if (selectedGrade) {
+        const points = Math.floor(Math.random() * (SHOOTING_STAR_REWARD_POINTS_MAX - SHOOTING_STAR_REWARD_POINTS_MIN + 1)) + SHOOTING_STAR_REWARD_POINTS_MIN;
+        const newOverallScore = overallScore + points;
+        setOverallScore(newOverallScore);
+        saveOverallScoreToStorage(selectedGrade, newOverallScore);
+        showToast(SHOOTING_STAR_CLICK_SUCCESS_MESSAGE(points), 'success', <SparklesIcon className="w-6 h-6" />);
+      }
+    }
+  }, [shootingStar, selectedGrade, overallScore, playSound]);
+
+  // Friendly NPC Logic
+  const trySpawnFriendlyNPC = useCallback(() => {
+    if (activeNPCData) return;
+
+    const allCompletedIslandsThisGrade = islandsForCurrentGrade.filter(island => {
+        return islandProgress[island.islandId] === 'completed' &&
+               (!activeTreasureChests[island.targetGradeLevel] || !activeTreasureChests[island.targetGradeLevel]?.[island.islandId]) &&
+               (!activeMessageBottle || !activeMessageBottle[island.islandId]);
+    });
+
+    if (allCompletedIslandsThisGrade.length === 0) return;
+
+    if (Math.random() < FRIENDLY_NPC_SPAWN_CHANCE) {
+        const randomIsland = allCompletedIslandsThisGrade[Math.floor(Math.random() * allCompletedIslandsThisGrade.length)];
+        const randomNPCFromList = FRIENDLY_NPCS[Math.floor(Math.random() * FRIENDLY_NPCS.length)];
+        
+        let possibleInteractions = NPC_INTERACTIONS.filter(
+            interaction => !interaction.npcIds || interaction.npcIds.includes(randomNPCFromList.id)
+        );
+        if (possibleInteractions.length === 0) { 
+            possibleInteractions = NPC_INTERACTIONS;
+        }
+        if (possibleInteractions.length === 0) return; 
+
+        const randomInteraction = possibleInteractions[Math.floor(Math.random() * possibleInteractions.length)];
+
+        const newNPCData: ActiveNPCInfo = {
+            npc: randomNPCFromList,
+            interaction: randomInteraction,
+            islandId: randomIsland.islandId,
+            grade: randomIsland.targetGradeLevel,
+        };
+        setActiveNPCData(newNPCData);
+        saveActiveNPCToStorage({
+            npcId: newNPCData.npc.id,
+            interactionId: newNPCData.interaction.id,
+            islandId: newNPCData.islandId,
+            grade: newNPCData.grade,
+        });
+        playSound(NPC_SPAWN_SOUND_URL, 0.4);
+    }
+  }, [islandsForCurrentGrade, islandProgress, activeNPCData, activeTreasureChests, activeMessageBottle, playSound]);
+
+  const handleNPCInteraction = (islandId: string) => {
+    if (activeNPCData && activeNPCData.islandId === islandId) {
+        playSound(NPC_INTERACTION_SOUND_URL, 0.5);
+        setNpcRiddleAnswer('');
+        setNpcRiddlePhase('question');
+        setIsNpcRiddleCorrect(null);
+        setShowNPCModal(true);
+        // setGameState('FriendlyNPCInteraction'); // Keep current GameState (IslandMap) until modal interaction completes
+    }
+  };
+
+  const handleNPCRiddleSubmit = () => {
+    if (!activeNPCData || activeNPCData.interaction.type !== 'riddle' || !activeNPCData.interaction.answer) return;
+    
+    const isCorrect = npcRiddleAnswer.trim().toLowerCase() === activeNPCData.interaction.answer.toLowerCase();
+    setIsNpcRiddleCorrect(isCorrect);
+    setNpcRiddlePhase('feedback');
+    
+    let pointsAwarded = 0;
+    if (isCorrect) {
+      playSound(NPC_RIDDLE_SUCCESS_SOUND_URL, 0.5);
+      pointsAwarded = activeNPCData.interaction.points;
+      showToast(`Tuyệt vời! Bạn giải đúng câu đố và nhận được ${pointsAwarded} điểm!`, 'success');
+    } else {
+      playSound(NPC_RIDDLE_FAIL_SOUND_URL, 0.4);
+      showToast(`Tiếc quá! Đáp án đúng là: ${activeNPCData.interaction.answer}`, 'error');
+    }
+    
+    if (pointsAwarded > 0 && selectedGrade) {
+      const newOverallScore = overallScore + pointsAwarded;
+      setOverallScore(newOverallScore);
+      saveOverallScoreToStorage(selectedGrade, newOverallScore);
+    }
+  };
+  
+  const handleNPCModalClose = () => {
+    playSound(BUTTON_CLICK_SOUND_URL);
+    if (activeNPCData && activeNPCData.interaction.type !== 'riddle' && selectedGrade) {
+        const pointsAwarded = activeNPCData.interaction.points;
+        if (pointsAwarded > 0) {
+            const newOverallScore = overallScore + pointsAwarded;
+            setOverallScore(newOverallScore);
+            saveOverallScoreToStorage(selectedGrade, newOverallScore);
+            showToast(`Bạn nhận được ${pointsAwarded} điểm từ ${activeNPCData.npc.name}!`, 'info');
+        }
+    }
+    setShowNPCModal(false);
+    setActiveNPCData(null);
+    saveActiveNPCToStorage(null);
+    // No need to change GameState here if it was already IslandMap
+  };
 
 
   const handleGradeSelect = (grade: GradeLevel, isAutoLoading = false) => {
@@ -670,7 +957,9 @@ const GameScreen: React.FC = () => {
       setIslandStarRatings(savedStarRatings);
       
       setGameState('IslandMap'); 
-      trySpawnTreasureChests(grade); // Attempt to spawn chests when entering map
+      trySpawnTreasureChests(grade); 
+      trySpawnMessageBottle(); 
+      trySpawnFriendlyNPC();
       setTimeout(() => checkAndAwardAchievements(), 100);
       
     } else {
@@ -687,11 +976,17 @@ const GameScreen: React.FC = () => {
     if (islandConfig && (status === 'unlocked' || status === 'completed')) {
         playSound(ISLAND_SELECT_SOUND_URL, 0.6);
 
-        // Check for active treasure chest on completed island
+        if (activeNPCData && activeNPCData.islandId === islandId && status === 'completed' && selectedGrade && activeNPCData.grade === selectedGrade) {
+            handleNPCInteraction(islandId);
+            return;
+        }
+        if (activeMessageBottle[islandId] && status === 'completed') {
+            handleMessageBottleOpened(islandId);
+            return;
+        }
         if (status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[islandId]) {
             playSound(TREASURE_OPEN_SOUND_URL, 0.7);
             setShowTreasureModalForIslandId(islandId);
-            // Game state will be handled by TreasureChestModal or its closing logic
             return;
         }
         
@@ -741,13 +1036,12 @@ const GameScreen: React.FC = () => {
     } else { 
       const completedIslandId = currentIslandId;
       let starsEarned = 0; 
-      
       const livesAtCompletion = playerLives; 
 
       if (livesAtCompletion === MAX_PLAYER_LIVES) starsEarned = 5;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 1) starsEarned = 4;
       else if (livesAtCompletion === MAX_PLAYER_LIVES - 2 && livesAtCompletion > 0) starsEarned = 3; 
-      else if (livesAtCompletion === 0) starsEarned = 2; // Should be 1 star if completed with 0 lives. Let's make it 2 for some reward.
+      else if (livesAtCompletion === 0) starsEarned = 2; 
       else starsEarned = 3; 
 
 
@@ -756,14 +1050,10 @@ const GameScreen: React.FC = () => {
       saveIslandStarRatingsToStorage(selectedGrade, updatedStarRatingsForGrade);
       
       setAllGradesStarRatings(prev => {
-        const updatedAllStars = {
-            ...prev,
-            [selectedGrade]: updatedStarRatingsForGrade
-        };
+        const updatedAllStars = { ...prev, [selectedGrade]: updatedStarRatingsForGrade };
         saveAllGradesStarRatingsToStorage(updatedAllStars);
         return updatedAllStars;
       });
-
 
       setPlayerLives(prevLives => Math.min(prevLives + 1, MAX_PLAYER_LIVES)); 
       
@@ -787,11 +1077,9 @@ const GameScreen: React.FC = () => {
       
       if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
           if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); 
-          setShowCustomFireworks(true); 
           setGameState('GradeComplete');
       } else {
           if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6);
-          setShowCustomFireworks(true); 
           setGameState('IslandComplete'); 
       }
     }
@@ -845,10 +1133,10 @@ const GameScreen: React.FC = () => {
     playSound(BUTTON_CLICK_SOUND_URL);
     if (!selectedGrade) return;
     
-    // Check if coming from treasure chest modal
-    if (showTreasureModalForIslandId) {
-        setShowTreasureModalForIslandId(null); // Ensure treasure modal is closed
-    }
+    if (showTreasureModalForIslandId) setShowTreasureModalForIslandId(null);
+    if (showBottleModalForIslandId) setShowBottleModalForIslandId(null);
+    if (showNPCModal) setShowNPCModal(false); // Changed from null to false
+
 
     const allGradeIslandsCompleted = islandsForCurrentGrade.every(island => islandProgress[island.islandId] === 'completed');
     
@@ -867,7 +1155,11 @@ const GameScreen: React.FC = () => {
             } else {
                 setGameState('IslandMap');
             }
-            if (selectedGrade) trySpawnTreasureChests(selectedGrade); // Try spawning chests when returning to map
+            if (selectedGrade) {
+              trySpawnTreasureChests(selectedGrade);
+              trySpawnMessageBottle();
+              trySpawnFriendlyNPC();
+            }
         }
     });
     setGameState('Transitioning');
@@ -908,13 +1200,26 @@ const GameScreen: React.FC = () => {
         saveAllGradesStarRatingsToStorage(updatedAllStars);
         return updatedAllStars;
       });
-      // Also reset treasure chests for this grade
       setActiveTreasureChests(prevChests => {
         const newChests = { ...prevChests };
         if (selectedGrade) delete newChests[selectedGrade];
         saveActiveTreasureChestsToStorage(newChests);
         return newChests;
       });
+      setActiveMessageBottle(prevBottles => {
+          const newBottles: ActiveMessageBottlesState = {};
+          Object.keys(prevBottles).forEach(islandId => {
+              if (prevBottles[islandId]?.grade !== selectedGrade) {
+                  newBottles[islandId] = prevBottles[islandId];
+              }
+          });
+          saveActiveMessageBottlesToStorage(newBottles);
+          return newBottles;
+      });
+      if (activeNPCData && activeNPCData.grade === selectedGrade) {
+        setActiveNPCData(null);
+        saveActiveNPCToStorage(null);
+      }
 
       handleGradeSelect(selectedGrade); 
     }
@@ -1191,17 +1496,11 @@ const GameScreen: React.FC = () => {
                 unlockAudioContext();
                 playSound(BUTTON_CLICK_SOUND_URL);
                 setShowDifficultySelectionModalForIslandId(null);
+                 setGameState('IslandMap'); 
             }}
             onSelectDifficulty={handleDifficultySelected}
         />
-        {showAchievementsScreen && (
-            <AchievementsScreen 
-            achievedAchievements={achievedAchievements}
-            onClose={handleToggleAchievementsScreen}
-            playSound={playSound}
-            currentGradeContext={selectedGrade}
-            />
-        )}
+        {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
         <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
       </>
     );
@@ -1223,16 +1522,50 @@ const GameScreen: React.FC = () => {
             playSound={playSound}
             themeConfig={themeConfig}
         />
-         {showAchievementsScreen && (
-            <AchievementsScreen 
-            achievedAchievements={achievedAchievements}
-            onClose={handleToggleAchievementsScreen}
-            playSound={playSound}
-            currentGradeContext={selectedGrade}
-            />
-        )}
-        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+         {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
+         <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
         </>
+    );
+  }
+
+  if (showBottleModalForIslandId && currentBottleMessageContent) {
+    const islandConfigForBottle = ISLAND_CONFIGS.find(i => i.islandId === showBottleModalForIslandId);
+    return (
+      <>
+        <MessageInBottleModal
+            isOpen={true}
+            islandName={islandConfigForBottle?.name || "Một hòn đảo"}
+            message={currentBottleMessageContent}
+            onClose={handleMessageBottleClosed}
+            playSound={playSound}
+            themeConfig={themeConfig}
+        />
+        {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
+        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
+    );
+  }
+  
+  if (showNPCModal && activeNPCData) {
+    return (
+      <>
+        <FriendlyNPCModal
+            isOpen={true}
+            npcData={activeNPCData.npc}
+            interactionContent={activeNPCData.interaction}
+            islandName={ISLAND_CONFIGS.find(i => i.islandId === activeNPCData.islandId)?.name || "Nơi bí ẩn"}
+            onClose={handleNPCModalClose}
+            playSound={playSound}
+            themeConfig={themeConfig}
+            onSubmitRiddle={handleNPCRiddleSubmit}
+            riddleAnswerInput={npcRiddleAnswer}
+            onRiddleAnswerChange={setNpcRiddleAnswer}
+            riddlePhase={npcRiddlePhase}
+            isRiddleCorrect={isNpcRiddleCorrect}
+        />
+        {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
+        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+      </>
     );
   }
 
@@ -1259,15 +1592,8 @@ const GameScreen: React.FC = () => {
                 </button>
             </div>
           </div>
-          {showAchievementsScreen && (
-            <AchievementsScreen 
-            achievedAchievements={achievedAchievements}
-            onClose={handleToggleAchievementsScreen}
-            playSound={playSound}
-            currentGradeContext={selectedGrade}
-            />
-        )}
-        <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
+          {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
+          <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
         </>
         );
     }
@@ -1277,7 +1603,15 @@ const GameScreen: React.FC = () => {
 
     return (
       <>
-      <div className="w-full animate-fadeInScale">
+      <div className="w-full animate-fadeInScale relative"> 
+        {shootingStar && shootingStar.visible && !shootingStar.clicked && (
+            <ShootingStar
+                starData={shootingStar}
+                onClick={() => handleShootingStarClick(shootingStar.id)}
+                onDisappear={() => setShootingStar(prev => prev && prev.id === shootingStar.id ? null : prev)}
+                emoji={SHOOTING_STAR_EMOJI}
+            />
+        )}
         <div className={`w-full max-w-4xl mx-auto p-6 md:p-8 bg-[var(--primary-bg)] rounded-2xl shadow-2xl border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}>
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
               <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-2 sm:mb-0">
@@ -1300,7 +1634,7 @@ const GameScreen: React.FC = () => {
                    <img 
                       src={ACHIEVEMENT_BUTTON_ICON_URL} 
                       alt="Huy hiệu" 
-                      className="w-14 h-14 animate-trophy-glow" // Increased size, removed p-2, bg, shadow
+                      className="w-14 h-14 animate-trophy-glow"
                     />
                 </button>
               </div>
@@ -1339,6 +1673,10 @@ const GameScreen: React.FC = () => {
               }
               const isUnlockedAndNotCompleted = status === 'unlocked';
               const hasTreasure = status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[island.islandId];
+              const hasBottle = status === 'completed' && activeMessageBottle[island.islandId];
+              const hasNPC = status === 'completed' && activeNPCData && activeNPCData.islandId === island.islandId && activeNPCData.grade === selectedGrade;
+              
+              const pulseAnimation = isUnlockedAndNotCompleted || hasTreasure || hasBottle || hasNPC;
               
               return (
                 <button
@@ -1348,13 +1686,24 @@ const GameScreen: React.FC = () => {
                   disabled={isDisabled}
                   className={`p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${currentBgColor} ${currentTextColor} min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ring-[var(--island-button-ring-color)] relative
                               ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 active:brightness-90'}
-                              ${isUnlockedAndNotCompleted && !hasTreasure ? 'animate-pulse-glow' : ''}
-                              ${hasTreasure ? 'animate-pulse-glow ring-4 ring-yellow-400 border-2 border-yellow-200' : ''}
+                              ${pulseAnimation ? 'animate-pulse-glow' : ''}
+                              ${(hasTreasure || hasBottle || hasNPC) ? 'ring-4 ring-yellow-400 border-2 border-yellow-200' : ''}
                             `}
-                  aria-label={`${island.name}${isDisabled ? ' (Đã khoá)' : ''} ${hasTreasure ? '(Có rương báu!)' : ''}`}
+                  aria-label={`${island.name}${isDisabled ? ' (Đã khoá)' : ''} ${hasTreasure ? '(Có rương báu!)' : ''} ${hasBottle ? '(Có thông điệp!)' : ''} ${hasNPC ? `(Có ${activeNPCData?.npc.name}!)` : ''}`}
                 >
-                  {hasTreasure && (
-                    <span className="absolute top-1 right-1 text-2xl animate-bounce" style={{filter: 'drop-shadow(0 0 3px gold)'}}>{TREASURE_CHEST_ICON_EMOJI}</span>
+                  {(hasTreasure || hasBottle || hasNPC) && (
+                    <span 
+                        className="absolute top-1 right-1 text-2xl animate-bounce" 
+                        style={{
+                            filter: 'drop-shadow(0 0 3px gold)',
+                            width: '28px', height: '28px', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                    >
+                      {hasNPC && activeNPCData ? <img src={activeNPCData.npc.imageUrl} alt={activeNPCData.npc.name} className="w-full h-full object-contain rounded-full" /> : 
+                       hasTreasure ? TREASURE_CHEST_ICON_EMOJI : 
+                       hasBottle ? MESSAGE_IN_BOTTLE_ICON_EMOJI : ''}
+                    </span>
                   )}
                   <div className="flex-grow flex flex-col items-center justify-center">
                     <span className="text-3xl mb-1" aria-hidden="true">{island.mapIcon}</span>
@@ -1363,9 +1712,8 @@ const GameScreen: React.FC = () => {
                   </div>
                   <div className="mt-2 h-6">
                       {isDisabled && <LockIcon className="w-6 h-6 text-[var(--incorrect-bg)] opacity-70" />}
-                      {status === 'completed' && !hasTreasure ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
-                      {status === 'completed' && hasTreasure ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
-
+                      {status === 'completed' && !hasTreasure && !hasBottle && !hasNPC ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
+                      {(status === 'completed' && (hasTreasure || hasBottle || hasNPC)) ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null}
                   </div>
                 </button>
               );
@@ -1374,14 +1722,7 @@ const GameScreen: React.FC = () => {
           <p className="text-center text-[var(--primary-text)] opacity-90 mt-8 text-2xl font-bold">Tổng Điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>
         </div>
       </div>
-      {showAchievementsScreen && (
-        <AchievementsScreen 
-          achievedAchievements={achievedAchievements}
-          onClose={handleToggleAchievementsScreen}
-          playSound={playSound}
-          currentGradeContext={selectedGrade}
-        />
-      )}
+      {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
       </>
     );
@@ -1465,14 +1806,7 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
-      {showAchievementsScreen && (
-        <AchievementsScreen 
-          achievedAchievements={achievedAchievements}
-          onClose={handleToggleAchievementsScreen}
-          playSound={playSound}
-          currentGradeContext={selectedGrade}
-        />
-      )}
+      {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
       </>
     );
@@ -1506,14 +1840,7 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
-      {showAchievementsScreen && (
-        <AchievementsScreen 
-          achievedAchievements={achievedAchievements}
-          onClose={handleToggleAchievementsScreen}
-          playSound={playSound}
-          currentGradeContext={selectedGrade}
-        />
-      )}
+      {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
       </>
     );
@@ -1636,14 +1963,7 @@ const GameScreen: React.FC = () => {
           />
         </div>
       </div>
-      {showAchievementsScreen && (
-        <AchievementsScreen 
-          achievedAchievements={achievedAchievements}
-          onClose={handleToggleAchievementsScreen}
-          playSound={playSound}
-          currentGradeContext={selectedGrade}
-        />
-      )}
+      {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
       </>
     );
@@ -1652,14 +1972,7 @@ const GameScreen: React.FC = () => {
   return (
     <>
       <LoadingSpinner text="Đang chuẩn bị Đảo Kho Báu..." />
-      {showAchievementsScreen && (
-        <AchievementsScreen 
-          achievedAchievements={achievedAchievements}
-          onClose={handleToggleAchievementsScreen}
-          playSound={playSound}
-          currentGradeContext={selectedGrade}
-        />
-      )}
+      {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} /> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />
     </>
   );

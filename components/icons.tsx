@@ -119,3 +119,9 @@ export const GiftIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-
     <path fillRule="evenodd" d="M5.25 6H11.25V3.75A2.25 2.25 0 0 0 9 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 5.25 3.75V6ZM14.25 6V3.75A2.25 2.25 0 0 0 12 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 8.25 3.75V6h6Z" clipRule="evenodd" />
   </svg>
 );
+
+export const MailIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+  </svg>
+);

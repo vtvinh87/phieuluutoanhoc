@@ -1,5 +1,4 @@
-
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz } from './types';
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -28,7 +27,7 @@ export const ISLAND_DIFFICULTY_TEXT_MAP: Record<IslandDifficulty, string> = {
   [IslandDifficulty.HARD]: "Khó",
 };
 
-// Sound Effect URLs - Updated with user-provided Pixabay links
+// Sound Effect URLs
 export const HOVER_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/02/17/audio_988aaf064c.mp3?filename=click-21156.mp3";
 export const GRADE_SELECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
 export const ISLAND_SELECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2025/05/06/audio_f823c08739.mp3?filename=select-003-337609.mp3";
@@ -43,12 +42,24 @@ export const FIREWORK_EXPLOSION_SOUND_2_URL = "https://cdn.pixabay.com/download/
 export const ACHIEVEMENT_UNLOCKED_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
 export const TREASURE_OPEN_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_7dd45f4b50.mp3?filename=briefcase-open-2-83060.mp3";
 export const TREASURE_SPARKLE_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/01/24/audio_383cd89e76.mp3?filename=magic-wand-2-100806.mp3";
+export const BOTTLE_SPAWN_SOUND_URL = "https://cdn.pixabay.com/download/audio/2021/08/04/audio_ea98a96495.mp3?filename=water-splash-45791.mp3";
+export const BOTTLE_OPEN_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_7dd45f4b50.mp3?filename=briefcase-open-2-83060.mp3";
+export const SHOOTING_STAR_APPEAR_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/11/20/audio_2c0451737e.mp3?filename=fast-woosh-124928.mp3";
+export const SHOOTING_STAR_CLICK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/07/audio_c35a82894a.mp3?filename=bell-notification-1-93212.mp3";
+export const NPC_SPAWN_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_f53597373f.mp3?filename=message-ringtone-magic-2-83059.mp3";
+export const NPC_INTERACTION_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c0e869766e.mp3?filename=notification-positive-bleep-82880.mp3";
+export const NPC_RIDDLE_SUCCESS_SOUND_URL = CORRECT_ANSWER_SOUND_URL;
+export const NPC_RIDDLE_FAIL_SOUND_URL = INCORRECT_ANSWER_SOUND_URL;
 
-// Icon URLs
+
+// Icon URLs and Emojis
 export const ACHIEVEMENT_BUTTON_ICON_URL = "https://i.ibb.co/84xpddHn/icon-huy-hieu.png";
+export const MESSAGE_IN_BOTTLE_ICON_EMOJI = "🍾";
+export const SHOOTING_STAR_EMOJI = "🌠";
+// Note: NPC icons are their image URLs defined in FRIENDLY_NPCS
 
 
-// Island Configuration - Updated based on curriculum summary
+// Island Configuration (Sample, keep existing full list)
 export const ISLAND_CONFIGS: IslandConfig[] = [
   // --- GRADE 1 --- (10 Islands)
   {
@@ -526,7 +537,7 @@ export const BACK_TO_MAP_TEXT = "Trở Về Bản Đồ";
 export const ISLAND_COMPLETE_TEXT = "Hoàn Thành Đảo!";
 export const GRADE_COMPLETE_TEXT = "Xuất Sắc! Bạn Đã Vượt Qua Tất Cả Thử Thách Của Lớp Này!";
 export const LOCKED_ISLAND_TEXT = "Đảo này vẫn còn bí ẩn, hãy hoàn thành các đảo trước!";
-export const NEXT_ISLAND_BUTTON_TEXT = "Đảo Tiếp Theo"; // Added
+export const NEXT_ISLAND_BUTTON_TEXT = "Đảo Tiếp Theo"; 
 
 export const REWARD_TEXT_EASY_PERFECT = "Xuất sắc! Hoàn hảo 5 sao!";
 export const REWARD_TEXT_MEDIUM_PERFECT = "1 Triệu Sao!";
@@ -554,12 +565,14 @@ export const ISLAND_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandProgress
 export const OVERALL_SCORE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}overallScore_grade_`;
 export const ISLAND_STAR_RATINGS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}islandStarRatings_grade_`;
 export const ALL_GRADES_STAR_RATINGS_KEY = `${LOCAL_STORAGE_PREFIX}allGradesStarRatings`;
-export const PRELOADED_QUESTIONS_CACHE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}preloadedQuestions_grade_`; // For persistence if needed, though usually in-memory is fine.
-export const DEFAULT_THEME = Theme.FRUTIGER_AERO; // Updated Default Theme
+export const PRELOADED_QUESTIONS_CACHE_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}preloadedQuestions_grade_`;
+export const DEFAULT_THEME = Theme.FRUTIGER_AERO; 
 export const SELECTED_THEME_KEY = `${LOCAL_STORAGE_PREFIX}selectedTheme`;
 export const ACHIEVED_ACHIEVEMENTS_KEY = `${LOCAL_STORAGE_PREFIX}achievedAchievements`;
 export const HARD_MODE_PROGRESS_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}hardModeProgress_grade_`;
 export const ACTIVE_TREASURE_CHESTS_KEY = `${LOCAL_STORAGE_PREFIX}activeTreasureChests`;
+export const ACTIVE_MESSAGE_BOTTLE_KEY = `${LOCAL_STORAGE_PREFIX}activeMessageBottle`;
+export const ACTIVE_FRIENDLY_NPC_KEY = `${LOCAL_STORAGE_PREFIX}activeFriendlyNPC`;
 
 
 // Achievement UI Text
@@ -574,13 +587,13 @@ export const FILTER_GLOBAL_ACHIEVEMENTS_TEXT = "Toàn Cầu";
 export const CLOSE_BUTTON_TEXT = "Đóng";
 
 // Treasure Chest Feature Constants
-export const TREASURE_CHEST_SPAWN_CHANCE = 0.20; // 20% chance
+export const TREASURE_CHEST_SPAWN_CHANCE = 0.28; 
 export const TREASURE_MODAL_TITLE = "Rương Báu Bí Ẩn!";
 export const TREASURE_REWARD_POINTS_MIN = 5;
 export const TREASURE_REWARD_POINTS_MAX = 15;
 export const TREASURE_QUIZ_REWARD_POINTS_MIN = 10;
 export const TREASURE_QUIZ_REWARD_POINTS_MAX = 25;
-export const TREASURE_CHEST_ICON_EMOJI = "🎁"; // or "💰"
+export const TREASURE_CHEST_ICON_EMOJI = "🎁"; 
 export const TREASURE_CHEST_THANKS_MESSAGE = "Chiếc rương lần này trống trơn, nhưng cảm ơn bạn đã dày công khám phá!";
 export const TREASURE_CHEST_POINTS_MESSAGE = (points: number) => `Bạn tìm thấy ${points} điểm!`;
 export const TREASURE_CHEST_QUIZ_CORRECT_MESSAGE = (points: number) => `Tuyệt vời! Bạn thật thông minh! +${points} điểm.`;
@@ -595,4 +608,72 @@ export const FUN_QUIZZES: FunQuiz[] = [
   { id: "fq6", question: "Một bó que có 100 que, người ta bó thành từng bó nhỏ, mỗi bó 10 que. Hỏi bó được bao nhiêu bó nhỏ?", type: 'mc', options: ["5 bó", "10 bó", "15 bó"], answer: "10 bó", points: 10 },
   { id: "fq7", question: "Tìm một số, biết rằng nếu lấy số đó nhân với 2 rồi cộng thêm 3 thì được 13.", type: 'fill', answer: "5", points: 20 },
   { id: "fq8", question: "Cầu gì không bắc qua sông?", type: 'mc', options: ["Cầu vồng", "Cầu lông", "Cầu thủ"], answer: "Cầu lông", points: 10 },
+];
+
+// Message in a Bottle Constants
+export const MESSAGE_IN_BOTTLE_SPAWN_CHANCE = 0.15; // 15% chance
+export const MESSAGE_IN_BOTTLE_MODAL_TITLE = "Thông Điệp Trong Chai";
+export const MESSAGES_IN_BOTTLE: MessageInBottleContent[] = [
+    { id: "wish1", text: "Chúc bạn một ngày học tập thật vui và hiệu quả!", type: "wish" },
+    { id: "quote1", text: "Học, học nữa, học mãi. - V.I. Lenin", type: "quote" },
+    { id: "hint1", text: "Nghe nói, có một kho báu ẩn giấu đâu đó trên những hòn đảo... chỉ dành cho người kiên trì nhất!", type: "hint" },
+    { id: "wish2", text: "Mỗi câu trả lời đúng là một bước tiến trên con đường tri thức!", type: "wish" },
+    { id: "quote2", text: "Thiên tài một phần trăm là cảm hứng và chín mươi chín phần trăm là mồ hôi. - Thomas Edison", type: "quote" },
+    { id: "hint2", text: "Đừng quên thử thách bản thân ở những độ khó cao hơn, phần thưởng bất ngờ có thể đang chờ bạn!", type: "hint" },
+    { id: "wish3", text: "Mong rằng bạn sẽ khám phá được nhiều điều thú vị từ những con số!", type: "wish" },
+    { id: "quote3", text: "Không có gì là không thể với một người luôn cố gắng.", type: "quote" },
+    { id: "hint3", text: "Có một bộ sưu tập huy hiệu đang chờ bạn khám phá đó. Thử xem sao!", type: "hint" },
+];
+
+// Shooting Star Constants
+export const SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS = 15000; // 15 seconds
+export const SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS = 45000; // 45 seconds
+export const SHOOTING_STAR_ANIMATION_DURATION_MS = 3000; // 3 seconds
+export const SHOOTING_STAR_REWARD_POINTS_MIN = 3;
+export const SHOOTING_STAR_REWARD_POINTS_MAX = 8;
+export const SHOOTING_STAR_CLICK_SUCCESS_MESSAGE = (points: number) => `Bạn đã bắt được Ngôi Sao May Mắn! +${points} điểm!`;
+export const SHOOTING_STAR_BASE_SIZE_PX = 32; // Base size for the star emoji or icon
+export const SHOOTING_STAR_MAX_ACTIVE_MS = SHOOTING_STAR_ANIMATION_DURATION_MS + 1000; // Max time it's considered "active" for clicking
+
+
+// Friendly NPC Constants
+export const FRIENDLY_NPC_SPAWN_CHANCE = 0.20; // 20% chance
+export const FRIENDLY_NPC_MODAL_TITLE_PREFIX = "Gặp gỡ"; // e.g., "Gặp gỡ Pháp Sư Thông Thái"
+export const FRIENDLY_NPC_LOADING_TEXT = "Đang trò chuyện...";
+export const FRIENDLY_NPC_RIDDLE_PROMPT = "Thử giải câu đố này nhé:";
+export const FRIENDLY_NPC_ANSWER_BUTTON_TEXT = "Trả Lời";
+export const FRIENDLY_NPC_REWARD_TEXT = (points: number) => `Bạn nhận được ${points} điểm vì sự thông thái của mình!`;
+export const FRIENDLY_NPC_RIDDLE_CORRECT_TEXT = (points: number) => `Chính xác! Bạn thật là một nhà thám hiểm thông minh! +${points} điểm.`;
+export const FRIENDLY_NPC_RIDDLE_INCORRECT_TEXT = (correctAnswer: string) => `Tiếc quá, chưa đúng rồi. Đáp án là: ${correctAnswer}.`;
+
+
+export const FRIENDLY_NPCS: FriendlyNPC[] = [
+  { id: 'wizard', name: 'Pháp Sư Thông Thái', imageUrl: 'https://i.ibb.co/r2nd7jXG/phap-su-thong-thai.png' },
+  { id: 'fairy', name: 'Cô Tiên Thông Thái', imageUrl: 'https://i.ibb.co/Z1b3vp0s/co-tien-thong-thai.png' },
+  { id: 'beast', name: 'Thần Thú Thông Thái', imageUrl: 'https://i.ibb.co/F4zq1SyR/than-thu-thong-thai.png' },
+];
+
+export const NPC_INTERACTIONS: NPCInteraction[] = [
+  // Wizard Specific
+  { id: 'wiz_fact1', npcIds: ['wizard'], type: 'fact', text: 'Bạn có biết? Số 0 được phát minh ở Ấn Độ!', points: 2 },
+  { id: 'wiz_enc1', npcIds: ['wizard'], type: 'encouragement', text: 'Mọi vấn đề đều có lời giải. Cứ tiếp tục suy nghĩ nhé, học giả trẻ!', points: 2 },
+  { id: 'wiz_riddle1', npcIds: ['wizard'], type: 'riddle', text: 'Tôi có thành phố, nhưng không nhà cửa. Có núi, nhưng không cây cối. Có nước, nhưng không cá. Tôi là gì?', answer: 'Bản đồ', points: 8 },
+  
+  // Fairy Specific
+  { id: 'fai_fact1', npcIds: ['fairy'], type: 'fact', text: 'Bướm nếm bằng chân đấy! Thật thú vị phải không nào?', points: 2 },
+  { id: 'fai_enc1', npcIds: ['fairy'], type: 'encouragement', text: 'Hãy tin vào bản thân, bạn có thể làm được những điều tuyệt vời!', points: 2 },
+  { id: 'fai_riddle1', npcIds: ['fairy'], type: 'riddle', text: 'Cái gì phải bị vỡ trước khi bạn có thể sử dụng nó?', answer: 'Quả trứng', points: 8 },
+
+  // Beast Specific
+  { id: 'bst_fact1', npcIds: ['beast'], type: 'fact', text: 'Rồng trong truyền thuyết là biểu tượng của sức mạnh và trí tuệ.', points: 2 },
+  { id: 'bst_enc1', npcIds: ['beast'], type: 'encouragement', text: 'Ngay cả con thú mạnh nhất cũng bắt đầu từ nhỏ bé. Hãy tiếp tục mạnh mẽ hơn!', points: 2 },
+  { id: 'bst_riddle1', npcIds: ['beast'], type: 'riddle', text: 'Tôi bay không cần cánh. Tôi khóc không cần mắt. Bất cứ nơi nào tôi đến, bóng tối theo sau tôi. Tôi là gì?', answer: 'Đám mây', points: 8 },
+
+  // Generic (can be used by any NPC if no specific ones are found or to add variety)
+  { id: 'gen_fact1', type: 'fact', text: 'Trái Đất là hành tinh thứ ba tính từ Mặt Trời trong Hệ Mặt Trời của chúng ta.', points: 2 },
+  { id: 'gen_enc1', type: 'encouragement', text: 'Mỗi câu hỏi bạn giải được là một bước tiến lớn trên con đường chinh phục tri thức!', points: 2 },
+  { id: 'gen_riddle1', type: 'riddle', text: 'Cái gì luôn ở phía trước bạn nhưng bạn không thể nhìn thấy?', answer: 'Tương lai', points: 8 },
+  { id: 'gen_fact2', type: 'fact', text: 'Một năm có 365 ngày, nhưng năm nhuận có 366 ngày!', points: 2},
+  { id: 'gen_enc2', type: 'encouragement', text: 'Đừng sợ mắc lỗi, mỗi lỗi sai là một bài học quý giá.', points: 2},
+  { id: 'gen_riddle2', type: 'riddle', text: 'Cái gì đen khi bạn mua nó, đỏ khi dùng nó, và xám xịt khi vứt nó đi?', answer: 'Than', points: 8 },
 ];

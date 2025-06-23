@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { FunQuiz, ThemeConfig } from '../types';
 import { 
@@ -50,9 +51,9 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
 
   const determineReward = () => {
     const rand = Math.random();
-    if (rand < 0.6) return 'points'; // 60% chance for points
-    if (rand < 0.9) return 'quiz';   // 30% chance for quiz
-    return 'nothing';                // 10% chance for nothing
+    if (rand < 0.50) return 'points'; // 50% chance for points
+    if (rand < 0.75) return 'quiz';   // 25% chance for quiz (0.50 + 0.25)
+    return 'nothing';                // 25% chance for nothing
   };
   
   const getRandomInt = (min: number, max: number) => {
