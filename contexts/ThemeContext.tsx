@@ -1,54 +1,86 @@
 import React, { createContext, useState, useEffect, useCallback, ReactNode, useContext } from 'react';
-import { Theme } from '../types';
+import { Theme, PlayerActiveAccessoriesState, AccessoryType, UIAccentConfig, ThemeAccessory } from '../types';
 import { THEME_CONFIGS, ThemeConfig } from '../themes';
-import { DEFAULT_THEME, SELECTED_THEME_KEY } from '../constants';
+import { DEFAULT_THEME, SELECTED_THEME_KEY, PLAYER_ACTIVE_ACCESSORIES_KEY, SHOP_ACCESSORIES } from '../constants';
 
 interface ThemeContextType {
   theme: Theme;
   themeConfig: ThemeConfig;
   setTheme: (theme: Theme) => void;
+  playerActiveAccessories: PlayerActiveAccessoriesState; // Expose for potential direct use by other components
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const loadPlayerActiveAccessoriesFromStorage = (): PlayerActiveAccessoriesState => {
+  try {
+    const savedItem = localStorage.getItem(PLAYER_ACTIVE_ACCESSORIES_KEY);
+    return savedItem ? JSON.parse(savedItem) : {};
+  } catch (error) {
+    console.warn(`Error parsing ${PLAYER_ACTIVE_ACCESSORIES_KEY} from localStorage:`, error);
+    return {};
+  }
+};
+
+// Store previously applied accessory CSS variables to clear them when an accessory is deactivated or theme changes
+let lastAppliedAccessoryCssVariables: Record<string, string> = {};
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
     const savedItem = localStorage.getItem(SELECTED_THEME_KEY);
     if (savedItem) {
         try {
-            // Attempt to parse as JSON. If it's already a valid JSON string (e.g., "\"girly\""), this will work.
             const parsedTheme = JSON.parse(savedItem);
             if (typeof parsedTheme === 'string' && THEME_CONFIGS[parsedTheme as Theme]) {
                 return parsedTheme as Theme;
             }
         } catch (e) {
-            // If JSON.parse fails, assume it's a raw string like "girly" (old format)
             if (THEME_CONFIGS[savedItem as Theme]) {
-                // To migrate, save it back in the correct JSON format for the next load
                 localStorage.setItem(SELECTED_THEME_KEY, JSON.stringify(savedItem as Theme));
                 return savedItem as Theme;
             }
         }
     }
-    // If nothing valid is found, or item doesn't exist, or it's corrupted beyond recognition
-    // It's safer to remove potentially bad value and start fresh with default
     localStorage.removeItem(SELECTED_THEME_KEY); 
     return DEFAULT_THEME;
   });
 
-  const applyThemeToDocument = useCallback((theme: Theme) => {
+  const [activeAccessories, setActiveAccessories] = useState<PlayerActiveAccessoriesState>(loadPlayerActiveAccessoriesFromStorage);
+
+  useEffect(() => {
+    const handleActiveAccessoriesUpdate = () => {
+      setActiveAccessories(loadPlayerActiveAccessoriesFromStorage());
+    };
+    window.addEventListener('activeAccessoriesUpdated', handleActiveAccessoriesUpdate);
+    // Also listen to storage events for cross-tab synchronization if needed
+    window.addEventListener('storage', (event) => {
+      if (event.key === PLAYER_ACTIVE_ACCESSORIES_KEY) {
+        handleActiveAccessoriesUpdate();
+      }
+    });
+    return () => {
+      window.removeEventListener('activeAccessoriesUpdated', handleActiveAccessoriesUpdate);
+      window.removeEventListener('storage', (event) => {
+        if (event.key === PLAYER_ACTIVE_ACCESSORIES_KEY) {
+          handleActiveAccessoriesUpdate();
+        }
+      });
+    };
+  }, []);
+
+
+  const applyThemeToDocument = useCallback((theme: Theme, currentActiveAccessories: PlayerActiveAccessoriesState) => {
     const config = THEME_CONFIGS[theme];
     if (!config) return;
 
-    // Determine responsive background URL
-    const mediaQuery = window.matchMedia('(min-width: 768px)'); // Tailwind's md breakpoint
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
     let targetLocalPath: string | undefined;
     let targetRemotePath: string;
 
-    if (mediaQuery.matches) { // Desktop / Side-by-side layout
+    if (mediaQuery.matches) {
       targetLocalPath = config.localBackgroundUrlSideBySideLayout;
       targetRemotePath = config.backgroundUrlSideBySideLayout || config.backgroundUrl;
-    } else { // Mobile / Stacked layout
+    } else {
       targetLocalPath = config.localBackgroundUrlStackedLayout;
       targetRemotePath = config.backgroundUrlStackedLayout || config.backgroundUrl;
     }
@@ -59,53 +91,71 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (targetLocalPath) {
       const img = new Image();
-      img.onload = () => {
-        setBodyBackground(targetLocalPath!);
-      };
-      img.onerror = () => {
-        setBodyBackground(targetRemotePath);
-      };
+      img.onload = () => setBodyBackground(targetLocalPath!);
+      img.onerror = () => setBodyBackground(targetRemotePath);
       img.src = targetLocalPath;
     } else {
       setBodyBackground(targetRemotePath);
     }
     
-    document.body.className = `theme-${theme}`; // Apply theme class for specific styles like scrollbar
+    document.body.className = `theme-${theme}`;
 
-    // Set all theme configuration properties as CSS variables on :root
+    // Clear previously applied accessory CSS variables
+    Object.keys(lastAppliedAccessoryCssVariables).forEach(cssVarName => {
+      document.documentElement.style.removeProperty(cssVarName);
+    });
+    lastAppliedAccessoryCssVariables = {};
+
+    // Set all base theme configuration properties as CSS variables
     for (const key in config) {
       if (Object.prototype.hasOwnProperty.call(config, key)) {
         const value = (config as any)[key];
-        if (typeof value === 'string' && !key.toLowerCase().includes('url')) { // Exclude URLs from becoming CSS vars
-          // Convert camelCase to kebab-case for CSS custom property names
-          // e.g., primaryBg -> --primary-bg, accentColor -> --accent-color
+        if (typeof value === 'string' && !key.toLowerCase().includes('url')) {
           const cssVarName = `--${key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`)}`;
           document.documentElement.style.setProperty(cssVarName, value);
         }
       }
     }
-     // Ensure --font-family-theme is specifically set for body from the config
+    
+    // Apply UI_ACCENT accessory CSS variables
+    const themeActiveAccessories = currentActiveAccessories[theme];
+    const activeUIAccentId = themeActiveAccessories?.[AccessoryType.UI_ACCENT];
+    
+    if (activeUIAccentId) {
+      const accessoryDetails = SHOP_ACCESSORIES.find(acc => acc.id === activeUIAccentId && acc.type === AccessoryType.UI_ACCENT) as ThemeAccessory | undefined;
+      if (accessoryDetails && accessoryDetails.config) {
+        const uiAccentConfig = accessoryDetails.config as UIAccentConfig;
+        if (uiAccentConfig.cssVariables) {
+          for (const cssVarName in uiAccentConfig.cssVariables) {
+            if (Object.prototype.hasOwnProperty.call(uiAccentConfig.cssVariables, cssVarName)) {
+              const value = uiAccentConfig.cssVariables[cssVarName];
+              document.documentElement.style.setProperty(cssVarName, value);
+              lastAppliedAccessoryCssVariables[cssVarName] = value; // Store for cleanup
+            }
+          }
+        }
+      }
+    }
+
     if (config.fontFamily) {
         document.documentElement.style.setProperty('--font-family-theme', config.fontFamily);
         document.body.style.fontFamily = `var(--font-family-theme, 'Arial', sans-serif)`;
     } else {
         document.documentElement.style.removeProperty('--font-family-theme');
-        document.body.style.fontFamily = `'Arial', sans-serif`; // Fallback
+        document.body.style.fontFamily = `'Arial', sans-serif`;
     }
-
-
   }, []);
 
   useEffect(() => {
-    applyThemeToDocument(currentTheme);
+    applyThemeToDocument(currentTheme, activeAccessories);
     const mediaQuery = window.matchMedia('(min-width: 768px)');
-    const handleMediaQueryChange = () => applyThemeToDocument(currentTheme);
+    const handleMediaQueryChange = () => applyThemeToDocument(currentTheme, activeAccessories);
     mediaQuery.addEventListener('change', handleMediaQueryChange);
 
     return () => {
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
     };
-  }, [currentTheme, applyThemeToDocument]);
+  }, [currentTheme, activeAccessories, applyThemeToDocument]);
 
   const setTheme = (themeToSet: Theme) => {
     if (THEME_CONFIGS[themeToSet]) {
@@ -119,7 +169,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const themeConfig = THEME_CONFIGS[currentTheme];
 
   return (
-    <ThemeContext.Provider value={{ theme: currentTheme, themeConfig, setTheme }}>
+    <ThemeContext.Provider value={{ theme: currentTheme, themeConfig, setTheme, playerActiveAccessories: activeAccessories }}>
       {children}
     </ThemeContext.Provider>
   );

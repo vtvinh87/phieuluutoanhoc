@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react'; // Added useState for local gem count example
 import GameScreen from './components/GameScreen';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';

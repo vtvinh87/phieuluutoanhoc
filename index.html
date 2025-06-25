@@ -1,3 +1,14 @@
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "uuid": "https://esm.sh/uuid@^11.1.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.6.0"
+  }
+}
+</script>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -178,6 +189,8 @@
       --accent-text: #ffffff;
       --button-primary-bg: #007bff;
       --button-primary-text: #ffffff;
+      --button-secondary-bg: #6c757d;
+      --button-secondary-text: #ffffff;
       --button-answer-option-bg: #007bff;
       --button-answer-option-text: #ffffff;
       --button-answer-option-ring: #007bff;
@@ -196,60 +209,30 @@
       --border-color: #ced4da;
       --ring-color-focus: #007bff;
       --title-text-gradient-from: #007bff;
-      --title-text-gradient-to: #0056b3;
-      --island-locked-bg: #6c757d;
-      --island-unlocked-bg: #ffc107;
+      --title-text-gradient-to: #0056b3; /* Completed the cut-off line */
+      --island-locked-bg: #e9ecef;
+      --island-unlocked-bg: #007bff;
       --island-completed-bg: #28a745;
-      --island-locked-text: #ffffff;
-      --island-unlocked-text: #000000;
+      --island-locked-text: #6c757d;
+      --island-unlocked-text: #ffffff;
       --island-completed-text: #ffffff;
-      --island-button-ring-color: #ffc107;
+      --island-button-ring-color: #007bff; /* For pulse animation */
       --question-display-bg: #f8f9fa;
-      --question-display-text: #000000;
-      --question-display-image-border: #007bff;
-      --spinner-border-color: '#007bff'; /* Updated variable name, actual value from theme */
-      --font-family-theme: 'Inter', 'Arial', sans-serif; /* Default theme font set by ThemeProvider */
-      --app-container-bg: 'bg-transparent'; /* Default to transparent if not set by theme */
-      --accent: '#007bff'; /* Fallback for --accent-color */
-
-      /* Add all theme variables from ThemeConfig here as fallbacks */
-       --button-secondary-bg: #6c757d;
-       --button-secondary-text: #ffffff;
-       --island-button-locked-bg: #6c757d;
-       --island-button-unlocked-bg: #ffc107;
-       --island-button-completed-bg: #28a745;
-       --island-button-locked-text: #ffffff;
-       --island-button-unlocked-text: #000000;
-       --island-button-completed-text: #ffffff;
-       --spinner-color: '#007bff';
-    }
-
-    .final-island-playing-card {
-        border-color: gold !important; /* Example: Gold border for final island card */
-        box-shadow: 0 0 15px 5px gold, 0 0 25px 10px rgba(255, 215, 0, 0.5) !important; /* Example: Gold glow */
+      --question-display-text: #212529;
+      --question-display-image-border: #dee2e6;
+      --spinner-border-color: #007bff;
+      --font-family-theme: 'Inter', 'Arial', sans-serif; /* Default font */
+      /* Placeholders for UI Accent accessories */
+      --accessory-button-border: none;
+      --accessory-card-box-shadow: none;
+      --button-primary-shadow: none;
+      --button-answer-option-shadow: none;
     }
   </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.1.0",
-    "react-dom": "https://esm.sh/react-dom@19.1.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.1.0/client",
-    "react/jsx-runtime": "https://esm.sh/react@19.1.0/jsx-runtime",
-    "react/jsx-dev-runtime": "https://esm.sh/react@19.1.0/jsx-dev-runtime",
-    "@google/genai": "https://cdn.jsdelivr.net/npm/@google/genai@1.4.0/+esm",
-    "uuid": "https://esm.sh/uuid@^10.0.0",
-    "react/": "https://esm.sh/react@^19.1.0/",
-    "react-dom/": "https://esm.sh/react-dom@^19.1.0/"
-  }
-}
-</script>
 <link rel="stylesheet" href="/index.css">
 </head>
 <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
-  <script type="module" src="/index.js"></script>
-<script type="module" src="/index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
 </body>
 </html>

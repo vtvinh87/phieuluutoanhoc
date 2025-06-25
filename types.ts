@@ -1,4 +1,3 @@
-
 // The problematic module declaration has been removed.
 
 export enum GradeLevel {
@@ -223,7 +222,8 @@ export type GameState =
   'EndlessLoading' | 
   'EndlessPlaying' |
   'EndlessSummary' |
-  'Shop'; // Added Shop state
+  'Shop' |
+  'AccessoryCustomization'; // Added AccessoryCustomization state
 
 export type ActiveMessageBottlesState = Record<string, { grade: GradeLevel; messageId: string } | undefined>;
 
@@ -375,23 +375,60 @@ export const CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME = "ACHIEVEMENT_UNLOCKE
 
 // --- Shop & Accessories Types ---
 export enum AccessoryType {
-  BACKGROUND_EFFECT = "BACKGROUND_EFFECT", // e.g., animated stars, falling leaves
-  CURSOR_TRAIL = "CURSOR_TRAIL",         // e.g., sparkling trail
-  UI_ACCENT = "UI_ACCENT",               // e.g., special borders for buttons/modals
-  SOUND_PACK_VARIATION = "SOUND_PACK_VARIATION" // e.g., different click sounds
+  BACKGROUND_EFFECT = "BACKGROUND_EFFECT",
+  CURSOR_TRAIL = "CURSOR_TRAIL",
+  UI_ACCENT = "UI_ACCENT",
+  SOUND_PACK_VARIATION = "SOUND_PACK_VARIATION"
 }
+
+// Specific config types for each accessory
+export interface BackgroundEffectConfig {
+  particleShape: 'star' | 'circle' | 'square' | 'image'; // Shape of particles
+  particleImage?: string; // URL if shape is 'image'
+  particleColor: string | string[]; // Single color or array for random selection
+  count: number; // Number of particles
+  speed?: number; // Movement speed factor
+  size?: number; // Base size of particles
+  sizeVariation?: number; // Random variation for size
+  opacity?: number;
+  wind?: number; // Horizontal movement influence
+  gravity?: number; // Vertical movement influence
+}
+
+export interface CursorTrailConfig {
+  trailColor: string | string[];
+  trailLength: number; // Number of particles in trail
+  fadeSpeed: number; // How quickly particles fade
+  particleSize: number;
+  shape?: 'circle' | 'star';
+}
+
+export interface UIAccentConfig {
+  cssVariables: Record<string, string>; // e.g., { '--button-border-style': '2px dashed #FF00FF' }
+}
+
+export interface SoundPackVariationConfig {
+  sounds: Record<string, string>; // Maps original sound URL (from constants) to new sound URL
+}
+
+export type ThemeAccessoryConfig =
+  | BackgroundEffectConfig
+  | CursorTrailConfig
+  | UIAccentConfig
+  | SoundPackVariationConfig;
 
 export interface ThemeAccessory {
   id: string;
   name: string;
   description: string;
-  iconUrl: string; // URL or path to an icon image for the shop
-  price: number; // Cost in PlayerGems
-  appliesToTheme: Theme[] | 'all'; // Which themes this accessory can be used with, or 'all'
+  iconUrl: string;
+  price: number;
+  appliesToTheme: Theme[] | 'all';
   type: AccessoryType;
-  config?: Record<string, any>; // Specific configuration for the accessory, e.g., { particleCount: 50, particleColor: '#FFD700' }
+  config: ThemeAccessoryConfig; // Use the union type
 }
 
-export type PlayerOwnedAccessoriesState = Record<string, boolean>; // Key is accessory ID, value is true if owned
-export type PlayerActiveAccessoriesState = Partial<Record<Theme, Record<AccessoryType, string | null>>>;
-// Example: { 'neon': { 'BACKGROUND_EFFECT': 'neon_stars_effect_id', 'CURSOR_TRAIL': null } }
+export type PlayerOwnedAccessoriesState = Record<string, boolean>;
+
+// Structure: { [themeKey]: { [accessoryType]: accessoryId | null } }
+export type PlayerActiveAccessoriesState = Partial<Record<Theme, Partial<Record<AccessoryType, string | null>>>>;

@@ -20,7 +20,7 @@ import {
   COLLECTIBLE_UNCOLLECTED_NAME,
   COLLECTIBLE_UNCOLLECTED_ICON,
 } from '../constants';
-import { CollectionIcon, ChevronDownIcon, TrophyIcon as AchievementIcon } from './icons'; // Renamed TrophyIcon
+import { CollectionIcon, ChevronDownIcon, TrophyIcon } from './icons';
 
 interface AchievementsScreenProps {
   achievedAchievements: AchievedAchievementsState;
@@ -220,7 +220,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
 
         <header className="mb-3 sm:mb-4 text-center">
           {activeTab === 'achievements' ?
-            <AchievementIcon className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-[var(--accent-color)] mb-1 sm:mb-2" /> :
+            <TrophyIcon className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-[var(--accent-color)] mb-1 sm:mb-2" /> :
             <CollectionIcon className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-[var(--accent-color)] mb-1 sm:mb-2" />
           }
           <h2 id="achievements-modal-title" className="text-xl sm:text-2xl font-bold text-[var(--modal-header-text)]">
@@ -251,7 +251,8 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
 
         <button
           onClick={() => { playSound(BUTTON_CLICK_SOUND_URL, 0.5); onClose(); }}
-          className="mt-3 sm:mt-4 w-full bg-[var(--button-primary-bg)] hover:opacity-95 active:brightness-95 text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-4 rounded-lg shadow-md text-base sm:text-lg"
+          onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
+          className="mt-4 sm:mt-6 w-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-95 text-[var(--button-secondary-text)] font-semibold py-2.5 sm:py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-base sm:text-lg flex-shrink-0"
         >
           {CLOSE_BUTTON_TEXT}
         </button>

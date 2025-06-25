@@ -1,5 +1,4 @@
-
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType, ThemeAccessory, AccessoryType } from './types';
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType, ThemeAccessory, AccessoryType, UIAccentConfig, SoundPackVariationConfig, BackgroundEffectConfig, CursorTrailConfig } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
@@ -74,6 +73,13 @@ export const FRIENDLY_NPC_RIDDLE_PROMPT = "Thử tài giải đố:";
 export const FRIENDLY_NPC_ANSWER_BUTTON_TEXT = "Trả Lời Đố";
 export const SHOP_TITLE_TEXT = "Cửa Hàng Phụ Kiện";
 export const SHOP_BACK_BUTTON_TEXT = "Quay Lại Chọn Lớp";
+export const MANAGE_ACCESSORIES_BUTTON_TEXT = "Tùy Chỉnh Giao Diện";
+export const ACCESSORY_CUSTOMIZATION_MODAL_TITLE = "Tùy Chỉnh Phụ Kiện Giao Diện";
+export const CHOOSE_THEME_TO_CUSTOMIZE_TEXT = "Chọn Giao Diện để Tùy Chỉnh";
+export const ACTIVATE_FOR_THIS_THEME_TEXT = "Kích hoạt cho giao diện này";
+export const NO_OWNED_COMPATIBLE_ACCESSORIES_TEXT = "Bạn chưa sở hữu phụ kiện nào tương thích với giao diện này.";
+export const DEACTIVATE_TEXT = "Hủy Kích Hoạt";
+export const ACTIVATE_TEXT = "Kích Hoạt";
 
 
 // UI Text Constants - Dynamic (Functions)
@@ -91,6 +97,8 @@ export const TREASURE_CHEST_POINTS_MESSAGE = (points: number): string => `Bạn 
 export const TREASURE_CHEST_QUIZ_CORRECT_MESSAGE = (points: number): string => `Chính xác! Bạn nhận được ${points} điểm từ câu đố!`;
 export const TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE = "Rất tiếc, câu trả lời chưa đúng.";
 export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn độ khó cho đảo ${islandName}`;
+export const ACCESSORIES_FOR_THEME_TEXT = (themeName: string) => `Phụ kiện cho Giao Diện: ${themeName}`;
+
 
 // Endless Mode
 export const ENDLESS_MODE_LIVES = 5;
@@ -220,6 +228,12 @@ export const GEM_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/202
 export const WEEKLY_CHALLENGE_NEW_SOUND_URL = DAILY_CHALLENGE_NEW_SOUND_URL; 
 export const WEEKLY_CHALLENGE_PROGRESS_SOUND_URL = DAILY_CHALLENGE_PROGRESS_SOUND_URL; 
 export const WEEKLY_CHALLENGE_COMPLETE_SOUND_URL = VICTORY_FANFARE_SOUND_URL; 
+
+// Placeholder sound URLs for custom sound packs
+export const CUSTOM_SOUND_NEON_CLICK = '/sounds/neon_ui_click.mp3'; // Placeholder
+export const CUSTOM_SOUND_NEON_CORRECT = '/sounds/neon_ui_correct.mp3'; // Placeholder
+export const CUSTOM_SOUND_GIRLY_CLICK = '/sounds/girly_ui_click.mp3'; // Placeholder
+export const CUSTOM_SOUND_GIRLY_CORRECT = '/sounds/girly_ui_correct.mp3'; // Placeholder
 
 
 // Icon URLs & Emojis
@@ -490,30 +504,75 @@ export const SHOP_ACCESSORIES: ThemeAccessory[] = [
     id: "neon_star_effect",
     name: "Hiệu Ứng Sao Neon",
     description: "Thêm các ngôi sao neon lấp lánh bay nhẹ nhàng trên nền giao diện Chiến Binh Neon.",
-    iconUrl: "https://i.ibb.co/yWw0kF6/icon-neon-star-effect.png", // Placeholder icon
+    iconUrl: "https://i.ibb.co/yWw0kF6/icon-neon-star-effect.png",
     price: 150,
     appliesToTheme: [Theme.NEON],
     type: AccessoryType.BACKGROUND_EFFECT,
-    config: { particleShape: 'star', particleColor: '#00f5d4', count: 30 }
+    config: { particleShape: 'star', particleColor: '#00f5d4', count: 30, speed: 0.3, size: 2, sizeVariation: 1, opacity: 0.8 } as BackgroundEffectConfig
   },
   {
     id: "girly_sparkle_cursor",
     name: "Con Trỏ Lấp Lánh",
     description: "Thêm một vệt sáng lấp lánh màu hồng theo sau con trỏ chuột của bạn.",
-    iconUrl: "https://i.ibb.co/PN20rW8/icon-girly-sparkle-cursor.png", // Placeholder icon
+    iconUrl: "https://i.ibb.co/PN20rW8/icon-girly-sparkle-cursor.png",
     price: 100,
     appliesToTheme: [Theme.GIRLY],
     type: AccessoryType.CURSOR_TRAIL,
-    config: { trailColor: '#f472b6', trailLength: 15 }
+    config: { trailColor: '#f472b6', trailLength: 12, fadeSpeed: 0.08, particleSize: 2.5, shape: 'star' } as CursorTrailConfig
   },
   {
     id: "aero_bubble_border",
     name: "Viền Bong Bóng Aero",
     description: "Thêm hiệu ứng viền bong bóng tinh tế cho các nút và thẻ trong giao diện Frutiger Aero.",
-    iconUrl: "https://i.ibb.co/QjT9P1x/icon-aero-bubble-border.png", // Placeholder icon
-    price: 200,
+    iconUrl: "https://i.ibb.co/QjT9P1x/icon-aero-bubble-border.png",
+    price: 80,
     appliesToTheme: [Theme.FRUTIGER_AERO, Theme.DEFAULT],
     type: AccessoryType.UI_ACCENT,
-    config: { borderWidth: '3px', borderColor: 'rgba(100, 180, 255, 0.5)' }
+    config: { 
+      cssVariables: { 
+        '--accessory-button-border': '2px dotted rgba(100, 180, 255, 0.6)',
+        '--accessory-card-box-shadow': '0 0 12px rgba(100, 180, 255, 0.4)',
+      } 
+    } as UIAccentConfig
+  },
+  {
+    id: "neon_button_glow",
+    name: "Nút Neon Phát Sáng",
+    description: "Làm cho các nút chính trong giao diện Neon có thêm hiệu ứng hào quang phát sáng.",
+    iconUrl: "https://i.ibb.co/7Kx3xDs/icon-neon-button-glow.png", // Placeholder
+    price: 120,
+    appliesToTheme: [Theme.NEON],
+    type: AccessoryType.UI_ACCENT,
+    config: {
+      cssVariables: {
+        '--button-primary-shadow': '0 0 8px var(--accent, #00f5d4), 0 0 16px var(--accent, #00f5d4)',
+        '--button-answer-option-shadow': '0 0 6px var(--accent, #fa2772)',
+      }
+    } as UIAccentConfig
+  },
+  {
+    id: "girly_sound_pack",
+    name: "Gói Âm Thanh Kẹo Ngọt",
+    description: "Thay đổi một số âm thanh trong game thành phiên bản ngọt ngào, vui tai hơn cho giao diện Công Chúa.",
+    iconUrl: "https://i.ibb.co/GMSdGkB/icon-girly-sound-pack.png", // Placeholder
+    price: 70,
+    appliesToTheme: [Theme.GIRLY],
+    type: AccessoryType.SOUND_PACK_VARIATION,
+    config: {
+      sounds: {
+        [BUTTON_CLICK_SOUND_URL]: CUSTOM_SOUND_GIRLY_CLICK, // Placeholder path
+        [CORRECT_ANSWER_SOUND_URL]: CUSTOM_SOUND_GIRLY_CORRECT, // Placeholder path
+      }
+    } as SoundPackVariationConfig
+  },
+  {
+    id: "universal_confetti_correct",
+    name: "Pháo Hoa Chúc Mừng",
+    description: "Hiệu ứng pháo hoa nhỏ bắn ra khi trả lời đúng câu hỏi. Áp dụng cho mọi giao diện.",
+    iconUrl: "https://i.ibb.co/8XJ30fQ/icon-universal-confetti.png", // Placeholder
+    price: 200,
+    appliesToTheme: 'all',
+    type: AccessoryType.BACKGROUND_EFFECT, // Could be UI_ACCENT if it's a small overlay animation
+    config: { particleShape: 'circle', particleColor: ['#FFD700', '#FF69B4', '#00F5D4', '#FF4500'], count: 15, speed: 2, size: 3, oneShot: true, target: 'feedbackIndicator' } as BackgroundEffectConfig // Custom 'oneShot' and 'target' properties
   }
 ];

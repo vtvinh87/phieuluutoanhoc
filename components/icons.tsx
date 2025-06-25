@@ -87,9 +87,9 @@ export const LockClosedIcon: React.FC<{ className?: string }> = ({ className = "
 );
 
 export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
-    <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
+        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+    </svg>
 );
 
 export const CollectionIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
@@ -98,27 +98,12 @@ export const CollectionIcon: React.FC<{ className?: string }> = ({ className = "
   </svg>
 );
 
-
-export const AcademicCapIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path d="M12 14.25L5.25 9.75M12 14.25L18.75 9.75M12 14.25V21M12 3.75L4.5 8.25M12 3.75L19.5 8.25M4.5 8.25V15.75L12 21L19.5 15.75V8.25L12 3.75Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.125 9.375L3 10.125M21 10.125L19.875 9.375M12 21V14.25" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75L4.5 8.25v7.5L12 21l7.5-5.25v-7.5L12 3.75z" />
- </svg>
-);
-
-export const TreasureChestIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12.507 4.208C12.194 4.072 11.806 4.072 11.493 4.208L3.018 7.875C2.378 8.143 2.25 8.974 2.715 9.542L4.018 11.25H20.007L21.285 9.542C21.75 8.974 21.622 8.143 20.982 7.875L12.507 4.208Z" />
-    <path fillRule="evenodd" d="M2.25 12.75V18A.75.75 0 0 0 3 18.75h18A.75.75 0 0 0 21.75 18v-5.25H2.25ZM12 14.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-  </svg>
-);
-
 export const GiftIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12.75 2.25a.75.75 0 0 0-1.5 0v1.5h-2.25V2.25a.75.75 0 0 0-1.5 0V3.75A2.25 2.25 0 0 0 5.25 6H3.75a.75.75 0 0 0 0 1.5H12v8.25H3.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5H12V7.5h8.25a.75.75 0 0 0 0-1.5H14.25A2.25 2.25 0 0 0 12 3.75V2.25ZM9.75 17.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM11.25 6a.75.75 0 0 0-.75.75v3.75a.75.75 0 0 0 1.5 0V6.75a.75.75 0 0 0-.75-.75Z" />
-    <path fillRule="evenodd" d="M5.25 6H11.25V3.75A2.25 2.25 0 0 0 9 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 5.25 3.75V6ZM14.25 6V3.75A2.25 2.25 0 0 0 12 2.115V2.25a.75.75 0 0 1-1.5 0v-.363A2.25 2.25 0 0 0 8.25 3.75V6h6Z" clipRule="evenodd" />
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 3.03v.568c0 .334.148.65.405.864l1.068.89c.442.369.535 1.01.216 1.49l-.51.766a2.25 2.25 0 0 1-1.161.886l-.143.048a1.107 1.107 0 0 0-.57 1.664l.369.555a1.125 1.125 0 0 1-.162 1.605l-.146.15a1.125 1.125 0 0 1-1.558 0l-.146-.15a1.125 1.125 0 0 1-.162-1.605l.369-.555a1.107 1.107 0 0 0-.57-1.664l-.143-.048a2.25 2.25 0 0 1-1.161-.886l-.51-.766a1.125 1.125 0 0 1 .216-1.49l1.068-.89a1.125 1.125 0 0 1 .405-.864v-.568c0-.359.093-.678.26-1.003l.488-1.037A3.375 3.375 0 0 1 12 1.5c.67 0 1.28.223 1.77.603l.488 1.037c.167.325.26.644.26 1.003Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25H3v12.75a.75.75 0 0 0 .75.75h16.5a.75.75 0 0 0 .75-.75V8.25Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM18 15.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+    </svg>
 );
 
 export const MailIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
@@ -153,19 +138,33 @@ export const KeyIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6
 
 export const CalendarCheckIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-12-3.75h.008v.008H9v-.008Zm3.75 0h.008v.008h-.008Zm0 0L12 15l1.25-1.25M15 15h.008v.008H15v-.008Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="m9 12.75 2.25 2.25 4.5-4.5" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12.75H3m18 0A2.25 2.25 0 0 0 18.75 10.5H5.25A2.25 2.25 0 0 0 3 12.75m18 0v6A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75v-6m18 0V4.5A2.25 2.25 0 0 0 18.75 2.25H5.25A2.25 2.25 0 0 0 3 4.5v8.25" />
   </svg>
 );
 
-export const GemIcon: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-6 h-6", style }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
-    <path fillRule="evenodd" d="M11.213 2.213a.75.75 0 0 1 1.574 0l1.456 3.948a.75.75 0 0 0 .708.513l4.137.319a.75.75 0 0 1 .43 1.285l-3.262 2.768a.75.75 0 0 0-.24 1.01l.933 3.996a.75.75 0 0 1-1.077.842l-3.646-2.181a.75.75 0 0 0-.896 0L8.03 20.91a.75.75 0 0 1-1.077-.842l.933-3.996a.75.75 0 0 0-.24-1.01L4.384 8.278a.75.75 0 0 1 .43-1.285l4.137-.319a.75.75 0 0 0 .708-.513l1.456-3.948ZM12 7.756l-.682-1.848a2.25 2.25 0 0 1-2.124-1.538L8.14 1.08a2.25 2.25 0 0 0-4.723 0l-1.255 3.29a2.25 2.25 0 0 1-2.124 1.538L-.002 6.092a2.25 2.25 0 0 0-1.289 3.854l2.566 2.176a2.25 2.25 0 0 1 .72 3.03l-1.011 4.328a2.25 2.25 0 0 0 3.232 2.525l3.111-1.86a2.25 2.25 0 0 1 2.688 0l3.111 1.86a2.25 2.25 0 0 0 3.232-2.525l-1.011-4.328a2.25 2.25 0 0 1 .72-3.03l2.566-2.176a2.25 2.25 0 0 0-1.29-3.854l-4.04-.184a2.25 2.25 0 0 1-2.124-1.538L12 2.112v5.644Z" clipRule="evenodd" />
+export const GemIcon: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-6 h-6", style }) => ( // Using CubeTransparentIcon as GemIcon
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} style={style}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
   </svg>
 );
 
 export const ShoppingBagIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" />
   </svg>
+);
+
+export const CogIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.646.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a6.759 6.759 0 0 1 0 1.903c-.008.378.137.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.6 6.6 0 0 1-.22.128c-.333.183-.582.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.758 6.758 0 0 1 0-1.903c.008-.378-.137-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+  </svg>
+);
+
+export const TreasureChestIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => ( // Using a simpler gift box icon
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h17.25c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125H3.375c-.621 0-1.125-.504-1.125-1.125v-3.75Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v-5.25m0 5.25a1.5 1.5 0 0 1-1.5-1.5V12a1.5 1.5 0 0 1 1.5-1.5h.008a1.5 1.5 0 0 1 1.5 1.5v.008a1.5 1.5 0 0 1-1.5 1.5H12Zm0-5.25V6.375m0-1.5V3.75m0 1.5a1.5 1.5 0 0 1-1.5-1.5V3.75a1.5 1.5 0 0 1 1.5-1.5h.008a1.5 1.5 0 0 1 1.5 1.5v.008a1.5 1.5 0 0 1-1.5 1.5H12Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12.75h18" />
+    </svg>
 );
