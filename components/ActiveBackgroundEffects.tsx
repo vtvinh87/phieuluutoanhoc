@@ -1,10 +1,14 @@
+
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import confetti from 'canvas-confetti';
 import { PlayerActiveAccessoriesState, Theme, ThemeAccessory, AccessoryType, BackgroundEffectConfig } from '../types';
 
 interface ActiveBackgroundEffectsProps {
   playerActiveAccessories: PlayerActiveAccessoriesState;
   currentTheme: Theme;
   allAccessoriesDetails: ThemeAccessory[];
+  triggerConfetti?: boolean;
+  onConfettiComplete?: () => void;
 }
 
 interface Particle {
@@ -22,6 +26,8 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
   playerActiveAccessories,
   currentTheme,
   allAccessoriesDetails,
+  triggerConfetti,
+  onConfettiComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesArrayRef = useRef<Particle[]>([]);
@@ -62,8 +68,8 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
         speedX: baseSpeedX,
         speedY: baseSpeedY,
         color,
-        opacity: Math.random() * 0.5 + 0.3, // Random opacity for depth
-        shape: particleShape as 'circle' | 'star' | 'square', // Assuming config matches
+        opacity: Math.random() * 0.5 + 0.3, 
+        shape: particleShape as 'circle' | 'star' | 'square',
       });
     }
   }, []);
@@ -98,8 +104,10 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !currentEffectConfigRef.current) {
-      animationFrameIdRef.current = null;
+    const config = currentEffectConfigRef.current;
+
+    if (!canvas || !config || (config as any).oneShot || (config as any).target === 'feedbackIndicator') {
+      animationFrameIdRef.current = null; // Stop animation if no canvas, no config, or it's a one-shot/targeted effect
       return;
     }
     const ctx = canvas.getContext('2d');
@@ -108,23 +116,12 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
       return;
     }
 
-    const config = currentEffectConfigRef.current;
-    if(config && (config as any).oneShot) { // Simple check for one-shot, might need refinement
-        // For one-shot effects like confetti, this component might not be the best place
-        // or it needs a more complex trigger mechanism. For now, continuous effects are prioritized.
-        animationFrameIdRef.current = null; // Stop animation for one-shot after setup
-        // Potentially clear particles after a delay if it's one-shot
-        return;
-    }
-
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     particlesArrayRef.current.forEach((particle) => {
       particle.x += particle.speedX;
       particle.y += particle.speedY;
 
-      // Boundary check (wrap around)
       if (particle.x > canvas.width + particle.size) particle.x = -particle.size;
       else if (particle.x < -particle.size) particle.x = canvas.width + particle.size;
       if (particle.y > canvas.height + particle.size) particle.y = -particle.size;
@@ -136,13 +133,13 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
       } else if (particle.shape === 'square') {
         ctx.fillStyle = particle.color;
         ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
-      } else { // Default to circle
+      } else { 
         ctx.fillStyle = particle.color;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
       }
-       ctx.globalAlpha = 1; // Reset globalAlpha
+       ctx.globalAlpha = 1; 
     });
 
     animationFrameIdRef.current = requestAnimationFrame(animate);
@@ -155,19 +152,17 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      if (currentEffectConfigRef.current) {
-         // Re-initialize particles on resize if effect is active to ensure distribution
+      if (currentEffectConfigRef.current && !(currentEffectConfigRef.current as any).oneShot && !(currentEffectConfigRef.current as any).target) {
         initParticles(currentEffectConfigRef.current, canvas);
       }
     };
 
     if (activeBackgroundEffect) {
       const config = activeBackgroundEffect.config as BackgroundEffectConfig;
+      currentEffectConfigRef.current = config;
+
       if ((config as any).target === 'feedbackIndicator' || (config as any).oneShot) {
-          // This component currently focuses on full-screen continuous effects.
-          // Targeted or one-shot effects might need different handling.
-          // For now, if it's targeted or one-shot, don't initialize full background.
-          currentEffectConfigRef.current = null;
+          // If it's a one-shot or targeted, don't start continuous animation loop for this component's canvas
           particlesArrayRef.current = [];
           if (animationFrameIdRef.current) {
             cancelAnimationFrame(animationFrameIdRef.current);
@@ -175,22 +170,20 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
           }
           const ctx = canvas.getContext('2d');
           ctx?.clearRect(0,0,canvas.width, canvas.height);
-          return; // Don't proceed with full background setup
-      }
-
-      currentEffectConfigRef.current = config;
-      resizeCanvas(); // Set initial size and init particles
-      if (!animationFrameIdRef.current) {
-        animate();
+      } else {
+        // For continuous effects
+        resizeCanvas(); 
+        if (!animationFrameIdRef.current) {
+          animate();
+        }
       }
     } else {
       currentEffectConfigRef.current = null;
-      particlesArrayRef.current = []; // Clear particles
+      particlesArrayRef.current = []; 
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
       }
-      // Clear canvas when no effect is active
       const ctx = canvas.getContext('2d');
       ctx?.clearRect(0,0,canvas.width, canvas.height);
     }
@@ -206,8 +199,43 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
     };
   }, [activeBackgroundEffect, initParticles, animate]);
 
-  // Render nothing if no effect, or only render canvas if effect is active
-  if (!activeBackgroundEffect || ((activeBackgroundEffect.config as any).target) || ((activeBackgroundEffect.config as any).oneShot) ) {
+  // Effect for handling confetti trigger
+  useEffect(() => {
+    if (triggerConfetti && activeBackgroundEffect?.id === 'universal_confetti_correct') {
+      const config = activeBackgroundEffect.config as BackgroundEffectConfig;
+      
+      let originConfig = { x: 0.5, y: 0.6 }; // Default origin
+
+      // Try to find FeedbackIndicator and target confetti there
+      const feedbackIndicatorElement = document.querySelector('.animate-fadeIn[role="alert"]');
+      if (feedbackIndicatorElement) {
+        const rect = feedbackIndicatorElement.getBoundingClientRect();
+        // Calculate center of the element relative to viewport
+        const x = (rect.left + rect.right) / 2;
+        const y = (rect.top + rect.bottom) / 2;
+        // Convert to confetti's 0-1 scale
+        originConfig = {
+          x: x / window.innerWidth,
+          y: y / window.innerHeight,
+        };
+      }
+
+      confetti({
+        particleCount: config.count || 150, // Use config count or default
+        spread: 70,
+        origin: originConfig,
+        colors: Array.isArray(config.particleColor) ? config.particleColor : [config.particleColor || '#FFC700'],
+        scalar: (config.size || 3) / 2.5, // Adjust scalar if needed
+        zIndex: 10000, // Ensure confetti is on top
+      });
+      onConfettiComplete?.();
+    }
+  }, [triggerConfetti, activeBackgroundEffect, onConfettiComplete]);
+
+
+  if (!activeBackgroundEffect || (activeBackgroundEffect.config as any).oneShot || (activeBackgroundEffect.config as any).target === 'feedbackIndicator') {
+    // Don't render this component's canvas if the effect is one-shot (like confetti) or specifically targeted elsewhere.
+    // Confetti will be handled by its own useEffect.
     return null; 
   }
 
@@ -220,7 +248,7 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1, // Behind all other content
+        zIndex: -1, 
         pointerEvents: 'none',
       }}
     />

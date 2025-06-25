@@ -9,28 +9,25 @@ import { GemIcon } from './components/icons';
 const loadPlayerGemsFromStorage = (): number => {
   try {
     const savedItem = localStorage.getItem(PLAYER_GEMS_KEY);
-    return savedItem ? JSON.parse(savedItem) : 0;
+    // Default to 10000 if no value is found or parsing fails
+    return savedItem ? JSON.parse(savedItem) : 10000; 
   } catch (error) {
-    return 0;
+    console.warn(`Error parsing ${PLAYER_GEMS_KEY} from localStorage, defaulting to 10000:`, error);
+    return 10000;
   }
 };
 
 
 const AppContent: React.FC = () => {
   const { themeConfig, theme } = useTheme();
-  // Example: Local state for gems, ideally this would come from a global state/context updated by GameScreen
   const [playerGems, setPlayerGems] = useState<number>(() => loadPlayerGemsFromStorage());
 
   useEffect(() => {
-    // ThemeProvider now handles body style and CSS variables
-    // Listen for gem updates from GameScreen (e.g., via custom event or global state)
     const handleGemsUpdate = (event: CustomEvent<{ gems: number }>) => {
       setPlayerGems(event.detail.gems);
     };
     window.addEventListener('gemsUpdated', handleGemsUpdate as EventListener);
     
-    // Initial sync in case GameScreen loads/updates gems before this component's listener is active
-    // This is a simplified approach. A robust solution would use React Context or a state management library.
     setPlayerGems(loadPlayerGemsFromStorage());
 
 
@@ -40,7 +37,6 @@ const AppContent: React.FC = () => {
   }, [theme, themeConfig]);
 
   return (
-    // #app-shell is now the main responsive container
     <div
       id="app-shell"
       className={`
