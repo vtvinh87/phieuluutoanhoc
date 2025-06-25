@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -38,22 +37,33 @@
       font-style: normal;
     }
 
-
     body {
-      /* font-family will be set by JS via CSS var --font-family-theme */
-      /* background-image will be set by JS by ThemeProvider */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: background-image 0.5s ease-in-out; /* Smooth background transition */
-      font-family: var(--font-family-theme, 'Inter', 'Arial', sans-serif); /* Default to theme, then Inter, then Arial */
+      margin: 0; /* Remove default margin */
+      display: flex; /* Helps with centering #root content if needed */
+      flex-direction: column; /* Ensure body children stack vertically */
+      transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out; 
+      font-family: var(--font-family-theme, 'Inter', 'Arial', sans-serif); 
+      overflow-x: hidden; /* Prevent horizontal scroll */
     }
+
+    #root {
+      width: 100%;
+      min-height: 100vh; /* Ensure #root takes at least full viewport height */
+      display: flex;
+      flex-direction: column; /* Allow app-shell to grow */
+      align-items: center; /* Center app-shell horizontally */
+      justify-content: flex-start; /* Align app-shell to the top */
+      padding: 0; /* Let app-shell manage its padding */
+    }
+
     /* Custom scrollbar for better aesthetics */
     ::-webkit-scrollbar {
       width: 8px;
+      height: 8px;
     }
     ::-webkit-scrollbar-track {
       background: rgba(0,0,0,0.1);
@@ -66,18 +76,17 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #555; /* Fallback */
     }
-    .theme-neon ::-webkit-scrollbar-thumb {
-      background: var(--accent-color, #64ffda);
-    }
-    .theme-neon ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-text, #ccd6f6);
-    }
-     .theme-girly ::-webkit-scrollbar-thumb {
-      background: var(--accent-color, #ff85a2);
-    }
-    .theme-girly ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-text, #5d54a4);
-    }
+    
+    /* Theme-specific scrollbar styles */
+    .theme-neon ::-webkit-scrollbar-thumb { background: var(--accent, #64ffda); }
+    .theme-neon ::-webkit-scrollbar-thumb:hover { background: var(--primary-text, #ccd6f6); }
+    .theme-girly ::-webkit-scrollbar-thumb { background: var(--accent, #ff85a2); }
+    .theme-girly ::-webkit-scrollbar-thumb:hover { background: var(--primary-text, #5d54a4); }
+    .theme-frutiger_aero ::-webkit-scrollbar-thumb { background: var(--accent, #22d3ee); }
+    .theme-frutiger_aero ::-webkit-scrollbar-thumb:hover { background: var(--primary-text, #075985); }
+    .theme-default ::-webkit-scrollbar-thumb { background: var(--accent, #22d3ee); } /* Fallback to Frutiger for default */
+    .theme-default ::-webkit-scrollbar-thumb:hover { background: var(--primary-text, #075985); }
+
 
     .animate-fadeIn {
       animation: fadeIn 0.5s ease-in-out;
@@ -101,6 +110,15 @@
     .animate-pulse-glow {
       animation: pulse-glow 2s infinite ease-in-out;
     }
+    
+    @keyframes pulse-glow-soft {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 3px var(--accent-color)); }
+      50% { filter: brightness(1.1) drop-shadow(0 0 10px var(--accent-color)); }
+    }
+    .animate-pulse-glow-soft {
+        animation: pulse-glow-soft 2.5s infinite ease-in-out;
+    }
+
 
     @keyframes shake-error {
       0%, 100% { transform: translateX(0); }
@@ -156,7 +174,7 @@
       --primary-text: #000000;
       --secondary-bg: #f0f0f0;
       --secondary-text: #333333;
-      --accent-color: #007bff;
+      --accent-color: #007bff; /* Fallback, this will be --accent from themes.ts */
       --accent-text: #ffffff;
       --button-primary-bg: #007bff;
       --button-primary-text: #ffffff;
@@ -191,10 +209,26 @@
       --question-display-image-border: #007bff;
       --spinner-border-color: '#007bff'; /* Updated variable name, actual value from theme */
       --font-family-theme: 'Inter', 'Arial', sans-serif; /* Default theme font set by ThemeProvider */
+      --app-container-bg: 'bg-transparent'; /* Default to transparent if not set by theme */
+      --accent: '#007bff'; /* Fallback for --accent-color */
+
+      /* Add all theme variables from ThemeConfig here as fallbacks */
+       --button-secondary-bg: #6c757d;
+       --button-secondary-text: #ffffff;
+       --island-button-locked-bg: #6c757d;
+       --island-button-unlocked-bg: #ffc107;
+       --island-button-completed-bg: #28a745;
+       --island-button-locked-text: #ffffff;
+       --island-button-unlocked-text: #000000;
+       --island-button-completed-text: #ffffff;
+       --spinner-color: '#007bff';
+    }
+
+    .final-island-playing-card {
+        border-color: gold !important; /* Example: Gold border for final island card */
+        box-shadow: 0 0 15px 5px gold, 0 0 25px 10px rgba(255, 215, 0, 0.5) !important; /* Example: Gold glow */
     }
   </style>
-<!-- <link rel="stylesheet" href="/index.css"> Removed as index.css is not provided -->
-<link rel="stylesheet" href="/index.css">
 <script type="importmap">
 {
   "imports": {
@@ -210,10 +244,11 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root" class="flex-grow flex flex-col items-center justify-center"></div>
+  <div id="root"></div>
   <script type="module" src="/index.js"></script>
 <script type="module" src="/index.tsx"></script>
 </body>

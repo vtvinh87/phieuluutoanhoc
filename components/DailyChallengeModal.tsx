@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DailyChallenge, WeeklyChallenge, DailyChallengeType, WeeklyChallengeType } from '../types';
 import {
@@ -14,6 +13,7 @@ import {
   DAILY_CHALLENGE_REFRESH_NOTICE_TEXT,
   WEEKLY_CHALLENGE_TAB_TEXT,
   DAILY_CHALLENGE_TAB_TEXT,
+  WEEKLY_CHALLENGE_MODAL_TITLE, // Added import
   WEEKLY_CHALLENGE_REWARD_TEXT,
   WEEKLY_CHALLENGE_COMPLETED_TEXT,
   WEEKLY_CHALLENGE_CLAIM_REWARD_BUTTON_TEXT,
@@ -149,13 +149,13 @@ const DailyChallengeModal: React.FC<DailyChallengeModalProps> = ({
       aria-labelledby="challenge-modal-title"
     >
       <div
-        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 scale-100 animate-slideUp text-[var(--primary-text)] border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}
+        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg relative transform transition-all duration-300 scale-100 animate-slideUp text-[var(--primary-text)] border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''} flex flex-col max-h-[85vh]`}
         style={{ background: themeConfig.modalContentBg }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => { playSound(BUTTON_CLICK_SOUND_URL); onClose(); }}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors z-20"
           aria-label={CLOSE_BUTTON_TEXT}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-7 h-7 sm:w-8 sm:h-8">
@@ -163,18 +163,18 @@ const DailyChallengeModal: React.FC<DailyChallengeModalProps> = ({
           </svg>
         </button>
 
-        <header className="text-center mb-5">
+        <header className="text-center mb-5 flex-shrink-0">
            {activeTab === 'daily' ?
             <CalendarCheckIcon className="w-12 h-12 sm:w-14 sm:h-14 mx-auto text-[var(--accent-color)] mb-2" />
             : <TrophyIcon className="w-12 h-12 sm:w-14 sm:h-14 mx-auto text-[var(--accent-color)] mb-2" />
            }
           <h2 id="challenge-modal-title" className="text-xl md:text-2xl font-bold text-[var(--modal-header-text)]">
-            {activeTab === 'daily' ? DAILY_CHALLENGE_MODAL_TITLE : DAILY_CHALLENGE_MODAL_TITLE}
+            {activeTab === 'daily' ? DAILY_CHALLENGE_MODAL_TITLE : WEEKLY_CHALLENGE_MODAL_TITLE} {/* Title changed for weekly */}
           </h2>
         </header>
 
         {/* Tabs */}
-        <div className="flex border-b-2 border-[var(--border-color)] mb-4">
+        <div className="flex border-b-2 border-[var(--border-color)] mb-4 flex-shrink-0">
             <button
                 onClick={() => {playSound(BUTTON_CLICK_SOUND_URL, 0.3); setActiveTab('daily');}}
                 className={`flex-1 py-2.5 text-md font-semibold transition-colors
@@ -191,12 +191,14 @@ const DailyChallengeModal: React.FC<DailyChallengeModalProps> = ({
             </button>
         </div>
         
-        {activeTab === 'daily' && renderChallengeContent(dailyChallenge, false)}
-        {activeTab === 'weekly' && renderChallengeContent(weeklyChallenge, true)}
+        <div className="flex-grow overflow-y-auto pr-1"> {/* This div will scroll */}
+            {activeTab === 'daily' && renderChallengeContent(dailyChallenge, false)}
+            {activeTab === 'weekly' && renderChallengeContent(weeklyChallenge, true)}
+        </div>
 
         <button
           onClick={() => { playSound(BUTTON_CLICK_SOUND_URL); onClose(); }}
-          className="mt-6 w-full bg-[var(--button-secondary-bg)] hover:opacity-90 text-[var(--button-secondary-text)] font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-lg"
+          className="mt-6 w-full bg-[var(--button-secondary-bg)] hover:opacity-90 text-[var(--button-secondary-text)] font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-lg flex-shrink-0"
         >
           {CLOSE_BUTTON_TEXT}
         </button>

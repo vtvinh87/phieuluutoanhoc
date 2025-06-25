@@ -50,46 +50,46 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300 animate-fadeIn bg-[var(--modal-bg-backdrop)]`}
+      className={`fixed inset-0 flex items-center justify-center p-3 sm:p-4 z-50 transition-opacity duration-300 animate-fadeIn bg-[var(--modal-bg-backdrop)]`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="difficulty-modal-title"
     >
       <div
-        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl relative transform transition-all duration-300 scale-100 animate-slideUp
-                   text-[var(--primary-text)]`} // Changed max-w-lg to max-w-2xl
+        className={`p-5 sm:p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl relative transform transition-all duration-300 scale-100 animate-slideUp
+                   text-[var(--primary-text)]`}
         style={{ background: themeConfig.modalContentBg }} // Allow gradient
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => { playSoundLocal(BUTTON_CLICK_SOUND_URL); onClose(); }}
-          className="absolute top-4 right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors" // Adjusted position
+          className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors"
           aria-label="Đóng lựa chọn độ khó"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 sm:w-7 md:w-8">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         <h2
           id="difficulty-modal-title"
-          className="text-xl md:text-2xl font-bold text-[var(--modal-header-text)] mb-4 text-center leading-snug break-words" // Added break-words for safety
+          className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--modal-header-text)] mb-3 sm:mb-4 text-center leading-snug break-words"
         >
           {CHOOSE_ISLAND_DIFFICULTY_TEXT(islandName)}
         </h2>
-        <p className={`text-center text-[var(--primary-text)] opacity-80 mb-8 text-base md:text-md`}>
+        <p className={`text-center text-[var(--primary-text)] opacity-80 mb-5 sm:mb-6 md:mb-8 text-sm sm:text-base md:text-md`}>
             Đảo: <span className="font-semibold break-words">{islandName}</span>
         </p>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {(Object.values(IslandDifficulty) as IslandDifficulty[]).map((difficulty) => (
             <button
               key={difficulty}
               onClick={() => handleDifficultyClick(difficulty)}
               onMouseEnter={() => playSoundLocal(HOVER_SOUND_URL, 0.2)}
-              className={`w-full p-4 rounded-lg shadow-md transition-all duration-200 ease-in-out
-                          text-lg md:text-xl font-semibold focus:outline-none focus:ring-4 transform hover:scale-105 active:scale-95 active:brightness-90
+              className={`w-full p-3 sm:p-4 rounded-lg shadow-md transition-all duration-200 ease-in-out
+                          text-base sm:text-lg md:text-xl font-semibold focus:outline-none focus:ring-2 sm:focus:ring-4 transform hover:scale-105 active:scale-95 active:brightness-90
                           ${getDifficultyButtonColors(difficulty)}
                         `}
             >

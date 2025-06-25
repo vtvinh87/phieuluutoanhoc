@@ -12,99 +12,140 @@ interface ThemeOptionPanelProps {
   theme: Theme;
   config: ThemeConfig;
   onClick: () => void;
+  isSelected?: boolean; 
 }
 
 const ThemeOptionPanel: React.FC<ThemeOptionPanelProps> = ({ theme, config, onClick }) => {
   const [currentBackgroundImageUrl, setCurrentBackgroundImageUrl] = useState(config.backgroundUrl);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 768px)'); // Tailwind's md breakpoint
-
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
     const updateBackgroundImage = () => {
       let targetLocalPath: string | undefined;
       let targetRemotePath: string;
 
-      if (mediaQuery.matches) { // Desktop / Side-by-side layout
+      if (mediaQuery.matches) {
         targetLocalPath = config.localBackgroundUrlSideBySideLayout;
         targetRemotePath = config.backgroundUrlSideBySideLayout || config.backgroundUrl;
-      } else { // Mobile / Stacked layout
+      } else {
         targetLocalPath = config.localBackgroundUrlStackedLayout;
         targetRemotePath = config.backgroundUrlStackedLayout || config.backgroundUrl;
       }
       
       if (targetLocalPath) {
         const img = new Image();
-        img.onload = () => {
-          setCurrentBackgroundImageUrl(targetLocalPath!);
-        };
-        img.onerror = () => {
-          setCurrentBackgroundImageUrl(targetRemotePath);
-        };
+        img.onload = () => setCurrentBackgroundImageUrl(targetLocalPath!);
+        img.onerror = () => setCurrentBackgroundImageUrl(targetRemotePath);
         img.src = targetLocalPath;
       } else {
         setCurrentBackgroundImageUrl(targetRemotePath);
       }
     };
-
-    updateBackgroundImage(); // Set initial image
-
-    mediaQuery.addEventListener('change', updateBackgroundImage); // Update on resize
+    updateBackgroundImage();
+    mediaQuery.addEventListener('change', updateBackgroundImage);
     return () => mediaQuery.removeEventListener('change', updateBackgroundImage);
   }, [config]);
-
 
   const playHoverSound = () => {
     try {
       const audio = new Audio(HOVER_SOUND_URL);
-      audio.volume = 0.2;
+      audio.volume = 0.15;
       audio.play().catch(e => console.warn("Theme hover sound play error:", e));
-    } catch (error) {
-      console.warn("Theme hover sound init error:", error);
-    }
+    } catch (error) { console.warn("Theme hover sound init error:", error); }
   };
 
-  const titleColor = "text-white"; 
-  const titleShadow = "shadow-[0_2px_8px_rgba(0,0,0,0.7)]";
+  const isNeon = theme === Theme.NEON;
+  const isGirly = theme === Theme.GIRLY;
+
+  const panelWrapperBaseStyles = `
+    w-full h-1/2 md:w-1/2 md:h-full 
+    cursor-pointer relative overflow-hidden group 
+    transition-all duration-500 ease-in-out 
+    flex items-center justify-center 
+    shadow-2xl hover:shadow-3xl 
+    border-4 border-transparent hover:border-white/50
+  `;
+  const panelRoundedStyles = "rounded-none md:rounded-[36px]";
+
+  // Added a fallback dark background (e.g., bg-slate-800) to the panel wrapper.
+  // This helps if the image layer is transparent or fails to load.
+  const panelFallbackBackground = "bg-slate-800"; 
+
+  const innerCardBaseStyles = `
+    relative z-20 flex flex-col items-center justify-center text-center 
+    p-6 sm:p-8 
+    transition-all duration-300 ease-out group-hover:scale-105
+    rounded-2xl shadow-xl 
+  `;
+
+  let panelSpecificStyles = "";
+  let innerCardSpecificStyles = "";
+  let titleSpecificStyles = "text-2xl sm:text-3xl md:text-4xl font-bold transition-all duration-300 group-hover:tracking-wider";
+  let taglineSpecificStyles = "text-sm sm:text-md opacity-80 mt-2";
+
+  if (isNeon) {
+    panelSpecificStyles = `border-cyan-400/30 hover:border-cyan-300/70`;
+    innerCardSpecificStyles = `bg-black/70 backdrop-blur-xl border-2 border-cyan-500/70 shadow-cyan-500/40`;
+    titleSpecificStyles += ` text-cyan-300 filter drop-shadow(0_0_10px_var(--tw-shadow-color)) shadow-cyan-400`;
+    taglineSpecificStyles += ` text-purple-300`;
+  } else if (isGirly) {
+    panelSpecificStyles = `border-pink-300/30 hover:border-pink-200/70`;
+    innerCardSpecificStyles = `bg-white/60 backdrop-blur-xl border-2 border-pink-300/70 shadow-pink-500/30`;
+    titleSpecificStyles += ` text-pink-600`;
+    taglineSpecificStyles += ` text-purple-500`;
+  }
 
   return (
     <div
-      className={`
-        w-full h-1/2 
-        md:w-9/20 md:max-w-lg md:h-[95vh]
-        flex flex-col items-center justify-start pt-8 md:pt-16
-        p-0 cursor-pointer relative overflow-hidden group 
-        transition-all duration-300 ease-in-out 
-        md:rounded-3xl
-        transform hover:scale-101 active:scale-98 
-      `}
-      style={{
-        backgroundImage: `url('${currentBackgroundImageUrl}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      className={`${panelWrapperBaseStyles} ${panelRoundedStyles} ${panelSpecificStyles} ${panelFallbackBackground}`}
       onClick={onClick}
       onMouseEnter={playHoverSound}
       role="button"
       tabIndex={0}
       aria-label={`Chọn giao diện ${config.name}`}
     >
-      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black/60 via-black/40 to-black/20 group-hover:from-black/10 group-hover:via-black/5 group-hover:to-transparent backdrop-filter transition-all duration-300 ease-in-out"></div>
+      {/* 1. Dedicated Background Image Div */}
+      <div
+        className="absolute inset-0 w-full h-full -z-10 transition-transform duration-500 ease-in-out group-hover:scale-110"
+        style={{
+          backgroundImage: `url('${currentBackgroundImageUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+
+      {/* 2. General Darkening Overlay */}
+      <div className="absolute inset-0 w-full h-full bg-black/20 group-hover:bg-black/10 transition-opacity duration-300 z-0"></div>
       
-      <div className="relative z-10 flex flex-col items-center justify-center text-center p-2 max-w-[160px] sm:max-w-[200px] bg-black/40 backdrop-blur-lg rounded-xl shadow-xl border border-white/25">
+      {/* 3. Decorative elements */}
+      {isNeon && (
+        <>
+          <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-purple-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-500 blur-2xl z-10"></div>
+          <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-cyan-500/15 via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-500 blur-xl z-10"></div>
+        </>
+      )}
+      {isGirly && (
+         <>
+          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-pink-300/10 rounded-full filter blur-3xl opacity-0 group-hover:opacity-70 animate-pulse group-hover:animate-none transition-opacity duration-1000 z-10"></div>
+          <div className="absolute -bottom-1/4 -right-1/4 w-3/5 h-3/5 bg-purple-300/05 rounded-full filter blur-3xl opacity-0 group-hover:opacity-70 animate-pulse group-hover:animate-none transition-opacity duration-1000 z-10" style={{animationDelay: '0.5s'}}></div>
+        </>
+      )}
+
+      {/* 4. Inner Content Card (Title, Tagline) */}
+      <div className={`${innerCardBaseStyles} ${innerCardSpecificStyles}`}>
         <h2 
-          className={`text-base sm:text-lg font-bold ${titleColor} ${titleShadow} transition-transform duration-300 group-hover:scale-105`}
+          className={titleSpecificStyles}
           style={{ fontFamily: config.fontFamily }}
         >
           {config.name}
         </h2>
+        {isNeon && <p className={taglineSpecificStyles}>Năng Lượng & Bí Ẩn</p>}
+        {isGirly && <p className={taglineSpecificStyles}>Ngọt Ngào & Mộng Mơ</p>}
       </div>
-
-      <div className="absolute -top-2 -left-2 w-24 h-24 rounded-full bg-white/5 opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl group-hover:animate-pulse" style={{ animationDelay: '0.1s', animationDuration: '3s' }}></div>
-      <div className="absolute -bottom-2 -right-2 w-32 h-32 rounded-full bg-white/3 opacity-0 group-hover:opacity-50 transition-opacity duration-500 blur-2xl group-hover:animate-pulse" style={{ animationDelay: '0.2s', animationDuration: '3s' }}></div>
     </div>
   );
 };
-
 
 const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({ onThemeSelect }) => {
   const neonThemeConfig = THEME_CONFIGS[Theme.NEON];
@@ -115,13 +156,12 @@ const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({ onThemeSele
   };
   
   return (
-    <div className="flex flex-col md:flex-row w-screen h-screen items-center justify-center md:gap-4 animate-fadeIn overflow-hidden"> 
+    <div className="flex flex-col md:flex-row w-full h-full items-stretch justify-center md:gap-0 animate-fadeIn overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-0"> 
       <ThemeOptionPanel
         theme={Theme.NEON}
         config={neonThemeConfig}
         onClick={() => handleSelect(Theme.NEON)}
       />
-
       <ThemeOptionPanel
         theme={Theme.GIRLY}
         config={girlyThemeConfig}

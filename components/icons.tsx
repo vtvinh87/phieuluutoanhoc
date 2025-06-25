@@ -158,8 +158,14 @@ export const CalendarCheckIcon: React.FC<{ className?: string }> = ({ className 
   </svg>
 );
 
-export const GemIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+export const GemIcon: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-6 h-6", style }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
     <path fillRule="evenodd" d="M11.213 2.213a.75.75 0 0 1 1.574 0l1.456 3.948a.75.75 0 0 0 .708.513l4.137.319a.75.75 0 0 1 .43 1.285l-3.262 2.768a.75.75 0 0 0-.24 1.01l.933 3.996a.75.75 0 0 1-1.077.842l-3.646-2.181a.75.75 0 0 0-.896 0L8.03 20.91a.75.75 0 0 1-1.077-.842l.933-3.996a.75.75 0 0 0-.24-1.01L4.384 8.278a.75.75 0 0 1 .43-1.285l4.137-.319a.75.75 0 0 0 .708-.513l1.456-3.948ZM12 7.756l-.682-1.848a2.25 2.25 0 0 1-2.124-1.538L8.14 1.08a2.25 2.25 0 0 0-4.723 0l-1.255 3.29a2.25 2.25 0 0 1-2.124 1.538L-.002 6.092a2.25 2.25 0 0 0-1.289 3.854l2.566 2.176a2.25 2.25 0 0 1 .72 3.03l-1.011 4.328a2.25 2.25 0 0 0 3.232 2.525l3.111-1.86a2.25 2.25 0 0 1 2.688 0l3.111 1.86a2.25 2.25 0 0 0 3.232-2.525l-1.011-4.328a2.25 2.25 0 0 1 .72-3.03l2.566-2.176a2.25 2.25 0 0 0-1.29-3.854l-4.04-.184a2.25 2.25 0 0 1-2.124-1.538L12 2.112v5.644Z" clipRule="evenodd" />
+  </svg>
+);
+
+export const ShoppingBagIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
   </svg>
 );

@@ -1,9 +1,10 @@
 
-import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType } from './types';
+import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType, ThemeAccessory, AccessoryType } from './types';
 
 export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
 
 export const QUESTIONS_PER_ISLAND = 5;
+export const QUESTIONS_PER_FINAL_ISLAND = 4; // Số lượng câu hỏi/thử thách đặc biệt cho đảo cuối
 export const MAX_PLAYER_LIVES = 3;
 export const ISLANDS_PER_GRADE = 10;
 
@@ -26,7 +27,7 @@ export const GRADE_LEVEL_TEXT_MAP: Record<GradeLevel, string> = {
   [GradeLevel.GRADE_3]: "Lớp 3",
   [GradeLevel.GRADE_4]: "Lớp 4",
   [GradeLevel.GRADE_5]: "Lớp 5",
-  [GradeLevel.FINAL]: "Thử Thách Cuối Cùng",
+  [GradeLevel.FINAL]: "Thử Thách Tối Thượng",
 };
 
 export const ISLAND_DIFFICULTY_TEXT_MAP: Record<IslandDifficulty, string> = {
@@ -71,6 +72,8 @@ export const COLLECTIBLE_UNCOLLECTED_ICON = "❓";
 export const FRIENDLY_NPC_MODAL_TITLE_PREFIX = "Gặp gỡ";
 export const FRIENDLY_NPC_RIDDLE_PROMPT = "Thử tài giải đố:";
 export const FRIENDLY_NPC_ANSWER_BUTTON_TEXT = "Trả Lời Đố";
+export const SHOP_TITLE_TEXT = "Cửa Hàng Phụ Kiện";
+export const SHOP_BACK_BUTTON_TEXT = "Quay Lại Chọn Lớp";
 
 
 // UI Text Constants - Dynamic (Functions)
@@ -91,7 +94,7 @@ export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn đ�
 
 // Endless Mode
 export const ENDLESS_MODE_LIVES = 5;
-export const ENDLESS_QUESTIONS_BATCH_SIZE = 10;
+export const ENDLESS_QUESTIONS_BATCH_SIZE = 10; // Number of questions per batch
 export const ENDLESS_MODE_DIFFICULTY: IslandDifficulty = IslandDifficulty.MEDIUM;
 export const ENDLESS_MODE_GRADE_COMPLETE_MESSAGE = (grade: string) => `Chúc mừng! Bạn đã mở khóa Chế độ Vô tận cho ${grade}!`;
 export const ENDLESS_MODE_SUMMARY_TITLE = "Kết Quả Chế Độ Vô Tận";
@@ -101,11 +104,23 @@ export const PLAY_AGAIN_ENDLESS_TEXT = "Chơi Lại Vô Tận";
 export const ENDLESS_MODE_BUTTON_TEXT = "Thử Thách Vô Tận";
 export const ENDLESS_MODE_UNLOCKED_MESSAGE = (gradeText: string): string => `Chế độ Vô Tận cho ${gradeText} đã mở! Hãy thử sức!`;
 export const START_ENDLESS_MODE_TEXT = "Bắt Đầu Chế Độ Vô Tận";
+export const ENDLESS_MODE_LOADING_TEXT = "Đang tải câu hỏi Vô Tận...";
+export const ENDLESS_MODE_ERROR_TEXT = "Không thể tải câu hỏi cho Chế Độ Vô Tận.";
+export const ENDLESS_MODE_TITLE_TEXT = (gradeText: string): string => `Chế Độ Vô Tận - ${gradeText}`;
+
 
 // Final Island
-export const FINAL_ISLAND_UNLOCK_MESSAGE = "Chúc mừng! Bạn đã mở khóa Đảo Kho Báu Cuối Cùng!";
-export const FINAL_ISLAND_ACCESS_BUTTON_TEXT = "Đến Đảo Kho Báu";
-export const FINAL_ISLAND_GRADE_TITLE = "Đảo Kho Báu Cuối Cùng";
+export const FINAL_ISLAND_UNLOCK_MESSAGE = "Chúc mừng! Bạn đã mở khóa Đảo Thử Thách Tối Thượng!";
+export const FINAL_ISLAND_ACCESS_BUTTON_TEXT = "Đến Thử Thách Tối Thượng";
+export const FINAL_ISLAND_GRADE_TITLE = "Mê Cung Trí Tuệ Cổ Đại";
+export const FINAL_ISLAND_INTRO_MESSAGE = "Chào mừng Nhà Vô Địch! Cánh cổng Mê Cung Trí Tuệ đã mở. Hãy giải mã các bí ẩn cổ xưa để khẳng định vị thế huyền thoại!";
+export const FINAL_ISLAND_CONGRATS_MESSAGE = "Không Thể Tin Nổi! Bạn đã chinh phục Mê Cung Trí Tuệ và trở thành Huyền Thoại Đảo Kho Báu!";
+export const FINAL_ISLAND_EPIC_DIFFICULTY_TEXT = "Thử Thách Sử Thi";
+export const FINAL_ISLAND_INTRO_DURATION_MS = 3500; 
+export const FINAL_ISLAND_PLAYING_STYLE_CLASS = "final-island-playing-card";
+export const FINAL_ISLAND_LOADING_FIRST_CHALLENGE_TEXT = "Triệu hồi Thử Thách Đầu Tiên...";
+export const FINAL_ISLAND_LOADING_NEXT_CHALLENGE_TEXT = "Thử Thách Tiếp Theo đang Hiện Hình...";
+
 
 // --- Daily Challenge System ---
 export const DAILY_CHALLENGE_MODAL_TITLE = "Thử Thách Hàng Ngày";
@@ -123,7 +138,7 @@ export const DAILY_CHALLENGE_TAB_TEXT = "Hàng Ngày";
 
 
 // --- Weekly Challenge System ---
-export const WEEKLY_CHALLENGE_MODAL_TITLE = "Thử Thách Hàng Tuần";
+export const WEEKLY_CHALLENGE_MODAL_TITLE = "Thử Thách Tuần"; 
 export const WEEKLY_CHALLENGE_TAB_TEXT = "Hàng Tuần";
 export const WEEKLY_CHALLENGE_REWARD_TEXT = (gems: number) => `Phần thưởng lớn: ${gems} Đá Quý!`;
 export const WEEKLY_CHALLENGE_COMPLETED_TEXT = "Thử thách tuần hoàn thành!";
@@ -160,6 +175,10 @@ export const COMPLETED_DAILY_CHALLENGES_LOG_KEY = `${LOCAL_STORAGE_PREFIX}comple
 export const ACTIVE_WEEKLY_CHALLENGE_KEY = `${LOCAL_STORAGE_PREFIX}activeWeeklyChallenge`;
 export const COMPLETED_WEEKLY_CHALLENGES_LOG_KEY = `${LOCAL_STORAGE_PREFIX}completedWeeklyChallengesLog`;
 
+// Shop & Accessories Storage Keys
+export const PLAYER_OWNED_ACCESSORIES_KEY = `${LOCAL_STORAGE_PREFIX}playerOwnedAccessories`;
+export const PLAYER_ACTIVE_ACCESSORIES_KEY = `${LOCAL_STORAGE_PREFIX}playerActiveAccessories`;
+
 
 // Default Theme
 export const DEFAULT_THEME: Theme = Theme.FRUTIGER_AERO;
@@ -191,15 +210,16 @@ export const COLLECTIBLE_SPAWN_SOUND_URL = "https://cdn.pixabay.com/download/aud
 export const COLLECTIBLE_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/11/audio_10037a8927.mp3?filename=collect-points-190037.mp3";
 export const ENDLESS_MODE_START_SOUND_URL = "https://cdn.pixabay.com/download/audio/2024/04/10/audio_606a246872.mp3?filename=energy-1-396956.mp3";
 export const FINAL_ISLAND_UNLOCK_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/10/20/audio_1650b86a34.mp3?filename=secret-reveal-96570.mp3";
+export const FINAL_ISLAND_AMBIENT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/02/01/audio_eb31908696.mp3?filename=mystery-logo-104652.mp3";
 
 // Challenge Sounds
 export const DAILY_CHALLENGE_NEW_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c0e869766e.mp3?filename=notification-positive-bleep-82880.mp3";
 export const DAILY_CHALLENGE_PROGRESS_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/09/29/audio_a4b3f2fe44.mp3?filename=select-sound-121244.mp3";
 export const DAILY_CHALLENGE_COMPLETE_SOUND_URL = ACHIEVEMENT_UNLOCKED_SOUND_URL;
 export const GEM_COLLECT_SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/07/audio_c35a82894a.mp3?filename=bell-notification-1-93212.mp3";
-export const WEEKLY_CHALLENGE_NEW_SOUND_URL = DAILY_CHALLENGE_NEW_SOUND_URL; // Can be same or different
-export const WEEKLY_CHALLENGE_PROGRESS_SOUND_URL = DAILY_CHALLENGE_PROGRESS_SOUND_URL; // Placeholder
-export const WEEKLY_CHALLENGE_COMPLETE_SOUND_URL = VICTORY_FANFARE_SOUND_URL; // More grand for weekly
+export const WEEKLY_CHALLENGE_NEW_SOUND_URL = DAILY_CHALLENGE_NEW_SOUND_URL; 
+export const WEEKLY_CHALLENGE_PROGRESS_SOUND_URL = DAILY_CHALLENGE_PROGRESS_SOUND_URL; 
+export const WEEKLY_CHALLENGE_COMPLETE_SOUND_URL = VICTORY_FANFARE_SOUND_URL; 
 
 
 // Icon URLs & Emojis
@@ -327,7 +347,7 @@ export const WEEKLY_CHALLENGE_DEFINITIONS: WeeklyChallengeDefinition[] = [
     descriptionTemplate: (target) => `Trả lời đúng tổng cộng ${target} câu hỏi trong tuần.`,
     generateTargetValue: () => Math.floor(Math.random() * 26) + 50, // 50 to 75 correct answers
     rewardGems: 120,
-    actionTypeToTrack: CHALLENGE_ACTION_CORRECT_ANSWER, // Track individual correct answers
+    actionTypeToTrack: CHALLENGE_ACTION_CORRECT_ANSWER, 
   }
 ];
 
@@ -411,12 +431,12 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
 
   {
     islandId: FINAL_TREASURE_ISLAND_ID,
-    islandNumber: 1,
-    name: "Đảo Kho Báu Cuối Cùng",
-    description: "Thử thách cuối cùng với những câu đố hóc búa nhất!",
-    topics: ["Toán tổng hợp nâng cao", "Logic", "Mẹo toán"],
+    islandNumber: 1, // Only one island in this "grade"
+    name: "Mê Cung Trí Tuệ Cổ Đại",
+    description: "Nơi huyền thoại được thử thách, kho báu trí tuệ đang chờ đợi.",
+    topics: ["Câu đố logic cổ đại", "Mật mã kho báu", "Thử thách tư duy trừu tượng", "Suy luận không gian (mô tả bằng lời)", "Câu đố mẹo toán học", "Giải mã ký hiệu cổ"],
     targetGradeLevel: GradeLevel.FINAL,
-    mapIcon: "💎"
+    mapIcon: "👑💎" 
   }
 ];
 
@@ -462,4 +482,38 @@ export const COLLECTIBLE_ITEMS: CollectibleItem[] = [
   { id: "gem_blue", name: "Viên Đá Saphia", icon: "💎", description: "Viên đá quý màu xanh biển sâu, tỏa ra ánh sáng huyền bí." },
   { id: "compass_magic", name: "La Bàn Kỳ Diệu", icon: "🧭", description: "Chiếc la bàn không chỉ hướng, mà còn rung nhẹ khi ở gần điều bí ẩn." },
   { id: "feather_phoenix", name: "Lông Vũ Phượng Hoàng", icon: "🪶", description: "Một chiếc lông vũ ấm áp, được cho là rơi từ một con phượng hoàng lửa." },
+];
+
+// Shop Accessories
+export const SHOP_ACCESSORIES: ThemeAccessory[] = [
+  {
+    id: "neon_star_effect",
+    name: "Hiệu Ứng Sao Neon",
+    description: "Thêm các ngôi sao neon lấp lánh bay nhẹ nhàng trên nền giao diện Chiến Binh Neon.",
+    iconUrl: "https://i.ibb.co/yWw0kF6/icon-neon-star-effect.png", // Placeholder icon
+    price: 150,
+    appliesToTheme: [Theme.NEON],
+    type: AccessoryType.BACKGROUND_EFFECT,
+    config: { particleShape: 'star', particleColor: '#00f5d4', count: 30 }
+  },
+  {
+    id: "girly_sparkle_cursor",
+    name: "Con Trỏ Lấp Lánh",
+    description: "Thêm một vệt sáng lấp lánh màu hồng theo sau con trỏ chuột của bạn.",
+    iconUrl: "https://i.ibb.co/PN20rW8/icon-girly-sparkle-cursor.png", // Placeholder icon
+    price: 100,
+    appliesToTheme: [Theme.GIRLY],
+    type: AccessoryType.CURSOR_TRAIL,
+    config: { trailColor: '#f472b6', trailLength: 15 }
+  },
+  {
+    id: "aero_bubble_border",
+    name: "Viền Bong Bóng Aero",
+    description: "Thêm hiệu ứng viền bong bóng tinh tế cho các nút và thẻ trong giao diện Frutiger Aero.",
+    iconUrl: "https://i.ibb.co/QjT9P1x/icon-aero-bubble-border.png", // Placeholder icon
+    price: 200,
+    appliesToTheme: [Theme.FRUTIGER_AERO, Theme.DEFAULT],
+    type: AccessoryType.UI_ACCENT,
+    config: { borderWidth: '3px', borderColor: 'rgba(100, 180, 255, 0.5)' }
+  }
 ];

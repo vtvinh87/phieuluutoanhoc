@@ -220,8 +220,10 @@ export type GameState =
   'TreasureChestOpening' |
   'MessageInBottleReading' |
   'FriendlyNPCInteraction' |
+  'EndlessLoading' | 
   'EndlessPlaying' |
-  'EndlessSummary';
+  'EndlessSummary' |
+  'Shop'; // Added Shop state
 
 export type ActiveMessageBottlesState = Record<string, { grade: GradeLevel; messageId: string } | undefined>;
 
@@ -369,3 +371,27 @@ export const CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED = "SHOOTING_STAR_COLLECTED
 export const CHALLENGE_ACTION_NPC_INTERACTED = "NPC_INTERACTED";
 export const CHALLENGE_ACTION_DAILY_CHALLENGE_REWARD_CLAIMED = "DAILY_CHALLENGE_REWARD_CLAIMED"; // For weekly challenge tracking
 export const CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME = "ACHIEVEMENT_UNLOCKED_INGAME"; // For weekly challenge tracking
+
+
+// --- Shop & Accessories Types ---
+export enum AccessoryType {
+  BACKGROUND_EFFECT = "BACKGROUND_EFFECT", // e.g., animated stars, falling leaves
+  CURSOR_TRAIL = "CURSOR_TRAIL",         // e.g., sparkling trail
+  UI_ACCENT = "UI_ACCENT",               // e.g., special borders for buttons/modals
+  SOUND_PACK_VARIATION = "SOUND_PACK_VARIATION" // e.g., different click sounds
+}
+
+export interface ThemeAccessory {
+  id: string;
+  name: string;
+  description: string;
+  iconUrl: string; // URL or path to an icon image for the shop
+  price: number; // Cost in PlayerGems
+  appliesToTheme: Theme[] | 'all'; // Which themes this accessory can be used with, or 'all'
+  type: AccessoryType;
+  config?: Record<string, any>; // Specific configuration for the accessory, e.g., { particleCount: 50, particleColor: '#FFD700' }
+}
+
+export type PlayerOwnedAccessoriesState = Record<string, boolean>; // Key is accessory ID, value is true if owned
+export type PlayerActiveAccessoriesState = Partial<Record<Theme, Record<AccessoryType, string | null>>>;
+// Example: { 'neon': { 'BACKGROUND_EFFECT': 'neon_stars_effect_id', 'CURSOR_TRAIL': null } }

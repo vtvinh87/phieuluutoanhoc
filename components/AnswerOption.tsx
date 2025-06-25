@@ -65,8 +65,8 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={`
-        w-full p-4 md:p-5 rounded-lg shadow-md transition-all duration-200 ease-in-out
-        text-lg md:text-xl font-semibold focus:outline-none focus:ring-4 
+        w-full p-3 sm:p-4 md:p-4 rounded-lg shadow-md transition-all duration-200 ease-in-out
+        text-sm sm:text-base md:text-lg font-semibold focus:outline-none focus:ring-2 sm:focus:ring-4 
         ${bgColorClass} ${textColorClass} ${ringColorClass} ${currentOpacity}
         ${disabled && !userAttemptShown ? 'opacity-60 cursor-not-allowed' : ''}
         ${!disabled ? 'transform hover:scale-105 active:scale-95 active:brightness-90' : ''}

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useCallback, ReactNode, useContext } from 'react';
 import { Theme } from '../types';
 import { THEME_CONFIGS, ThemeConfig } from '../themes';
@@ -70,72 +69,35 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       setBodyBackground(targetRemotePath);
     }
+    
+    document.body.className = `theme-${theme}`; // Apply theme class for specific styles like scrollbar
 
-    // Update font family
+    // Set all theme configuration properties as CSS variables on :root
+    for (const key in config) {
+      if (Object.prototype.hasOwnProperty.call(config, key)) {
+        const value = (config as any)[key];
+        if (typeof value === 'string' && !key.toLowerCase().includes('url')) { // Exclude URLs from becoming CSS vars
+          // Convert camelCase to kebab-case for CSS custom property names
+          // e.g., primaryBg -> --primary-bg, accentColor -> --accent-color
+          const cssVarName = `--${key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`)}`;
+          document.documentElement.style.setProperty(cssVarName, value);
+        }
+      }
+    }
+     // Ensure --font-family-theme is specifically set for body from the config
     if (config.fontFamily) {
-      document.documentElement.style.setProperty('--font-family-theme', config.fontFamily);
-      document.body.style.fontFamily = 'var(--font-family-theme)';
+        document.documentElement.style.setProperty('--font-family-theme', config.fontFamily);
+        document.body.style.fontFamily = `var(--font-family-theme, 'Arial', sans-serif)`;
     } else {
-      document.documentElement.style.removeProperty('--font-family-theme');
-      document.body.style.fontFamily = "'Arial', sans-serif";
+        document.documentElement.style.removeProperty('--font-family-theme');
+        document.body.style.fontFamily = `'Arial', sans-serif`; // Fallback
     }
 
-    // Set CSS Variables on :root
-    document.documentElement.style.setProperty('--primary-bg', config.primaryBg);
-    document.documentElement.style.setProperty('--primary-text', config.primaryText);
-    document.documentElement.style.setProperty('--secondary-bg', config.secondaryBg);
-    document.documentElement.style.setProperty('--secondary-text', config.secondaryText);
-    document.documentElement.style.setProperty('--accent-color', config.accent);
-    document.documentElement.style.setProperty('--accent-text', config.accentText);
-
-    document.documentElement.style.setProperty('--button-primary-bg', config.buttonPrimaryBg);
-    document.documentElement.style.setProperty('--button-primary-text', config.buttonPrimaryText);
-    document.documentElement.style.setProperty('--button-secondary-bg', config.buttonSecondaryBg);
-    document.documentElement.style.setProperty('--button-secondary-text', config.buttonSecondaryText);
-    document.documentElement.style.setProperty('--button-answer-option-bg', config.buttonAnswerOptionBg);
-    document.documentElement.style.setProperty('--button-answer-option-text', config.buttonAnswerOptionText);
-    document.documentElement.style.setProperty('--button-answer-option-ring', config.buttonAnswerOptionRing);
-    document.documentElement.style.setProperty('--button-answer-option-selected-bg', config.buttonAnswerOptionSelectedBg);
-    document.documentElement.style.setProperty('--button-answer-option-selected-text', config.buttonAnswerOptionSelectedText);
-    document.documentElement.style.setProperty('--button-answer-option-selected-ring', config.buttonAnswerOptionSelectedRing);
-
-    document.documentElement.style.setProperty('--correct-bg', config.correctBg);
-    document.documentElement.style.setProperty('--correct-text', config.correctText);
-    document.documentElement.style.setProperty('--correct-ring', config.correctRing);
-    document.documentElement.style.setProperty('--incorrect-bg', config.incorrectBg);
-    document.documentElement.style.setProperty('--incorrect-text', config.incorrectText);
-    document.documentElement.style.setProperty('--incorrect-ring', config.incorrectRing);
-
-    document.documentElement.style.setProperty('--modal-bg-backdrop', config.modalBgBackdrop);
-    document.documentElement.style.setProperty('--modal-content-bg', config.modalContentBg);
-    document.documentElement.style.setProperty('--modal-header-text', config.modalHeaderText);
-
-    document.documentElement.style.setProperty('--border-color', config.borderColor);
-    document.documentElement.style.setProperty('--ring-color-focus', config.ringColorFocus);
-
-    document.documentElement.style.setProperty('--title-text-gradient-from', config.titleTextGradientFrom);
-    document.documentElement.style.setProperty('--title-text-gradient-to', config.titleTextGradientTo);
-
-    document.documentElement.style.setProperty('--island-locked-bg', config.islandButtonLockedBg);
-    document.documentElement.style.setProperty('--island-unlocked-bg', config.islandButtonUnlockedBg);
-    document.documentElement.style.setProperty('--island-completed-bg', config.islandButtonCompletedBg);
-    document.documentElement.style.setProperty('--island-locked-text', config.islandButtonLockedText);
-    document.documentElement.style.setProperty('--island-unlocked-text', config.islandButtonUnlockedText);
-    document.documentElement.style.setProperty('--island-completed-text', config.islandButtonCompletedText);
-    document.documentElement.style.setProperty('--island-button-ring-color', config.islandButtonRingColor);
-
-    document.documentElement.style.setProperty('--question-display-bg', config.questionDisplayBg);
-    document.documentElement.style.setProperty('--question-display-text', config.questionDisplayText);
-    document.documentElement.style.setProperty('--question-display-image-border', config.questionDisplayImageBorder);
-    document.documentElement.style.setProperty('--spinner-border-color', config.spinnerColor);
-
-    document.body.className = `theme-${theme}`;
 
   }, []);
 
   useEffect(() => {
     applyThemeToDocument(currentTheme);
-    // Add listener for media query changes to re-apply background if layout preference changes
     const mediaQuery = window.matchMedia('(min-width: 768px)');
     const handleMediaQueryChange = () => applyThemeToDocument(currentTheme);
     mediaQuery.addEventListener('change', handleMediaQueryChange);
@@ -145,15 +107,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
   }, [currentTheme, applyThemeToDocument]);
 
-  const setTheme = (theme: Theme) => {
-    if (THEME_CONFIGS[theme]) {
-      localStorage.setItem(SELECTED_THEME_KEY, JSON.stringify(theme)); // Use JSON.stringify
-      setCurrentTheme(theme);
+  const setTheme = (themeToSet: Theme) => {
+    if (THEME_CONFIGS[themeToSet]) {
+      localStorage.setItem(SELECTED_THEME_KEY, JSON.stringify(themeToSet));
+      setCurrentTheme(themeToSet);
     } else {
-      console.warn(`Attempted to set invalid theme: ${theme}`);
+      console.warn(`Attempted to set invalid theme: ${themeToSet}`);
     }
   };
-
+  
   const themeConfig = THEME_CONFIGS[currentTheme];
 
   return (
