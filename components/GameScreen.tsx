@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     Question, IslandConfig, IslandStatus, IslandProgressState, GradeLevel, IslandStarRatingsState,
@@ -17,19 +16,17 @@ import {
     GAME_TITLE_TEXT, MAX_PLAYER_LIVES, API_KEY_ERROR_MESSAGE, QUESTION_GENERATION_ERROR_MESSAGE,
     HINT_LOADING_MESSAGE, HINT_UNAVAILABLE_MESSAGE, HINT_GENERATION_ERROR_MESSAGE, ISLAND_CONFIGS,
     QUESTIONS_PER_ISLAND, QUESTIONS_PER_FINAL_ISLAND, ISLANDS_PER_GRADE, GRADE_LEVEL_TEXT_MAP, ISLAND_DIFFICULTY_TEXT_MAP, CHOOSE_GRADE_TEXT,
-    CHOOSE_ISLAND_TEXT, ISLAND_TEXT, QUESTION_TEXT, SCORE_TEXT, BACK_TO_MAP_TEXT, ISLAND_COMPLETE_TEXT,
-    GRADE_COMPLETE_TEXT, LOCKED_ISLAND_TEXT, ISLAND_PREPARING_MESSAGE, STARTING_ISLAND_TEXT, PLAY_AGAIN_TEXT,
-    CHOOSE_ANOTHER_GRADE_TEXT, PLAY_THIS_GRADE_AGAIN_TEXT, NO_ISLANDS_FOR_GRADE_TEXT, START_ADVENTURE_TEXT,
-    TRAVELLING_TO_ISLAND_TEXT, UPDATING_MAP_TEXT, RETURN_TO_GRADE_SELECTION_TEXT, NEXT_ISLAND_BUTTON_TEXT,
-    REWARD_TEXT_EASY_PERFECT, REWARD_TEXT_MEDIUM_PERFECT, REWARD_TEXT_HARD_PERFECT, ISLAND_STAR_RATINGS_KEY_PREFIX,
-    LOCAL_STORAGE_PREFIX, LAST_SELECTED_GRADE_KEY, ISLAND_PROGRESS_KEY_PREFIX, OVERALL_SCORE_KEY_PREFIX,
+    CHOOSE_ISLAND_TEXT, LOCKED_ISLAND_TEXT, ISLAND_PREPARING_MESSAGE, STARTING_ISLAND_TEXT,
+    CHOOSE_ANOTHER_GRADE_TEXT, NO_ISLANDS_FOR_GRADE_TEXT, START_ADVENTURE_TEXT,
+    TRAVELLING_TO_ISLAND_TEXT, UPDATING_MAP_TEXT, RETURN_TO_GRADE_SELECTION_TEXT, 
+    REWARD_TEXT_EASY_PERFECT, REWARD_TEXT_MEDIUM_PERFECT, REWARD_TEXT_HARD_PERFECT,
     HOVER_SOUND_URL, GRADE_SELECT_SOUND_URL, ISLAND_SELECT_SOUND_URL, ANSWER_SELECT_SOUND_URL,
     CHECK_ANSWER_SOUND_URL, CORRECT_ANSWER_SOUND_URL, INCORRECT_ANSWER_SOUND_URL, VICTORY_FANFARE_SOUND_URL,
     BUTTON_CLICK_SOUND_URL, SELECTED_THEME_KEY, DEFAULT_THEME, ACHIEVED_ACHIEVEMENTS_KEY,
     ACHIEVEMENT_UNLOCKED_TOAST_TITLE, VIEW_ACHIEVEMENTS_BUTTON_TEXT, ACHIEVEMENT_UNLOCKED_SOUND_URL,
     ALL_GRADES_STAR_RATINGS_KEY, ACTIVE_TREASURE_CHESTS_KEY, TREASURE_CHEST_SPAWN_CHANCE, TREASURE_OPEN_SOUND_URL,
-    TREASURE_SPARKLE_SOUND_URL, TREASURE_CHEST_ICON_EMOJI, ACHIEVEMENT_BUTTON_ICON_URL,
-    MESSAGE_IN_BOTTLE_SPAWN_CHANCE, MESSAGE_IN_BOTTLE_ICON_EMOJI, MESSAGES_IN_BOTTLE, ACTIVE_MESSAGE_BOTTLE_KEY,
+    TREASURE_SPARKLE_SOUND_URL, ACHIEVEMENT_BUTTON_ICON_URL,
+    MESSAGE_IN_BOTTLE_SPAWN_CHANCE, MESSAGES_IN_BOTTLE, ACTIVE_MESSAGE_BOTTLE_KEY,
     BOTTLE_SPAWN_SOUND_URL, BOTTLE_OPEN_SOUND_URL, SHOOTING_STAR_SPAWN_INTERVAL_MIN_MS,
     SHOOTING_STAR_SPAWN_INTERVAL_MAX_MS, SHOOTING_STAR_ANIMATION_DURATION_MS, SHOOTING_STAR_REWARD_POINTS_MIN,
     SHOOTING_STAR_REWARD_POINTS_MAX, SHOOTING_STAR_CLICK_SUCCESS_MESSAGE, SHOOTING_STAR_APPEAR_SOUND_URL,
@@ -39,11 +36,10 @@ import {
     COLLECTIBLE_SPAWN_CHANCE, ACTIVE_COLLECTIBLE_KEY, COLLECTED_ITEMS_KEY, COLLECTIBLE_SPAWN_SOUND_URL,
     COLLECTIBLE_COLLECT_SOUND_URL, COLLECTIBLE_COLLECTION_TOAST_MESSAGE, TREASURE_CHEST_POINTS_MESSAGE,
     ENDLESS_MODE_LIVES, ENDLESS_QUESTIONS_BATCH_SIZE, ENDLESS_MODE_DIFFICULTY, ENDLESS_MODE_GRADE_COMPLETE_MESSAGE,
-    ENDLESS_MODE_SUMMARY_TITLE, ENDLESS_MODE_SCORE_TEXT, ENDLESS_MODE_QUESTIONS_ANSWERED_TEXT, PLAY_AGAIN_ENDLESS_TEXT,
-    ENDLESS_MODE_BUTTON_TEXT, ENDLESS_MODE_UNLOCKED_MESSAGE, START_ENDLESS_MODE_TEXT, FINAL_ISLAND_UNLOCK_MESSAGE,
+    ENDLESS_MODE_UNLOCKED_MESSAGE, FINAL_ISLAND_UNLOCK_MESSAGE,
     FINAL_ISLAND_ACCESS_BUTTON_TEXT, FINAL_ISLAND_GRADE_TITLE, ENDLESS_UNLOCKED_KEY_PREFIX, FINAL_ISLAND_UNLOCKED_KEY,
-    ENDLESS_MODE_START_SOUND_URL, FINAL_ISLAND_UNLOCK_SOUND_URL, FINAL_TREASURE_ISLAND_ID,
-    FINAL_ISLAND_INTRO_MESSAGE, FINAL_ISLAND_CONGRATS_MESSAGE, FINAL_ISLAND_EPIC_DIFFICULTY_TEXT, FINAL_ISLAND_AMBIENT_SOUND_URL,
+    ENDLESS_MODE_START_SOUND_URL, FINAL_ISLAND_UNLOCK_SOUND_URL, FINAL_ISLAND_AMBIENT_SOUND_URL, FINAL_TREASURE_ISLAND_ID,
+    FINAL_ISLAND_INTRO_MESSAGE, FINAL_ISLAND_CONGRATS_MESSAGE, 
     FINAL_ISLAND_INTRO_DURATION_MS, FINAL_ISLAND_PLAYING_STYLE_CLASS, FINAL_ISLAND_LOADING_FIRST_CHALLENGE_TEXT, FINAL_ISLAND_LOADING_NEXT_CHALLENGE_TEXT,
     DAILY_CHALLENGE_DEFINITIONS, ACTIVE_DAILY_CHALLENGE_KEY, PLAYER_GEMS_KEY, DAILY_CHALLENGE_BUTTON_TEXT,
     DAILY_CHALLENGE_NEW_AVAILABLE_TEXT, PLAYER_GEMS_TEXT, DAILY_CHALLENGE_NEW_SOUND_URL,
@@ -56,38 +52,45 @@ import {
     SHOP_ACCESSORIES, PLAYER_OWNED_ACCESSORIES_KEY, SHOP_TITLE_TEXT, SHOP_BACK_BUTTON_TEXT, PLAYER_ACTIVE_ACCESSORIES_KEY,
     MANAGE_ACCESSORIES_BUTTON_TEXT
 } from '../constants';
-import { getMathHint, generateMathQuestionsForIslandSet, generateSingleFinalIslandChallenge, generateEndlessMathQuestions, delay as apiDelay } from '../services/geminiService';
-import QuestionDisplay from './QuestionDisplay';
-import AnswerOption from './AnswerOption';
-import FeedbackIndicator from './FeedbackIndicator';
+import { getMathHint, generateMathQuestionsForIslandSet, generateEndlessMathQuestions, delay as apiDelay } from '../services/geminiService';
+import { 
+    loadLastSelectedGrade, saveLastSelectedGrade, loadIslandProgressFromStorage, saveIslandProgressToStorage, loadOverallScoreFromStorage,
+    saveOverallScoreToStorage, loadIslandStarRatingsFromStorage, saveIslandStarRatingsToStorage, loadAllGradesStarRatingsFromStorage,
+    saveAllGradesStarRatingsToStorage, loadAchievedAchievementsFromStorage, saveAchievedAchievementsToStorage, loadActiveTreasureChestsFromStorage,
+    saveActiveTreasureChestsToStorage, loadActiveMessageBottlesFromStorage, saveActiveMessageBottlesToStorage, loadActiveNPCFromStorage,
+    saveActiveNPCToStorage, loadActiveCollectibleFromStorage, saveActiveCollectibleToStorage, loadCollectedItemsFromStorage,
+    saveCollectedItemsToStorage, loadIsEndlessUnlockedForGrade, saveIsEndlessUnlockedForGrade, loadIsFinalIslandUnlocked,
+    saveIsFinalIslandUnlocked, loadActiveDailyChallenge, saveActiveDailyChallenge, loadPlayerGems, savePlayerGems,
+    loadCompletedDailyChallengesLog, saveCompletedDailyChallengesLog, loadActiveWeeklyChallenge, saveActiveWeeklyChallenge,
+    loadCompletedWeeklyChallengesLog, saveCompletedWeeklyChallengesLog, loadPlayerOwnedAccessoriesFromStorage, savePlayerOwnedAccessoriesToStorage,
+    loadPlayerActiveAccessoriesFromStorage, savePlayerActiveAccessoriesToStorage, loadTheme
+} from '../utils/storage';
 import HintModal from './HintModal';
 import LoadingSpinner from './LoadingSpinner';
 import DifficultySelectionModal from './DifficultySelectionModal';
 import ThemeSelectionScreen from './ThemeSelectionScreen';
-import FireworksCanvas from './FireworksCanvas';
 import AchievementsScreen from './AchievementsScreen';
 import ToastNotification from './ToastNotification';
 import TreasureChestModal from './TreasureChestModal';
 import MessageInBottleModal from './MessageInBottleModal';
-import ShootingStar from './ShootingStar';
 import FriendlyNPCModal from './FriendlyNPCModal';
 import DailyChallengeModal from './DailyChallengeModal';
 import ShopScreen from './ShopScreen';
 import AccessoryCustomizationModal from './AccessoryCustomizationModal';
 import ActiveBackgroundEffects from './ActiveBackgroundEffects';
 import CursorTrail from './CursorTrail';
-
-
 import { ALL_ACHIEVEMENTS } from '../achievements';
 import {
-    LightbulbIcon, SparklesIcon, AlertTriangleIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline,
-    SunIcon, MoonIcon, CheckIcon, HeartIconFilled, HeartIconBroken, TrophyIcon,
-    GiftIcon, PlayIcon, RefreshIcon, StopIcon, KeyIcon, CalendarCheckIcon, GemIcon, CollectionIcon, MailIcon as MessageIcon,
-    ShoppingBagIcon, CogIcon 
+    SparklesIcon, KeyIcon, GemIcon, CalendarCheckIcon, TrophyIcon, GiftIcon, CollectionIcon
 } from './icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIGS } from '../themes';
 import { v4 as uuidv4 } from 'uuid';
+import {
+    StartScreen, GradeSelectionScreen, IslandMapScreen, IslandPlayingScreen,
+    EndlessPlayingScreen, IslandCompleteScreen, GradeCompleteScreen, EndlessSummaryScreen,
+    TransitionScreen, ErrorScreen, IslandLoadingScreen, ApiKeyErrorScreen
+} from './GameScreens';
 
 
 interface TransitionDetails {
@@ -95,98 +98,6 @@ interface TransitionDetails {
   duration?: number;
   onComplete: () => void;
 }
-
-const loadItem = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const savedItem = localStorage.getItem(key);
-    return savedItem ? JSON.parse(savedItem) : defaultValue;
-  } catch (error) {
-    console.warn(`Error parsing item ${key} from localStorage:`, error);
-    localStorage.removeItem(key);
-    return defaultValue;
-  }
-};
-
-const saveItem = <T,>(key: string, value: T) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.warn(`Error saving item ${key} to localStorage:`, error);
-  }
-};
-
-const dispatchGemsUpdate = (gems: number) => {
-  const event = new CustomEvent('gemsUpdated', { detail: { gems } });
-  window.dispatchEvent(event);
-};
-
-
-const loadLastSelectedGrade = (): GradeLevel | null => loadItem(LAST_SELECTED_GRADE_KEY, null);
-const saveLastSelectedGrade = (grade: GradeLevel | null) => saveItem(LAST_SELECTED_GRADE_KEY, grade);
-const loadIslandProgressFromStorage = (grade: GradeLevel): IslandProgressState => loadItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`, {});
-const saveIslandProgressToStorage = (grade: GradeLevel, progress: IslandProgressState) => saveItem(`${ISLAND_PROGRESS_KEY_PREFIX}${grade}`, progress);
-const loadOverallScoreFromStorage = (grade: GradeLevel): number => loadItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`, 0);
-const saveOverallScoreToStorage = (grade: GradeLevel, score: number) => saveItem(`${OVERALL_SCORE_KEY_PREFIX}${grade}`, score);
-const loadIslandStarRatingsFromStorage = (grade: GradeLevel): IslandStarRatingsState => loadItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, {});
-const saveIslandStarRatingsToStorage = (grade: GradeLevel, ratings: IslandStarRatingsState) => saveItem(`${ISLAND_STAR_RATINGS_KEY_PREFIX}${grade}`, ratings);
-const loadAllGradesStarRatingsFromStorage = (): AllGradesStarRatingsState => {
-  const defaultValue: Partial<AllGradesStarRatingsState> = {};
-  (Object.values(GradeLevel).filter(g => typeof g === 'number') as GradeLevel[]).forEach(grade => {
-      defaultValue[grade] = {};
-  });
-  return loadItem(ALL_GRADES_STAR_RATINGS_KEY, defaultValue as AllGradesStarRatingsState);
-};
-const saveAllGradesStarRatingsToStorage = (ratings: AllGradesStarRatingsState) => saveItem(ALL_GRADES_STAR_RATINGS_KEY, ratings);
-const loadAchievedAchievementsFromStorage = (): AchievedAchievementsState => loadItem(ACHIEVED_ACHIEVEMENTS_KEY, {});
-const saveAchievedAchievementsToStorage = (achievements: AchievedAchievementsState) => saveItem(ACHIEVED_ACHIEVEMENTS_KEY, achievements);
-const loadActiveTreasureChestsFromStorage = (): ActiveTreasureChestsState => loadItem(ACTIVE_TREASURE_CHESTS_KEY, {});
-const saveActiveTreasureChestsToStorage = (chests: ActiveTreasureChestsState) => saveItem(ACTIVE_TREASURE_CHESTS_KEY, chests);
-const loadActiveMessageBottlesFromStorage = (): ActiveMessageBottlesState => loadItem(ACTIVE_MESSAGE_BOTTLE_KEY, {});
-const saveActiveMessageBottlesToStorage = (bottles: ActiveMessageBottlesState) => saveItem(ACTIVE_MESSAGE_BOTTLE_KEY, bottles);
-const loadActiveNPCFromStorage = (): StoredActiveNPCInfo | null => loadItem(ACTIVE_FRIENDLY_NPC_KEY, null);
-const saveActiveNPCToStorage = (npcInfo: StoredActiveNPCInfo | null) => saveItem(ACTIVE_FRIENDLY_NPC_KEY, npcInfo);
-const loadActiveCollectibleFromStorage = (): ActiveCollectibleState => loadItem(ACTIVE_COLLECTIBLE_KEY, {});
-const saveActiveCollectibleToStorage = (collectible: ActiveCollectibleState) => saveItem(ACTIVE_COLLECTIBLE_KEY, collectible);
-const loadCollectedItemsFromStorage = (): CollectedItemsState => loadItem(COLLECTED_ITEMS_KEY, {});
-const saveCollectedItemsToStorage = (items: CollectedItemsState) => saveItem(COLLECTED_ITEMS_KEY, items);
-
-const loadIsEndlessUnlockedForGrade = (): IsEndlessUnlockedForGradeState => {
-    const defaultUnlockedState: IsEndlessUnlockedForGradeState = {};
-    (Object.values(GradeLevel).filter(g => typeof g === 'number' && g !== GradeLevel.FINAL) as GradeLevel[]).forEach(grade => {
-        defaultUnlockedState[grade] = true;
-    });
-    return loadItem(ENDLESS_UNLOCKED_KEY_PREFIX, defaultUnlockedState);
-};
-const saveIsEndlessUnlockedForGrade = (state: IsEndlessUnlockedForGradeState) => saveItem(ENDLESS_UNLOCKED_KEY_PREFIX, state);
-
-const loadIsFinalIslandUnlocked = (): boolean => {
-    return loadItem(FINAL_ISLAND_UNLOCKED_KEY, true);
-};
-const saveIsFinalIslandUnlocked = (unlocked: boolean) => saveItem(FINAL_ISLAND_UNLOCKED_KEY, unlocked);
-
-const loadActiveDailyChallenge = (): ActiveDailyChallengeState => loadItem(ACTIVE_DAILY_CHALLENGE_KEY, null);
-const saveActiveDailyChallenge = (challenge: ActiveDailyChallengeState) => saveItem(ACTIVE_DAILY_CHALLENGE_KEY, challenge);
-
-const loadPlayerGems = (): PlayerGemsState => loadItem(PLAYER_GEMS_KEY, 10000); 
-const savePlayerGems = (gems: PlayerGemsState) => {
-  saveItem(PLAYER_GEMS_KEY, gems);
-  dispatchGemsUpdate(gems); 
-};
-
-const loadCompletedDailyChallengesLog = (): CompletedDailyChallengesLogState => loadItem(COMPLETED_DAILY_CHALLENGES_LOG_KEY, {});
-const saveCompletedDailyChallengesLog = (log: CompletedDailyChallengesLogState) => saveItem(COMPLETED_DAILY_CHALLENGES_LOG_KEY, log);
-
-const loadActiveWeeklyChallenge = (): ActiveWeeklyChallengeState => loadItem(ACTIVE_WEEKLY_CHALLENGE_KEY, null);
-const saveActiveWeeklyChallenge = (challenge: ActiveWeeklyChallengeState) => saveItem(ACTIVE_WEEKLY_CHALLENGE_KEY, challenge);
-const loadCompletedWeeklyChallengesLog = (): CompletedWeeklyChallengesLogState => loadItem(COMPLETED_WEEKLY_CHALLENGES_LOG_KEY, {});
-const saveCompletedWeeklyChallengesLog = (log: CompletedWeeklyChallengesLogState) => saveItem(COMPLETED_WEEKLY_CHALLENGES_LOG_KEY, log);
-
-const loadPlayerOwnedAccessoriesFromStorage = (): PlayerOwnedAccessoriesState => loadItem(PLAYER_OWNED_ACCESSORIES_KEY, {});
-const savePlayerOwnedAccessoriesToStorage = (accessories: PlayerOwnedAccessoriesState) => saveItem(PLAYER_OWNED_ACCESSORIES_KEY, accessories);
-
-const loadPlayerActiveAccessoriesFromStorage = (): PlayerActiveAccessoriesState => loadItem(PLAYER_ACTIVE_ACCESSORIES_KEY, {});
-const savePlayerActiveAccessoriesToStorage = (activeAccessories: PlayerActiveAccessoriesState) => saveItem(PLAYER_ACTIVE_ACCESSORIES_KEY, activeAccessories);
-
 
 const GameScreen: React.FC = () => {
   const { theme, setTheme: applyNewTheme, themeConfig, playerActiveAccessories: activeAccessoriesFromTheme } = useTheme();
@@ -220,7 +131,7 @@ const GameScreen: React.FC = () => {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const audioCache = useRef<Record<string, HTMLAudioElement>>({});
   const [preloadedQuestionsCache, setPreloadedQuestionsCache] = useState<PreloadedQuestionsCache>({});
-  const [showCustomFireworks, setShowCustomFireworks] = useState(false);
+  const [showCustomFireworks, setShowCustomFireworks] = useState(false); 
   const [achievedAchievements, setAchievedAchievements] = useState<AchievedAchievementsState>(() => loadAchievedAchievementsFromStorage());
   const [showAchievementsScreen, setShowAchievementsScreen] = useState(false);
   const [currentToast, setCurrentToast] = useState<ToastMessage | null>(null);
@@ -272,15 +183,9 @@ const GameScreen: React.FC = () => {
   const [playerActiveAccessories, setPlayerActiveAccessories] = useState<PlayerActiveAccessoriesState>(() => loadPlayerActiveAccessoriesFromStorage());
 
 
-  const [isLoadingNextFinalIslandQuestion, setIsLoadingNextFinalIslandQuestion] = useState(false);
-  const [triggerConfettiEffect, setTriggerConfettiEffect] = useState(false);
-
-
   const islandsForCurrentGrade = useMemo(() => {
     if (!selectedGrade) return [];
-    const configs = ISLAND_CONFIGS.filter(island => island.targetGradeLevel === selectedGrade);
-    if (selectedGrade === GradeLevel.FINAL) return configs.filter(island => island.islandId === FINAL_TREASURE_ISLAND_ID);
-    return configs.filter(island => island.islandId !== FINAL_TREASURE_ISLAND_ID).sort((a, b) => a.islandNumber - b.islandNumber);
+    return ISLAND_CONFIGS.filter(island => island.targetGradeLevel === selectedGrade).sort((a, b) => a.islandNumber - b.islandNumber);
   }, [selectedGrade]);
 
   const currentIslandConfig = useMemo(() => {
@@ -544,7 +449,7 @@ const GameScreen: React.FC = () => {
 
 
  useEffect(() => {
-    const savedTheme = loadItem(SELECTED_THEME_KEY, DEFAULT_THEME) as Theme;
+    const savedTheme = loadTheme();
     if (THEME_CONFIGS[savedTheme]) applyNewTheme(savedTheme); else applyNewTheme(DEFAULT_THEME);
     document.addEventListener('click', unlockAudioContext, { once: true });
 
@@ -572,12 +477,9 @@ const GameScreen: React.FC = () => {
   }, [gameState, transitionDetails]);
 
   useEffect(() => {
-    if (gameState === 'IslandComplete' || gameState === 'GradeComplete' || gameState === 'EndlessSummary' || feedback.isCorrect === true) {
-        setShowCustomFireworks(true);
-    } else if (showCustomFireworks && !(feedback.isCorrect === true)) { // Only turn off if not for a correct answer
-        setShowCustomFireworks(false);
-    }
-  }, [gameState, showCustomFireworks, feedback.isCorrect]);
+    if (gameState === 'IslandComplete' || gameState === 'GradeComplete' || gameState === 'EndlessSummary') setShowCustomFireworks(true);
+    else if (showCustomFireworks) setShowCustomFireworks(false);
+  }, [gameState, showCustomFireworks]);
 
 
   const currentQuestion = gameState === 'EndlessPlaying' && currentEndlessGrade && endlessQuestionBatch.length > 0
@@ -598,7 +500,6 @@ const GameScreen: React.FC = () => {
     else { setOverallScore(0); setIslandProgress({}); setIslandStarRatings({}); }
     setPreloadedQuestionsCache({}); setTransitionDetails(null); setThemeChangedForAchievement(false); setShowTreasureModalForIslandId(null); setShowBottleModalForIslandId(null); setActiveNPCData(null); saveActiveNPCToStorage(null); setActiveCollectible({}); saveActiveCollectibleToStorage({}); setCurrentEndlessGrade(null); setEndlessModeLives(ENDLESS_MODE_LIVES); setEndlessModeScore(0); setEndlessQuestionsAnswered(0); setEndlessQuestionBatch([]); setCurrentEndlessQuestionIndex(0);
     resetStreakChallengesIfNeeded(true);
-    setIsLoadingNextFinalIslandQuestion(false); 
   }, [resetForNewIslandPlay, resetStreakChallengesIfNeeded]);
 
 
@@ -644,13 +545,7 @@ const GameScreen: React.FC = () => {
     const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandIdToLoad);
     if (!islandConfig) { setGameState('Error'); setLoadingError("Không tìm thấy cấu hình cho hòn đảo này."); setTransitionDetails(null); return; }
 
-    if (islandConfig.targetGradeLevel === GradeLevel.FINAL) {
-        console.error("fetchAndSetQuestionsForIsland called for Final Island. This should be handled by loadFinalIslandSequentially.");
-        loadFinalIslandSequentially(islandConfig, IslandDifficulty.HARD); 
-        return;
-    }
-
-    const questionsPerThisIsland = QUESTIONS_PER_ISLAND;
+    const questionsPerThisIsland = islandConfig.targetGradeLevel === GradeLevel.FINAL ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND;
     const cachedData = preloadedQuestionsCache[islandIdToLoad]?.[difficulty];
 
     if (Array.isArray(cachedData)) {
@@ -829,55 +724,13 @@ const GameScreen: React.FC = () => {
   const handleGradeSelect = (grade: GradeLevel, isAutoLoading = false) => {
     if (!isAutoLoading) { unlockAudioContext(); playSound(GRADE_SELECT_SOUND_URL, 0.7); }
     resetForNewGradeJourney(grade); setSelectedGrade(grade); saveLastSelectedGrade(grade);
-    const gradeIslands = ISLAND_CONFIGS.filter(island => island.targetGradeLevel === grade && island.islandId !== FINAL_TREASURE_ISLAND_ID);
+    const gradeIslands = ISLAND_CONFIGS.filter(island => island.targetGradeLevel === grade && island.targetGradeLevel !== GradeLevel.FINAL);
     if (gradeIslands.length > 0) {
       if (Object.keys(islandProgress).length === 0) { const initialProgressForGrade: IslandProgressState = {}; gradeIslands.forEach((island) => { initialProgressForGrade[island.islandId] = island.islandNumber === 1 ? 'unlocked' : 'locked'; }); setIslandProgress(initialProgressForGrade); saveIslandProgressToStorage(grade, initialProgressForGrade); setAllGradesProgress(prev => ({...prev, [grade]: initialProgressForGrade})); }
       setGameState('IslandMap'); trySpawnTreasureChests(grade); trySpawnMessageBottle(); trySpawnFriendlyNPC(); trySpawnCollectible();
       setTimeout(() => checkAndAwardAchievements(), 100);
-    } else if (grade === GradeLevel.FINAL && isFinalIslandUnlocked) {
-        const finalIslandConfig = ISLAND_CONFIGS.find(i => i.islandId === FINAL_TREASURE_ISLAND_ID);
-        if (finalIslandConfig) { setIslandProgress({ [FINAL_TREASURE_ISLAND_ID]: 'unlocked' }); setGameState('IslandMap'); playSound(FINAL_ISLAND_AMBIENT_SOUND_URL, 0.4); } else { setGameState('Error'); setLoadingError("Lỗi: Không tìm thấy cấu hình Đảo Cuối Cùng."); }
     } else { setGameState('Error'); setLoadingError(NO_ISLANDS_FOR_GRADE_TEXT); }
   };
-
-
-  const loadFinalIslandSequentially = useCallback(async (islandConfig: IslandConfig, difficulty: IslandDifficulty) => {
-    if (apiKeyMissing) { setGameState('Error'); setLoadingError(API_KEY_ERROR_MESSAGE); return; }
-    setIsIslandLoading(true); setLoadingError(null);
-    setIslandLoadingProgressMessage(FINAL_ISLAND_LOADING_FIRST_CHALLENGE_TEXT);
-    setCurrentIslandId(islandConfig.islandId);
-    setSelectedIslandDifficulty(difficulty); 
-    try {
-      const firstChallenge = await generateSingleFinalIslandChallenge(0, islandConfig, difficulty);
-      if (firstChallenge) {
-        const initialQuestions = Array(QUESTIONS_PER_FINAL_ISLAND).fill(null);
-        initialQuestions[0] = firstChallenge;
-        setQuestionsForCurrentIsland(initialQuestions);
-        setCurrentQuestionIndexInIsland(0);
-        resetForNewIslandPlay();
-        setGameState('IslandPlaying');
-        setIsIslandLoading(false);
-        preloadRemainingFinalChallenges(1, islandConfig, difficulty);
-      } else { throw new Error("Failed to load the first challenge for the Final Island."); }
-    } catch (error) { const errorMessage = error instanceof Error ? error.message : QUESTION_GENERATION_ERROR_MESSAGE; setLoadingError(errorMessage); setGameState('Error'); setIsIslandLoading(false); }
-  }, [apiKeyMissing, resetForNewIslandPlay]);
-
-  const preloadRemainingFinalChallenges = useCallback(async (startIndex: number, islandConfig: IslandConfig, difficulty: IslandDifficulty) => {
-    for (let i = startIndex; i < QUESTIONS_PER_FINAL_ISLAND; i++) {
-        try {
-            const challenge = await generateSingleFinalIslandChallenge(i, islandConfig, difficulty);
-            if (challenge) { setQuestionsForCurrentIsland(prevQs => { const updatedQs = [...prevQs]; updatedQs[i] = challenge; return updatedQs; });
-            } else { console.warn(`Failed to preload Final Island challenge index ${i}`); }
-        } catch (error) { console.error(`Error preloading Final Island challenge index ${i}:`, error); }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (gameState === 'IslandPlaying' && currentIslandConfig?.targetGradeLevel === GradeLevel.FINAL && isLoadingNextFinalIslandQuestion) {
-      const targetIdx = currentQuestionIndexInIsland; 
-      if (questionsForCurrentIsland[targetIdx]) { resetForNewQuestion(); setIsLoadingNextFinalIslandQuestion(false); }
-    }
-  }, [questionsForCurrentIsland, isLoadingNextFinalIslandQuestion, currentQuestionIndexInIsland, gameState, currentIslandConfig, resetForNewQuestion]);
 
   const handleIslandSelect = (islandId: string) => {
     unlockAudioContext(); const status = islandProgress[islandId]; const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandId);
@@ -894,11 +747,15 @@ const GameScreen: React.FC = () => {
 
         if (!eventHandled) {
             setCurrentIslandId(islandId);
-            if (islandId === FINAL_TREASURE_ISLAND_ID) {
+            if (islandConfig.targetGradeLevel === GradeLevel.FINAL) {
                 playSound(FINAL_ISLAND_AMBIENT_SOUND_URL, 0.5);
-                setTransitionDetails({ message: FINAL_ISLAND_INTRO_MESSAGE, duration: FINAL_ISLAND_INTRO_DURATION_MS, onComplete: () => loadFinalIslandSequentially(islandConfig, IslandDifficulty.HARD) });
+                const finalDifficulty = IslandDifficulty.HARD;
+                const introMessage = islandConfig.islandNumber === 6 ? "Chào mừng Huyền Thoại! Hãy đối mặt thử thách cuối cùng!" : TRAVELLING_TO_ISLAND_TEXT(islandConfig.name);
+                setTransitionDetails({ message: introMessage, duration: 2000, onComplete: () => fetchAndSetQuestionsForIsland(islandId, finalDifficulty) });
                 setGameState('Transitioning');
-            } else { setShowDifficultySelectionModalForIslandId(islandId); }
+            } else {
+                setShowDifficultySelectionModalForIslandId(islandId);
+            }
         }
     } else { playSound(INCORRECT_ANSWER_SOUND_URL, 0.3); showToast(LOCKED_ISLAND_TEXT, 'warning'); }
   };
@@ -908,8 +765,6 @@ const GameScreen: React.FC = () => {
     const islandConfigToLoad = islandsForCurrentGrade.find(i => i.islandId === currentIslandId);
     if (!islandConfigToLoad) { setGameState('Error'); setLoadingError("Lỗi: Không tìm thấy đảo để tải sau khi chọn độ khó."); setShowDifficultySelectionModalForIslandId(null); return; }
     setShowDifficultySelectionModalForIslandId(null);
-
-    if (islandConfigToLoad.targetGradeLevel === GradeLevel.FINAL) { console.error("handleDifficultySelected should not be called for Final Island."); loadFinalIslandSequentially(islandConfigToLoad, IslandDifficulty.HARD); return; }
 
     const questionsToExpect = QUESTIONS_PER_ISLAND;
     const cachedData = preloadedQuestionsCache[currentIslandId]?.[difficulty];
@@ -921,7 +776,7 @@ const GameScreen: React.FC = () => {
   const _fetchAndSetQuestionsForStandardIsland = useCallback(async (islandIdToLoad: string, difficulty: IslandDifficulty) => {
     if (apiKeyMissing || !selectedGrade) { return; }
     const islandConfig = islandsForCurrentGrade.find(i => i.islandId === islandIdToLoad);
-    if (!islandConfig || islandConfig.targetGradeLevel === GradeLevel.FINAL) { return; }
+    if (!islandConfig) { return; }
 
     const cachedData = preloadedQuestionsCache[islandIdToLoad]?.[difficulty];
     if (Array.isArray(cachedData)) {
@@ -945,15 +800,12 @@ const GameScreen: React.FC = () => {
     if (!selectedGrade || !currentIslandId || !selectedIslandDifficulty) return;
     resetStreakChallengesIfNeeded(false);
 
-    const isFinalIsland = currentIslandConfig?.targetGradeLevel === GradeLevel.FINAL;
-    const questionsToComplete = isFinalIsland ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND;
+    const questionsToComplete = currentIslandConfig?.targetGradeLevel === GradeLevel.FINAL ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND;
     const nextQuestionLocalIndex = currentQuestionIndexInIsland + 1;
 
     if (nextQuestionLocalIndex < questionsToComplete) {
-        if (isFinalIsland) {
-            if (questionsForCurrentIsland[nextQuestionLocalIndex]) { setCurrentQuestionIndexInIsland(nextQuestionLocalIndex); resetForNewQuestion(); setIsLoadingNextFinalIslandQuestion(false); }
-            else { setCurrentQuestionIndexInIsland(nextQuestionLocalIndex); setIsLoadingNextFinalIslandQuestion(true); }
-        } else { setCurrentQuestionIndexInIsland(nextQuestionLocalIndex); resetForNewQuestion(); }
+        setCurrentQuestionIndexInIsland(nextQuestionLocalIndex); 
+        resetForNewQuestion();
     } else {
       const completedIslandId = currentIslandId; let starsEarned = 0; const livesAtCompletion = playerLives;
       if (livesAtCompletion === MAX_PLAYER_LIVES) starsEarned = 5; else if (livesAtCompletion === MAX_PLAYER_LIVES - 1) starsEarned = 4; else if (livesAtCompletion === MAX_PLAYER_LIVES - 2 && livesAtCompletion > 0) starsEarned = 3; else if (livesAtCompletion === 0) starsEarned = 2; else starsEarned = 3;
@@ -964,6 +816,20 @@ const GameScreen: React.FC = () => {
       const updatedProgressForGrade = { ...islandProgress, [completedIslandId]: 'completed' as IslandStatus };
       const currentIslandInGradeIndex = islandsForCurrentGrade.findIndex(i => i.islandId === completedIslandId);
       if (currentIslandInGradeIndex !== -1 && currentIslandInGradeIndex < islandsForCurrentGrade.length - 1) { const nextIslandInGrade = islandsForCurrentGrade[currentIslandInGradeIndex + 1]; if (nextIslandInGrade && updatedProgressForGrade[nextIslandInGrade.islandId] === 'locked') updatedProgressForGrade[nextIslandInGrade.islandId] = 'unlocked'; }
+      
+      if (selectedGrade === GradeLevel.FINAL) {
+          const finalIslands = islandsForCurrentGrade;
+          const mainFinalIslands = finalIslands.filter(i => i.islandNumber <= 5);
+          const ultimateIsland = finalIslands.find(i => i.islandNumber === 6);
+          const areAllMainFinalsComplete = mainFinalIslands.every(isl => updatedProgressForGrade[isl.islandId] === 'completed');
+
+          if (ultimateIsland && areAllMainFinalsComplete && updatedProgressForGrade[ultimateIsland.islandId] === 'locked') {
+              updatedProgressForGrade[ultimateIsland.islandId] = 'unlocked';
+              playSound(FINAL_ISLAND_UNLOCK_SOUND_URL, 0.7);
+              showToast("Một hòn đảo huyền thoại đã xuất hiện!", 'success', <KeyIcon className="w-7 h-7" />);
+          }
+      }
+
       setIslandProgress(updatedProgressForGrade); saveIslandProgressToStorage(selectedGrade, updatedProgressForGrade); setAllGradesProgress(prev => ({...prev, [selectedGrade]: updatedProgressForGrade}));
 
       updateDailyChallengeProgress(CHALLENGE_ACTION_ISLAND_COMPLETED); updateWeeklyChallengeProgress(CHALLENGE_ACTION_ISLAND_COMPLETED);
@@ -971,29 +837,52 @@ const GameScreen: React.FC = () => {
 
       setTimeout(() => checkAndAwardAchievements({ difficulty: selectedIslandDifficulty, hintUsed: hintUsedThisIslandRun }), 100);
 
-      if (selectedGrade === GradeLevel.FINAL && completedIslandId === FINAL_TREASURE_ISLAND_ID) { playSound(VICTORY_FANFARE_SOUND_URL, 0.8); setGameState('IslandComplete'); setPlayerGems(prev => { const newGems = prev + 1000; savePlayerGems(newGems); return newGems; }); return; }
+      if (completedIslandId === FINAL_TREASURE_ISLAND_ID) { playSound(VICTORY_FANFARE_SOUND_URL, 0.8); setGameState('IslandComplete'); setPlayerGems(prev => { const newGems = prev + 1000; savePlayerGems(newGems); return newGems; }); return; }
 
       const allIslandsForGradeCompleted = islandsForCurrentGrade.every(island => updatedProgressForGrade[island.islandId] === 'completed');
-      if(allIslandsForGradeCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE && selectedGrade !== GradeLevel.FINAL) {
+      if(allIslandsForGradeCompleted && selectedGrade !== GradeLevel.FINAL && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) {
           if(audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.7); setGameState('GradeComplete');
           const allNormalGrades = (Object.values(GradeLevel).filter(g => typeof g === 'number' && g !== GradeLevel.FINAL) as GradeLevel[]);
-          const allNormalGradesCompleted = allNormalGrades.every(g => { const gradeIslands = ISLAND_CONFIGS.filter(i => i.targetGradeLevel === g && i.islandId !== FINAL_TREASURE_ISLAND_ID); const gradeProg = allGradesProgress[g] || {}; return gradeIslands.length > 0 && gradeIslands.every(i => gradeProg[i.islandId] === 'completed'); });
+          const allNormalGradesCompleted = allNormalGrades.every(g => { const gradeIslands = ISLAND_CONFIGS.filter(i => i.targetGradeLevel === g); const gradeProg = allGradesProgress[g] || {}; return gradeIslands.length > 0 && gradeIslands.every(i => gradeProg[i.islandId] === 'completed'); });
           if (allNormalGradesCompleted && !isFinalIslandUnlocked) { playSound(FINAL_ISLAND_UNLOCK_SOUND_URL, 0.7); showToast(FINAL_ISLAND_UNLOCK_MESSAGE, 'success', <KeyIcon className="w-7 h-7" />); }
       } else { if (audioUnlocked) playSound(VICTORY_FANFARE_SOUND_URL, 0.6); setGameState('IslandComplete'); }
     }
-  }, [currentQuestionIndexInIsland, resetForNewQuestion, currentIslandId, selectedIslandDifficulty, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked, checkAndAwardAchievements, allGradesProgress, allGradesStarRatings, hintUsedThisIslandRun, isFinalIslandUnlocked, showToast, updateDailyChallengeProgress, updateWeeklyChallengeProgress, resetStreakChallengesIfNeeded, currentIslandConfig, questionsForCurrentIsland, setIsLoadingNextFinalIslandQuestion]);
+  }, [currentQuestionIndexInIsland, resetForNewQuestion, currentIslandId, selectedIslandDifficulty, islandsForCurrentGrade, islandProgress, selectedGrade, playerLives, islandStarRatings, playSound, audioUnlocked, checkAndAwardAchievements, allGradesProgress, allGradesStarRatings, hintUsedThisIslandRun, isFinalIslandUnlocked, showToast, updateDailyChallengeProgress, updateWeeklyChallengeProgress, resetStreakChallengesIfNeeded, currentIslandConfig]);
 
-  const fetchNextEndlessBatch = useCallback(async () => {
-    if (apiKeyMissing || !currentEndlessGrade) { setLoadingError(apiKeyMissing ? API_KEY_ERROR_MESSAGE : "Vui lòng chọn lớp để chơi Vô Tận."); setGameState('Error'); return; }
+  const fetchNextEndlessBatch = useCallback(async (gradeToFetch: GradeLevel) => {
+    if (apiKeyMissing) { setLoadingError(API_KEY_ERROR_MESSAGE); setGameState('Error'); return; }
     setGameState('EndlessLoading'); setLoadingError(null);
     try {
-      const questions = await generateEndlessMathQuestions(currentEndlessGrade, ENDLESS_MODE_DIFFICULTY);
-      if (questions && questions.length > 0) { setEndlessQuestionBatch(questions); setCurrentEndlessQuestionIndex(0); resetForNewQuestion(); setGameState('EndlessPlaying'); }
-      else { setLoadingError(ENDLESS_MODE_ERROR_TEXT); setGameState('Error'); }
-    } catch (error) { setLoadingError(ENDLESS_MODE_ERROR_TEXT); setGameState('Error'); }
-  }, [apiKeyMissing, currentEndlessGrade, resetForNewQuestion]);
+      const questions = await generateEndlessMathQuestions(gradeToFetch, ENDLESS_MODE_DIFFICULTY);
+      if (questions && questions.length > 0) {
+        setEndlessQuestionBatch(questions);
+        setCurrentEndlessQuestionIndex(0);
+        resetForNewQuestion();
+        setGameState('EndlessPlaying');
+      } else {
+        setLoadingError(ENDLESS_MODE_ERROR_TEXT);
+        setGameState('Error');
+      }
+    } catch (error) {
+      setLoadingError(ENDLESS_MODE_ERROR_TEXT);
+      setGameState('Error');
+    }
+  }, [apiKeyMissing, resetForNewQuestion]);
 
-  const handleNextEndlessQuestion = useCallback(() => { resetForNewQuestion(); if (currentEndlessQuestionIndex < endlessQuestionBatch.length - 1) { setCurrentEndlessQuestionIndex(prev => prev + 1); } else { fetchNextEndlessBatch(); } }, [currentEndlessQuestionIndex, endlessQuestionBatch.length, fetchNextEndlessBatch, resetForNewQuestion]);
+  const handleNextEndlessQuestion = useCallback(() => {
+    resetForNewQuestion();
+    if (currentEndlessQuestionIndex < endlessQuestionBatch.length - 1) {
+      setCurrentEndlessQuestionIndex(prev => prev + 1);
+    } else {
+      if (currentEndlessGrade !== null) {
+        fetchNextEndlessBatch(currentEndlessGrade);
+      } else {
+        console.error("Endless Mode: `currentEndlessGrade` is null when trying to fetch the next batch.");
+        setLoadingError(ENDLESS_MODE_ERROR_TEXT);
+        setGameState('Error');
+      }
+    }
+  }, [currentEndlessQuestionIndex, endlessQuestionBatch.length, fetchNextEndlessBatch, resetForNewQuestion, currentEndlessGrade]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
@@ -1016,7 +905,6 @@ const GameScreen: React.FC = () => {
         playSound(CORRECT_ANSWER_SOUND_URL, 0.5);
         setFeedback({ isCorrect: true, message: "Chính xác! Tuyệt vời!" });
         setRevealSolution(true);
-        setTriggerConfettiEffect(true); // Trigger confetti
         const pointsEarned = hintButtonUsed ? 2 : 5;
 
         switch (gameState) {
@@ -1072,7 +960,7 @@ const GameScreen: React.FC = () => {
       updateWeeklyChallengeProgress, activeWeeklyChallenge, handleNextEndlessQuestion,
       setFeedback, setRevealSolution, setEndlessModeScore, setEndlessQuestionsAnswered,
       saveOverallScoreToStorage, setIslandScore, setEndlessModeLives, setGameState,
-      setSelectedAnswer, setUserAttemptShown, setPlayerLives, setTriggerConfettiEffect
+      setSelectedAnswer, setUserAttemptShown, setPlayerLives
     ]);
 
 
@@ -1081,11 +969,10 @@ const GameScreen: React.FC = () => {
     if (gameState === 'EndlessSummary' && currentEndlessGrade) { handleGradeSelect(currentEndlessGrade, true); return; }
     if (!selectedGrade) { handleChooseAnotherGrade(); return; }
     if (showTreasureModalForIslandId) setShowTreasureModalForIslandId(null); if (showBottleModalForIslandId) setShowBottleModalForIslandId(null); if (showNPCModal) setShowNPCModal(false);
-    setIsLoadingNextFinalIslandQuestion(false); 
     const allGradeIslandsCompleted = islandsForCurrentGrade.every(island => islandProgress[island.islandId] === 'completed');
     setCurrentIslandId(null); setSelectedIslandDifficulty(null); setQuestionsForCurrentIsland([]); setCurrentQuestionIndexInIsland(0); resetForNewQuestion();
     setTransitionDetails({ message: UPDATING_MAP_TEXT, duration: 1000, onComplete: () => {
-        if (allGradeIslandsCompleted && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE && selectedGrade !== GradeLevel.FINAL) setGameState('GradeComplete');
+        if (allGradeIslandsCompleted && selectedGrade !== GradeLevel.FINAL && islandsForCurrentGrade.length >= ISLANDS_PER_GRADE) setGameState('GradeComplete');
         else setGameState('IslandMap');
         if (selectedGrade) { trySpawnTreasureChests(selectedGrade); trySpawnMessageBottle(); trySpawnFriendlyNPC(); trySpawnCollectible(); }
     }});
@@ -1095,9 +982,10 @@ const GameScreen: React.FC = () => {
   const handlePlayIslandAgain = () => {
     unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL);
     if (currentIslandId && selectedGrade && selectedIslandDifficulty && currentIslandConfig) {
-        resetForNewIslandPlay(); setIsLoadingNextFinalIslandQuestion(false);
-        if (currentIslandConfig.targetGradeLevel === GradeLevel.FINAL) { loadFinalIslandSequentially(currentIslandConfig, IslandDifficulty.HARD); }
-        else { const startMsg = STARTING_ISLAND_TEXT(currentIslandConfig.name, ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]); setTransitionDetails({ message: startMsg, duration: 700, onComplete: () => setGameState('IslandPlaying') }); setGameState('Transitioning'); }
+        resetForNewIslandPlay();
+        const startMsg = STARTING_ISLAND_TEXT(currentIslandConfig.name, ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]); 
+        setTransitionDetails({ message: startMsg, duration: 700, onComplete: () => setGameState('IslandPlaying') }); 
+        setGameState('Transitioning');
     } else { handleBackToMap(); }
   };
 
@@ -1105,7 +993,7 @@ const GameScreen: React.FC = () => {
     unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL);
     if (selectedGrade) {
       saveOverallScoreToStorage(selectedGrade, 0); const initialProgressForGrade: IslandProgressState = {};
-      ISLAND_CONFIGS.filter(i => i.targetGradeLevel === selectedGrade && i.islandId !== FINAL_TREASURE_ISLAND_ID).forEach(island => { initialProgressForGrade[island.islandId] = island.islandNumber === 1 ? 'unlocked' : 'locked'; });
+      ISLAND_CONFIGS.filter(i => i.targetGradeLevel === selectedGrade && i.targetGradeLevel !== GradeLevel.FINAL).forEach(island => { initialProgressForGrade[island.islandId] = island.islandNumber === 1 ? 'unlocked' : 'locked'; });
       saveIslandProgressToStorage(selectedGrade, initialProgressForGrade); saveIslandStarRatingsToStorage(selectedGrade, {}); setPreloadedQuestionsCache({});
       setAllGradesProgress(prev => ({...prev, [selectedGrade!]: initialProgressForGrade})); setAllGradesStarRatings(prev => { const updatedAllStars = {...prev, [selectedGrade!]: {}}; saveAllGradesStarRatingsToStorage(updatedAllStars); return updatedAllStars; });
       setActiveTreasureChests(prevChests => { const newChests = { ...prevChests }; if (selectedGrade) delete newChests[selectedGrade]; saveActiveTreasureChestsToStorage(newChests); return newChests; });
@@ -1121,14 +1009,32 @@ const GameScreen: React.FC = () => {
 
   const handleRetryFetchIsland = () => {
     unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL);
-    if (gameState === 'Error' && loadingError === ENDLESS_MODE_ERROR_TEXT && currentEndlessGrade) { fetchNextEndlessBatch(); }
-    else if (currentIslandConfig && currentIslandConfig.targetGradeLevel === GradeLevel.FINAL && selectedIslandDifficulty) { loadFinalIslandSequentially(currentIslandConfig, selectedIslandDifficulty); }
-    else if (currentIslandId && selectedGrade && selectedIslandDifficulty) { setPreloadedQuestionsCache(prev => ({ ...prev, [currentIslandId]: { ...(prev[currentIslandId] || {}), [selectedIslandDifficulty]: 'pending' } })); setTransitionDetails(null); setLoadingError(null); _fetchAndSetQuestionsForStandardIsland(currentIslandId, selectedIslandDifficulty); }
-    else if (selectedGrade) {
+    if (gameState === 'Error' && loadingError === ENDLESS_MODE_ERROR_TEXT && currentEndlessGrade !== null) {
+      fetchNextEndlessBatch(currentEndlessGrade);
+    } else if (currentIslandId && selectedGrade && selectedIslandDifficulty) {
+      setPreloadedQuestionsCache(prev => ({ ...prev, [currentIslandId]: { ...(prev[currentIslandId] || {}), [selectedIslandDifficulty]: 'pending' } }));
+      setTransitionDetails(null);
+      setLoadingError(null);
+      _fetchAndSetQuestionsForStandardIsland(currentIslandId, selectedIslandDifficulty);
+    } else if (selectedGrade) {
         const firstUnlockedIslandForGrade = islandsForCurrentGrade.find(i => islandProgress[i.islandId] === 'unlocked');
-        if (firstUnlockedIslandForGrade) { setCurrentIslandId(firstUnlockedIslandForGrade.islandId); setLoadingError(null); if(gameState === 'Error') { setGameState('IslandMap'); setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId); } else { setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId); } }
-        else { setLoadingError(null); setGameState(islandsForCurrentGrade.length > 0 ? 'IslandMap' : 'GradeSelection'); }
-    } else { setLoadingError(null); setGameState('GradeSelection'); }
+        if (firstUnlockedIslandForGrade) {
+            setCurrentIslandId(firstUnlockedIslandForGrade.islandId);
+            setLoadingError(null);
+            if(gameState === 'Error') {
+                setGameState('IslandMap');
+                setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
+            } else {
+                setShowDifficultySelectionModalForIslandId(firstUnlockedIslandForGrade.islandId);
+            }
+        } else {
+            setLoadingError(null);
+            setGameState(islandsForCurrentGrade.length > 0 ? 'IslandMap' : 'GradeSelection');
+        }
+    } else {
+        setLoadingError(null);
+        setGameState('GradeSelection');
+    }
   };
 
 
@@ -1140,20 +1046,67 @@ const GameScreen: React.FC = () => {
     try { const fetchedHint = await getMathHint(currentQuestion.text, currentQuestion.targetGradeLevel); setHint(fetchedHint); }
     catch (error) { setHint(HINT_GENERATION_ERROR_MESSAGE); } finally { setIsHintLoading(false); }
   }, [currentQuestion, apiKeyMissing, playSound, unlockAudioContext, gameState]);
-
-  const renderStars = (islandId: string) => { const stars = islandStarRatings[islandId] || 0; const totalStars = 5; return ( <div className="flex justify-center items-center h-5 sm:h-6"> {Array.from({ length: totalStars }).map((_, i) => i < stars ? <StarIconFilled key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--accent-color)]" /> : <StarIconOutline key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--accent-color)] opacity-50" /> )} </div> ); };
+  
   const handleThemeChange = (newTheme: Theme) => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); applyNewTheme(newTheme); setThemeChangedForAchievement(true); setTimeout(() => checkAndAwardAchievements(), 100); };
   const handleToggleAchievementsScreen = () => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); setShowAchievementsScreen(prev => !prev); }
   const handleToggleDailyChallengeModal = () => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); setShowDailyChallengeModal(prev => !prev); }
 
-  const handleAccessFinalIsland = () => { if (!isFinalIslandUnlocked) return; playSound(BUTTON_CLICK_SOUND_URL); resetForNewGradeJourney(GradeLevel.FINAL); setSelectedGrade(GradeLevel.FINAL); saveLastSelectedGrade(GradeLevel.FINAL); const finalIslandConfig = ISLAND_CONFIGS.find(i => i.islandId === FINAL_TREASURE_ISLAND_ID); if (finalIslandConfig) { setIslandProgress({ [FINAL_TREASURE_ISLAND_ID]: 'unlocked'}); setIslandStarRatings({}); setOverallScore(0); setGameState('IslandMap'); playSound(FINAL_ISLAND_AMBIENT_SOUND_URL, 0.4); } else { setGameState('Error'); setLoadingError("Lỗi: Không tìm thấy cấu hình Đảo Kho Báu Cuối Cùng."); } };
+  const handleAccessFinalIsland = () => {
+    if (!isFinalIslandUnlocked) return;
+    playSound(BUTTON_CLICK_SOUND_URL);
+    resetForNewGradeJourney(GradeLevel.FINAL);
+    setSelectedGrade(GradeLevel.FINAL);
+    saveLastSelectedGrade(GradeLevel.FINAL);
+    
+    const finalIslands = ISLAND_CONFIGS.filter(i => i.targetGradeLevel === GradeLevel.FINAL);
+    if (finalIslands.length > 0) {
+        const savedProgress = loadIslandProgressFromStorage(GradeLevel.FINAL);
+        let finalProgress: IslandProgressState;
+
+        if (Object.keys(savedProgress).length > 0) {
+            finalProgress = { ...savedProgress };
+            const mainFinalIslands = finalIslands.filter(i => i.islandNumber <= 5);
+            const ultimateIsland = finalIslands.find(i => i.islandNumber === 6);
+            const areMainFinalsComplete = mainFinalIslands.every(isl => finalProgress[isl.islandId] === 'completed');
+
+            if (ultimateIsland && areMainFinalsComplete && finalProgress[ultimateIsland.islandId] === 'locked') {
+                finalProgress[ultimateIsland.islandId] = 'unlocked';
+                saveIslandProgressToStorage(GradeLevel.FINAL, finalProgress);
+            }
+        } else {
+            finalProgress = {};
+            finalIslands.forEach(island => {
+                finalProgress[island.islandId] = island.islandNumber === 1 ? 'unlocked' : 'locked';
+            });
+            saveIslandProgressToStorage(GradeLevel.FINAL, finalProgress);
+        }
+
+        setIslandProgress(finalProgress);
+        setIslandStarRatings(loadIslandStarRatingsFromStorage(GradeLevel.FINAL));
+        setOverallScore(0); 
+        setGameState('IslandMap');
+        playSound(FINAL_ISLAND_AMBIENT_SOUND_URL, 0.4);
+    } else {
+        setGameState('Error');
+        setLoadingError("Lỗi: Không tìm thấy cấu hình cho Thử Thách Tối Thượng.");
+    }
+};
 
   const handleStartEndlessMode = useCallback((grade: GradeLevel | null) => {
-    if (!grade) { showToast("Vui lòng chọn một lớp để bắt đầu Chế Độ Vô Tận.", "warning"); return; }
-    unlockAudioContext(); playSound(ENDLESS_MODE_START_SOUND_URL, 0.6);
-    setCurrentEndlessGrade(grade); setEndlessModeLives(ENDLESS_MODE_LIVES); setEndlessModeScore(0);
-    setEndlessQuestionsAnswered(0); setEndlessQuestionBatch([]); setCurrentEndlessQuestionIndex(0);
-    setTransitionDetails({ message: ENDLESS_MODE_LOADING_TEXT, onComplete: fetchNextEndlessBatch });
+    if (!grade) {
+      showToast("Vui lòng chọn một lớp để chơi Vô Tận.", "warning");
+      return;
+    }
+    unlockAudioContext();
+    playSound(ENDLESS_MODE_START_SOUND_URL, 0.6);
+    setCurrentEndlessGrade(grade);
+    setEndlessModeLives(ENDLESS_MODE_LIVES);
+    setEndlessModeScore(0);
+    setEndlessQuestionsAnswered(0);
+    setEndlessQuestionBatch([]);
+    setCurrentEndlessQuestionIndex(0);
+    const startFetch = () => fetchNextEndlessBatch(grade);
+    setTransitionDetails({ message: ENDLESS_MODE_LOADING_TEXT, onComplete: startFetch });
     setGameState('Transitioning');
   }, [fetchNextEndlessBatch, playSound, unlockAudioContext, showToast]);
 
@@ -1195,6 +1148,65 @@ const GameScreen: React.FC = () => {
     window.dispatchEvent(new CustomEvent('activeAccessoriesUpdated'));
   };
 
+  const renderContent = () => {
+      if (apiKeyMissing) {
+        return <ApiKeyErrorScreen onReload={() => window.location.reload()} />;
+      }
+      if (gameState === 'Transitioning' && transitionDetails) {
+        return <TransitionScreen message={transitionDetails.message} />;
+      }
+      if (isIslandLoading && !['IslandMap', 'IslandPlaying', 'EndlessPlaying'].includes(gameState)) {
+        const message = gameState === 'EndlessLoading' ? ENDLESS_MODE_LOADING_TEXT : (islandLoadingProgressMessage || ISLAND_PREPARING_MESSAGE(currentIslandConfig?.name || "..."));
+        return <IslandLoadingScreen message={message} />;
+      }
+
+      switch (gameState) {
+        case 'StartScreen':
+          return <StartScreen onStartAdventure={handleStartAdventure} playSound={playSound} />;
+
+        case 'ThemeSelection':
+          return <ThemeSelectionScreen onThemeSelect={(selectedTheme) => { handleThemeChange(selectedTheme); const lastGrade = loadLastSelectedGrade(); if (lastGrade !== null) handleGradeSelect(lastGrade, true); else setGameState('GradeSelection'); }} />;
+
+        case 'Shop':
+          return <ShopScreen playerGems={playerGems} accessories={SHOP_ACCESSORIES} ownedAccessories={playerOwnedAccessories} onBuyAccessory={handleBuyAccessory} onGoBack={() => { playSound(BUTTON_CLICK_SOUND_URL); setGameState('GradeSelection'); }} playSound={playSound} />;
+        
+        case 'AccessoryCustomization':
+            return <AccessoryCustomizationModal isOpen={true} onClose={() => setGameState('GradeSelection')} ownedAccessories={playerOwnedAccessories} activeAccessories={playerActiveAccessories} onUpdateActiveAccessories={handleUpdateActiveAccessories} allThemes={THEME_CONFIGS} allAccessoriesDetails={SHOP_ACCESSORIES} playSound={playSound} />;
+
+        case 'GradeSelection':
+          return <GradeSelectionScreen onGradeSelect={handleGradeSelect} onThemeChange={handleThemeChange} onToggleAchievementsScreen={handleToggleAchievementsScreen} onToggleDailyChallengeModal={handleToggleDailyChallengeModal} onAccessFinalIsland={handleAccessFinalIsland} onGoToShop={handleGoToShop} onToggleAccessoryCustomizationModal={handleToggleAccessoryCustomizationModal} playSound={playSound} theme={theme} isFinalIslandUnlocked={isFinalIslandUnlocked} playerGems={playerGems} activeDailyChallenge={activeDailyChallenge} activeWeeklyChallenge={activeWeeklyChallenge} />;
+        
+        case 'IslandMap':
+            if (!selectedGrade) return <ErrorScreen loadingError="Lỗi: Chưa chọn lớp học." handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;
+            return <IslandMapScreen selectedGrade={selectedGrade} islandsForCurrentGrade={islandsForCurrentGrade} islandProgress={islandProgress} overallScore={overallScore} isEndlessUnlockedForGrade={isEndlessUnlockedForGrade[selectedGrade] || false} onIslandSelect={handleIslandSelect} onChooseAnotherGrade={handleChooseAnotherGrade} onToggleAchievementsScreen={handleToggleAchievementsScreen} onToggleDailyChallengeModal={handleToggleDailyChallengeModal} onStartEndlessMode={() => handleStartEndlessMode(selectedGrade)} playSound={playSound} islandStarRatings={islandStarRatings} activeTreasureChests={activeTreasureChests[selectedGrade] || {}} activeMessageBottle={activeMessageBottle} activeNPCData={activeNPCData} activeCollectible={activeCollectible} shootingStar={shootingStar} onShootingStarClick={handleShootingStarClick} setShootingStar={setShootingStar} playerGems={playerGems} activeDailyChallenge={activeDailyChallenge} activeWeeklyChallenge={activeWeeklyChallenge} />;
+       
+        case 'IslandPlaying':
+            if (!currentQuestion || !currentIslandConfig || !selectedGrade || selectedIslandDifficulty === null) return <IslandLoadingScreen message="Đang tải câu hỏi..." />;
+            return <IslandPlayingScreen currentQuestion={currentQuestion} currentIslandConfig={currentIslandConfig} selectedIslandDifficulty={selectedIslandDifficulty} playerLives={playerLives} selectedAnswer={selectedAnswer} userAttemptShown={userAttemptShown} feedback={feedback} revealSolution={revealSolution} currentQuestionIndexInIsland={currentQuestionIndexInIsland} isHintModalOpen={isHintModalOpen} hintButtonUsed={hintButtonUsed} onAnswerSelect={(answer) => { setSelectedAnswer(answer); playSound(ANSWER_SELECT_SOUND_URL, 0.4); }} onAnswerSubmit={handleAnswerSubmit} onHintRequest={handleHintRequest} onBackToMap={handleBackToMap} playSound={playSound} />;
+      
+        case 'EndlessPlaying':
+             if (!currentQuestion || currentEndlessGrade === null) return <IslandLoadingScreen message="Đang tải câu hỏi Vô tận..." />;
+             return <EndlessPlayingScreen currentQuestion={currentQuestion} currentEndlessGrade={currentEndlessGrade} endlessModeLives={endlessModeLives} endlessModeScore={endlessModeScore} endlessQuestionsAnswered={endlessQuestionsAnswered} selectedAnswer={selectedAnswer} userAttemptShown={userAttemptShown} feedback={feedback} revealSolution={revealSolution} isHintModalOpen={isHintModalOpen} hintButtonUsed={hintButtonUsed} onAnswerSelect={(answer) => { setSelectedAnswer(answer); playSound(ANSWER_SELECT_SOUND_URL, 0.4); }} onAnswerSubmit={handleAnswerSubmit} onHintRequest={handleHintRequest} onBackToMap={handleBackToMap} playSound={playSound} />;
+        
+        case 'IslandComplete':
+            if (!currentIslandConfig || selectedGrade === null || selectedIslandDifficulty === null || currentIslandId === null) return <ErrorScreen loadingError="Lỗi khi hiển thị kết quả." handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;
+            return <IslandCompleteScreen currentIslandConfig={currentIslandConfig} selectedGrade={selectedGrade} selectedIslandDifficulty={selectedIslandDifficulty} islandScore={islandScore} overallScore={overallScore} playerLives={playerLives} islandStarRatings={islandStarRatings} onBackToMap={handleBackToMap} onPlayIslandAgain={handlePlayIslandAgain} onNextIsland={() => { const currentIndex = islandsForCurrentGrade.findIndex(i => i.islandId === currentIslandId); const nextIsland = islandsForCurrentGrade[currentIndex + 1]; if(nextIsland) handleIslandSelect(nextIsland.islandId); }} islandsForCurrentGrade={islandsForCurrentGrade} currentIslandId={currentIslandId} islandProgress={islandProgress} playSound={playSound} showCustomFireworks={showCustomFireworks} audioUnlocked={audioUnlocked} />;
+
+        case 'GradeComplete':
+             if (selectedGrade === null) return <ErrorScreen loadingError="Lỗi khi hiển thị kết quả." handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;
+             return <GradeCompleteScreen selectedGrade={selectedGrade} overallScore={overallScore} isEndlessUnlockedForGrade={isEndlessUnlockedForGrade[selectedGrade] || false} onPlayThisGradeAgain={handlePlayThisGradeAgain} onChooseAnotherGrade={handleChooseAnotherGrade} onStartEndlessMode={() => handleStartEndlessMode(selectedGrade)} playSound={playSound} showCustomFireworks={showCustomFireworks} audioUnlocked={audioUnlocked} />;
+
+        case 'EndlessSummary':
+             if (currentEndlessGrade === null) return <ErrorScreen loadingError="Lỗi khi hiển thị kết quả." handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;
+             return <EndlessSummaryScreen currentEndlessGrade={currentEndlessGrade} endlessModeScore={endlessModeScore} endlessQuestionsAnswered={endlessQuestionsAnswered} onBackToMap={handleBackToMap} onPlayAgain={() => handleStartEndlessMode(currentEndlessGrade)} playSound={playSound} showCustomFireworks={showCustomFireworks} audioUnlocked={audioUnlocked} />;
+        
+        case 'Error':
+          return <ErrorScreen loadingError={loadingError} handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;
+        
+        default:
+          return <div className="w-full h-full flex items-center justify-center text-center p-4"><LoadingSpinner text="Đang tải trò chơi..." /></div>;
+      }
+  };
 
   return (
     <>
@@ -1202,46 +1214,15 @@ const GameScreen: React.FC = () => {
         playerActiveAccessories={playerActiveAccessories}
         currentTheme={theme}
         allAccessoriesDetails={SHOP_ACCESSORIES}
-        triggerConfetti={triggerConfettiEffect}
-        onConfettiComplete={() => setTriggerConfettiEffect(false)}
       />
       <CursorTrail
         playerActiveAccessories={playerActiveAccessories}
         currentTheme={theme}
         allAccessoriesDetails={SHOP_ACCESSORIES}
       />
+      
+      {renderContent()}
 
-      {gameState === 'StartScreen' && ( <div className="w-full h-full flex flex-col items-center justify-center text-center animate-fadeInScale p-4"> <div className="max-w-md sm:max-w-lg md:max-w-xl"> <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-4 md:mb-6"> {GAME_TITLE_TEXT} </h1> <p className="text-md sm:text-lg md:text-xl text-[var(--primary-text)] opacity-90 mb-6 md:mb-10"> Chào mừng bạn đến với cuộc phiêu lưu toán học kỳ thú! Sẵn sàng khám phá những hòn đảo bí ẩn và giải các câu đố hóc búa chưa? </p> <button onClick={handleStartAdventure} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-gradient-to-r from-[var(--button-primary-bg)] to-[var(--accent-color)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 sm:py-4 px-8 sm:px-10 rounded-xl shadow-xl text-lg sm:text-xl md:text-2xl transition-all transform hover:scale-105 active:scale-95"> {START_ADVENTURE_TEXT} </button> </div> </div> )}
-      {gameState === 'ThemeSelection' && ( <ThemeSelectionScreen onThemeSelect={(selectedTheme) => { handleThemeChange(selectedTheme); const lastGrade = loadLastSelectedGrade(); if (lastGrade !== null) handleGradeSelect(lastGrade, true); else setGameState('GradeSelection'); }} /> )}
-      {apiKeyMissing && gameState === 'Error' && loadingError === API_KEY_ERROR_MESSAGE && ( <div className="w-full h-full flex flex-col items-center justify-center text-center animate-fadeInScale p-4"> <div className="bg-[var(--incorrect-bg)] text-[var(--incorrect-text)] p-6 sm:p-8 rounded-lg shadow-xl max-w-md mx-auto"> <AlertTriangleIcon className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-[var(--accent-color)]" /> <h1 className="text-2xl sm:text-3xl font-bold mb-4">Lỗi Cấu Hình</h1> <p className="text-lg sm:text-xl mb-6">{API_KEY_ERROR_MESSAGE}</p> <button onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); window.location.reload(); }} className="bg-[var(--button-primary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-6 rounded-lg text-base sm:text-lg"> Tải Lại Trang </button> </div> </div> )}
-      {gameState === 'Transitioning' && transitionDetails && transitionDetails.message && ( <div className="flex flex-col items-center justify-center h-full min-h-[200px] sm:min-h-[300px]"> <LoadingSpinner text={transitionDetails.message} /> </div> )}
-      {isIslandLoading && gameState !== 'IslandMap' && ( <div className="flex flex-col items-center justify-center h-full min-h-[200px] sm:min-h-[300px]"> <LoadingSpinner text={gameState === 'EndlessLoading' ? ENDLESS_MODE_LOADING_TEXT : (islandLoadingProgressMessage || ISLAND_PREPARING_MESSAGE(currentIslandConfig?.name || "..."))} /> </div> )}
-      {gameState === 'Error' && ( <div className="w-full h-full flex flex-col items-center justify-center text-center animate-fadeInScale p-4"> <div className={`p-6 sm:p-8 rounded-lg shadow-xl max-w-md mx-auto bg-[var(--incorrect-bg)] text-[var(--incorrect-text)]`}> <AlertTriangleIcon className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-[var(--accent-color)]" /> <h1 className="text-2xl sm:text-3xl font-bold mb-4">Lỗi</h1> <p className="text-lg sm:text-xl mb-6">{loadingError || "Đã có lỗi xảy ra."}</p> <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"> <button onClick={handleReturnToGradeSelection} className="bg-[var(--button-secondary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-3 px-6 rounded-lg text-sm sm:text-base"> {RETURN_TO_GRADE_SELECTION_TEXT} </button> {loadingError !== NO_ISLANDS_FOR_GRADE_TEXT && loadingError !== API_KEY_ERROR_MESSAGE && ( <button onClick={handleRetryFetchIsland} className="bg-[var(--button-primary-bg)] hover:opacity-80 active:brightness-90 text-[var(--button-primary-text)] font-bold py-3 px-6 rounded-lg text-sm sm:text-base"> Thử Tải Lại </button> )} </div> </div> </div> )}
-      
-      {gameState === 'Shop' && (
-        <ShopScreen
-          playerGems={playerGems}
-          accessories={SHOP_ACCESSORIES}
-          ownedAccessories={playerOwnedAccessories}
-          onBuyAccessory={handleBuyAccessory}
-          onGoBack={() => { playSound(BUTTON_CLICK_SOUND_URL); setGameState('GradeSelection'); }}
-          playSound={playSound}
-        />
-      )}
-      
-      {gameState === 'GradeSelection' && ( <> <div className="w-full h-full flex flex-col items-center justify-start animate-fadeInScale p-3 sm:p-4 md:p-6"> <div className="w-full max-w-lg md:max-w-xl mx-auto"> <div className="flex justify-between items-center mb-4 sm:mb-6"> <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] text-center flex-grow"> {CHOOSE_GRADE_TEXT} </h1> <div className="flex items-center gap-2 sm:gap-3"> <button onClick={handleGoToShop} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-2 sm:p-2.5 rounded-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 shadow-md relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)]" aria-label="Cửa Hàng Phụ Kiện" > <ShoppingBagIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent-color)]" /> </button> <button onClick={handleToggleAccessoryCustomizationModal} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-2 sm:p-2.5 rounded-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 shadow-md relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)]" aria-label={MANAGE_ACCESSORIES_BUTTON_TEXT} > <CogIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent-color)]" /> </button> <button onClick={handleToggleDailyChallengeModal} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-2 sm:p-2.5 rounded-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 shadow-md relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)]" aria-label={DAILY_CHALLENGE_BUTTON_TEXT} > <CalendarCheckIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent-color)]" /> {((activeDailyChallenge && !activeDailyChallenge.isCompleted) || (activeWeeklyChallenge && !activeWeeklyChallenge.isCompleted)) && ( <span className="absolute top-0 right-0 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-500 ring-1 sm:ring-2 ring-white" /> )} {((activeDailyChallenge && activeDailyChallenge.isCompleted && !activeDailyChallenge.rewardClaimed) || (activeWeeklyChallenge && activeWeeklyChallenge.isCompleted && !activeWeeklyChallenge.rewardClaimed) ) && ( <span className="absolute top-0 right-0 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-500 ring-1 sm:ring-2 ring-white animate-pulse" /> )} </button> <button onClick={handleToggleAchievementsScreen} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-1.5 sm:p-2 rounded-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-color)]" aria-label={VIEW_ACHIEVEMENTS_BUTTON_TEXT} > <img src={ACHIEVEMENT_BUTTON_ICON_URL} alt="Huy hiệu" className="w-6 h-6 sm:w-7 sm:h-7 animate-trophy-glow" /> </button> </div> </div> <div className="flex justify-center items-center mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-[var(--primary-text)]"> <GemIcon className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 text-yellow-400" /> {PLAYER_GEMS_TEXT}: {playerGems} </div> <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-6 sm:mb-8"> {(Object.keys(GradeLevel).filter(key => !isNaN(Number(GradeLevel[key as keyof typeof GradeLevel])) && GradeLevel[key as keyof typeof GradeLevel] !== GradeLevel.FINAL) as (keyof typeof GradeLevel)[]).map((gradeKey) => { const gradeValue = GradeLevel[gradeKey]; return ( <button key={gradeValue} onClick={() => handleGradeSelect(gradeValue as GradeLevel)} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-3 sm:p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 active:scale-95 active:brightness-90 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold text-xl sm:text-2xl"> {GRADE_LEVEL_TEXT_MAP[gradeValue as GradeLevel]} </button> ); })} {isFinalIslandUnlocked && ( <button onClick={handleAccessFinalIsland} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 active:scale-95 active:brightness-90 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white font-bold text-xl sm:text-2xl flex items-center justify-center gap-2 animate-pulse-glow" style={{ ['--island-button-ring-color' as any]: 'gold' }}> <KeyIcon className="w-7 h-7 sm:w-8 sm:h-8" /> {FINAL_ISLAND_ACCESS_BUTTON_TEXT} </button> )} </div> <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t-2 border-[var(--border-color)]"> <h2 className="text-xl sm:text-2xl font-bold text-[var(--primary-text)] mb-3 sm:mb-4 text-center">Chọn Giao Diện</h2> <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3"> {(Object.values(Theme).filter(t => t !== Theme.DEFAULT) as Theme[]).map(themeItem => ( <button key={themeItem} onClick={() => handleThemeChange(themeItem)} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className={`p-2.5 sm:p-3 rounded-lg shadow-md transition-all transform hover:scale-105 active:scale-95 active:brightness-90 text-sm sm:text-lg font-semibold w-full flex items-center justify-center gap-1.5 sm:gap-2 border-2 ${theme === themeItem ? 'border-[var(--accent-color)] ring-2 sm:ring-4 ring-[var(--ring-color-focus)]' : 'border-transparent'} ${themeItem === Theme.NEON ? 'bg-[#0d1117] text-[#30c5ff]' : 'bg-[#fdf2f8] text-[#c026d3]'}`} > {themeItem === Theme.NEON ? <MoonIcon className="w-4 h-4 sm:w-5 sm:h-5"/> : <SunIcon className="w-4 h-4 sm:w-5 sm:h-5"/>} {THEME_CONFIGS[themeItem].name} {theme === themeItem && <CheckIcon className="w-4 h-4 sm:w-5 sm:h-5 ml-auto text-[var(--accent-color)]" />} </button> ))} </div> </div> </div> </div> </> )}
-      {gameState === 'AccessoryCustomization' && (
-        <AccessoryCustomizationModal
-          isOpen={true}
-          onClose={() => setGameState('GradeSelection')}
-          ownedAccessories={playerOwnedAccessories}
-          activeAccessories={playerActiveAccessories}
-          onUpdateActiveAccessories={handleUpdateActiveAccessories}
-          allThemes={THEME_CONFIGS}
-          allAccessoriesDetails={SHOP_ACCESSORIES}
-          playSound={playSound}
-        />
-      )}
       {(() => { 
         const islandForDifficultyModal = showDifficultySelectionModalForIslandId ? islandsForCurrentGrade.find(i => i.islandId === showDifficultySelectionModalForIslandId) : null;
         if (showDifficultySelectionModalForIslandId && islandForDifficultyModal) { return ( <DifficultySelectionModal isOpen={true} islandName={islandForDifficultyModal.name} onClose={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); setShowDifficultySelectionModalForIslandId(null); if (selectedGrade) setGameState('IslandMap'); else setGameState('GradeSelection'); }} onSelectDifficulty={handleDifficultySelected} /> ); }
@@ -1251,19 +1232,7 @@ const GameScreen: React.FC = () => {
         return null;
       })()}
 
-      {gameState === 'IslandMap' && selectedGrade && ( <> <div className="w-full h-full flex flex-col animate-fadeInScale relative"> {shootingStar && shootingStar.visible && !shootingStar.clicked && ( <ShootingStar starData={shootingStar} onClick={() => handleShootingStarClick(shootingStar.id)} onDisappear={() => setShootingStar(prev => prev && prev.id === shootingStar.id ? null : prev)} emoji={SHOOTING_STAR_EMOJI} /> )} <div className="w-full h-full flex flex-col p-1 sm:p-2"> <div className="flex flex-col sm:flex-row justify-between items-center mb-3 sm:mb-4 gap-2"> <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--title-text-gradient-from)] to-[var(--title-text-gradient-to)] mb-1 sm:mb-0 text-center sm:text-left"> {selectedGrade === GradeLevel.FINAL ? FINAL_ISLAND_GRADE_TITLE : CHOOSE_ISLAND_TEXT} </h1> <div className="flex items-center justify-end flex-wrap gap-2 sm:gap-3"> <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full bg-[var(--secondary-bg)] shadow-md"> <GemIcon className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" /> <span className="text-xs sm:text-sm font-semibold text-[var(--primary-text)]">{playerGems}</span> </div> <button onClick={handleToggleDailyChallengeModal} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="p-2 sm:p-2.5 rounded-full bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 shadow-md relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)]" aria-label={DAILY_CHALLENGE_BUTTON_TEXT} > <CalendarCheckIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent-color)]" /> {((activeDailyChallenge && !activeDailyChallenge.isCompleted) || (activeWeeklyChallenge && !activeWeeklyChallenge.isCompleted)) && ( <span className="absolute top-0 right-0 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-500 ring-1 sm:ring-2 ring-white" /> )} {((activeDailyChallenge && activeDailyChallenge.isCompleted && !activeDailyChallenge.rewardClaimed) || (activeWeeklyChallenge && activeWeeklyChallenge.isCompleted && !activeWeeklyChallenge.rewardClaimed) ) && ( <span className="absolute top-0 right-0 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-500 ring-1 sm:ring-2 ring-white animate-pulse" /> )} </button> <button onClick={handleChooseAnotherGrade} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-md sm:rounded-lg shadow-md text-xs sm:text-sm"> {CHOOSE_ANOTHER_GRADE_TEXT} </button> <button onClick={handleToggleAchievementsScreen} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="hover:opacity-90 active:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)] rounded-full p-0.5" aria-label={VIEW_ACHIEVEMENTS_BUTTON_TEXT} > <img src={ACHIEVEMENT_BUTTON_ICON_URL} alt="Huy hiệu" className="w-10 h-10 sm:w-12 sm:h-12 animate-trophy-glow" /> </button> </div> </div> {selectedGrade !== GradeLevel.FINAL && ( <div className="mb-3 sm:mb-4"> <div className="flex justify-between items-center text-xs sm:text-sm text-[var(--primary-text)] opacity-90 mb-0.5 sm:mb-1 px-1"> <span className="font-semibold">Tiến Độ Phiêu Lưu</span> <span className="font-semibold">{ (islandsForCurrentGrade.length > 0 ? (islandsForCurrentGrade.filter(island => islandProgress[island.islandId] === 'completed').length / islandsForCurrentGrade.length) * 100 : 0).toFixed(0) }%</span> </div> <div className="w-full bg-[var(--secondary-bg)] rounded-full h-2.5 sm:h-3 shadow-inner"> <div className="bg-[var(--accent-color)] h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${islandsForCurrentGrade.length > 0 ? (islandsForCurrentGrade.filter(island => islandProgress[island.islandId] === 'completed').length / islandsForCurrentGrade.length) * 100 : 0}%` }} ></div> </div> </div> )} <p className="text-center text-[var(--primary-text)] opacity-90 mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl"> {selectedGrade === GradeLevel.FINAL ? islandsForCurrentGrade[0]?.name : `Lớp: ${GRADE_LEVEL_TEXT_MAP[selectedGrade]}`} </p> <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 flex-grow overflow-y-auto py-1 sm:py-2"> {islandsForCurrentGrade.length === 0 && selectedGrade !== GradeLevel.FINAL ? (<p className="col-span-full text-center text-[var(--secondary-text)]">{NO_ISLANDS_FOR_GRADE_TEXT}</p>) : islandsForCurrentGrade.map((island) => { const status = islandProgress[island.islandId] || 'locked'; const isDisabled = status === 'locked'; let currentBgColor = 'bg-[var(--island-locked-bg)]'; let currentTextColor = 'text-[var(--island-locked-text)]'; if (status === 'completed') { currentBgColor = 'bg-[var(--island-completed-bg)]'; currentTextColor = 'text-[var(--island-completed-text)]'; } else if (status === 'unlocked') { currentBgColor = 'bg-[var(--island-unlocked-bg)]'; currentTextColor = 'text-[var(--island-unlocked-text)]'; } const isUnlockedAndNotCompleted = status === 'unlocked'; const hasTreasure = status === 'completed' && selectedGrade && activeTreasureChests[selectedGrade]?.[island.islandId]; const hasBottle = status === 'completed' && activeMessageBottle[island.islandId]; const hasNPC = (status === 'completed' || status === 'unlocked') && activeNPCData && activeNPCData.islandId === island.islandId && activeNPCData.grade === selectedGrade; const collectibleOnIsland = status === 'completed' && activeCollectible[island.islandId]; const collectibleIcon = collectibleOnIsland ? COLLECTIBLE_ITEMS.find(c => c.id === activeCollectible[island.islandId]?.collectibleId)?.icon : null; let topIcon = null; if (collectibleOnIsland && collectibleIcon) topIcon = collectibleIcon; else if (hasNPC && activeNPCData?.islandId === island.islandId) topIcon = <img src={activeNPCData.npc.imageUrl} alt={activeNPCData.npc.name} className="w-full h-full object-contain rounded-full" />; else if (hasTreasure) topIcon = TREASURE_CHEST_ICON_EMOJI; else if (hasBottle) topIcon = MESSAGE_IN_BOTTLE_ICON_EMOJI; const isFinalIslandButton = island.islandId === FINAL_TREASURE_ISLAND_ID; const pulseAnimation = isUnlockedAndNotCompleted || hasTreasure || hasBottle || hasNPC || collectibleOnIsland || isFinalIslandButton; let finalIslandSpecificStyles = isFinalIslandButton ? 'border-4 border-yellow-400 bg-gradient-to-br from-amber-400 via-orange-500 to-red-600 !text-white shadow-yellow-500/50 animate-pulse-glow' : ''; const ariaLabelParts = [island.name]; if (isDisabled) ariaLabelParts.push('(Đã khoá)'); if (collectibleOnIsland) ariaLabelParts.push(`(Có ${COLLECTIBLE_ITEMS.find(c=>c.id === activeCollectible[island.islandId]?.collectibleId)?.name || 'vật phẩm'})`); else if (hasNPC && activeNPCData?.islandId === island.islandId) ariaLabelParts.push(`(Có ${activeNPCData.npc.name}!)`); else if (hasTreasure) ariaLabelParts.push('(Có rương báu!)'); else if (hasBottle) ariaLabelParts.push('(Có thông điệp!)'); return ( <button key={island.islandId} onClick={() => !isDisabled && handleIslandSelect(island.islandId)} onMouseEnter={() => !isDisabled && playSound(HOVER_SOUND_URL, 0.2)} disabled={isDisabled} className={`p-3 sm:p-4 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 ${currentBgColor} ${currentTextColor} ${finalIslandSpecificStyles} min-h-[160px] sm:min-h-[180px] flex flex-col justify-between items-center text-center focus:outline-none focus:ring-4 ring-[var(--island-button-ring-color)] relative ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 active:brightness-90'} ${pulseAnimation && !isFinalIslandButton ? 'animate-pulse-glow' : ''} ${(hasTreasure || hasBottle || hasNPC || collectibleOnIsland) && !isFinalIslandButton ? 'ring-4 ring-yellow-400 border-2 border-yellow-200' : ''} `} aria-label={ariaLabelParts.join(' ')} > {topIcon && ( <span className="absolute top-1 right-1 text-xl sm:text-2xl animate-bounce" style={{ filter: 'drop-shadow(0 0 3px gold)', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} > {topIcon} </span> )} <div className="flex-grow flex flex-col items-center justify-center"> <span className="text-2xl sm:text-3xl mb-1" aria-hidden="true">{island.mapIcon}</span> <h2 className="text-base sm:text-lg font-bold leading-tight">{island.name}</h2> <p className="text-xs sm:text-sm mt-1 px-1 opacity-90 line-clamp-2">{island.description}</p> </div> <div className="mt-1.5 sm:mt-2 h-5 sm:h-6"> {isDisabled && <LockIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--incorrect-bg)] opacity-70" />} {status === 'completed' && !topIcon ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null} {((status === 'completed' || status === 'unlocked') && topIcon ) ? <div className="animate-subtle-shine">{renderStars(island.islandId)}</div> : null} {status === 'unlocked' && !topIcon ? <span className="text-xs opacity-80">(Chưa hoàn thành)</span> : null} </div> </button> ); })} </div> {selectedGrade !== GradeLevel.FINAL && ( <p className="text-center text-[var(--primary-text)] opacity-90 mt-3 sm:mt-4 text-xl sm:text-2xl font-bold">Tổng Điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p> )} {selectedGrade !== GradeLevel.FINAL && isEndlessUnlockedForGrade[selectedGrade] && ( <button onClick={() => handleStartEndlessMode(selectedGrade)} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="mt-4 sm:mt-6 w-full max-w-xs sm:max-w-sm mx-auto block bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-base sm:text-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2"> <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6" /> {ENDLESS_MODE_BUTTON_TEXT} </button> )} </div> </div> </>)}
-      {gameState === 'IslandComplete' && currentIslandConfig && selectedGrade && selectedIslandDifficulty && currentIslandId && ( <> {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked} />} <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4"> <div className={`text-center max-w-lg md:max-w-2xl mx-auto ${(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID) ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 text-white' : 'bg-gradient-to-br from-[var(--correct-bg)] to-[var(--accent-color)] text-[var(--correct-text)]'} p-5 sm:p-6 md:p-8 rounded-xl relative z-10`}> {(() => { const starsAchievedForThisIsland = islandStarRatings[currentIslandId] || 0; const isPerfectRun = starsAchievedForThisIsland === 5; let specialCelebrationText = ""; if (isPerfectRun) { if (selectedIslandDifficulty === IslandDifficulty.HARD) specialCelebrationText = REWARD_TEXT_HARD_PERFECT; else if (selectedIslandDifficulty === IslandDifficulty.MEDIUM) specialCelebrationText = REWARD_TEXT_MEDIUM_PERFECT; } return specialCelebrationText && ( <div className="my-2 sm:my-3 flex items-center justify-center gap-2 animate-subtle-shine"> <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--title-text-gradient-from)] drop-shadow-lg">{specialCelebrationText}</p> {isPerfectRun && <StarIconFilled className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--title-text-gradient-from)] animate-pulse" style={{ animationDuration: '1s' }} />} </div> ); })()} <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-1 sm:mb-2">{(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID) ? "CHIẾN THẮNG HUYỀN THOẠI!" : ISLAND_COMPLETE_TEXT}</h1> <p className="text-lg sm:text-xl md:text-2xl mb-1">{(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID) ? FINAL_ISLAND_CONGRATS_MESSAGE : `${currentIslandConfig.name} (${ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]})`}</p> <div className="flex justify-center my-1.5 sm:my-2 animate-subtle-shine"> {renderStars(currentIslandId)} </div> <p className="text-base sm:text-lg md:text-xl mb-1 sm:mb-2">{islandStarRatings[currentIslandId] === 5 && selectedIslandDifficulty === IslandDifficulty.EASY ? REWARD_TEXT_EASY_PERFECT : `Bạn đạt được: ${islandScore} điểm cho đảo này.`}</p> {!(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID) && <p className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4">Tổng điểm {GRADE_LEVEL_TEXT_MAP[selectedGrade]}: {overallScore}</p>} {(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID) && <p className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4">Bạn đã nhận được 1000 Đá Quý!</p>} <p className="text-base sm:text-lg md:text-xl mb-2 sm:mb-4">Bạn được thưởng +1 lượt thử! Hiện có: {playerLives}/{MAX_PLAYER_LIVES} lượt.</p> <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mt-4 sm:mt-6"> <button onClick={handleBackToMap} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-sm sm:text-base md:text-lg w-full sm:w-auto"> {BACK_TO_MAP_TEXT} </button> <button onClick={handlePlayIslandAgain} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-sm sm:text-base md:text-lg w-full sm:w-auto"> {PLAY_AGAIN_TEXT} </button> {(() => { const currentCompletedIslandIndex = islandsForCurrentGrade.findIndex(i => i.islandId === currentIslandId); const nextIsland = (currentCompletedIslandIndex !== -1 && currentCompletedIslandIndex < islandsForCurrentGrade.length - 1) ? islandsForCurrentGrade[currentCompletedIslandIndex + 1] : null; return (nextIsland && islandProgress[nextIsland.islandId] === 'unlocked' && !(selectedGrade === GradeLevel.FINAL && currentIslandId === FINAL_TREASURE_ISLAND_ID)) && ( <button onClick={() => { unlockAudioContext(); playSound(BUTTON_CLICK_SOUND_URL); handleIslandSelect(nextIsland.islandId); }} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-primary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-sm sm:text-base md:text-lg w-full sm:w-auto"> {NEXT_ISLAND_BUTTON_TEXT} </button> ); })()} </div> </div> </div> </> )}
-      {gameState === 'GradeComplete' && selectedGrade && ( <> {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>} <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4"> <div className={`text-center max-w-lg md:max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] p-5 sm:p-6 md:p-8 rounded-xl relative z-10`}> <SparklesIcon className="w-16 h-16 sm:w-20 md:w-24 mx-auto mb-4 sm:mb-6 text-white animate-subtle-shine"/> <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1> <p className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p> <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 sm:mb-8 drop-shadow-lg">{overallScore} <span className="text-xl sm:text-2xl md:text-3xl">điểm</span></p> <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"> <button onClick={handlePlayThisGradeAgain} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--correct-bg)] hover:opacity-90 active:brightness-90 text-[var(--correct-text)] font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-sm sm:text-base md:text-lg transition-transform transform hover:scale-105 w-full sm:w-auto"> {PLAY_THIS_GRADE_AGAIN_TEXT} </button> <button onClick={handleChooseAnotherGrade} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-sm sm:text-base md:text-lg transition-transform transform hover:scale-105 w-full sm:w-auto"> {CHOOSE_ANOTHER_GRADE_TEXT} </button> </div> {isEndlessUnlockedForGrade[selectedGrade] && ( <button onClick={() => handleStartEndlessMode(selectedGrade)} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="mt-4 sm:mt-6 w-full max-w-xs sm:max-w-sm mx-auto block bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg text-base sm:text-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2"> <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6" /> {ENDLESS_MODE_BUTTON_TEXT} </button> )} </div> </div> </> )}
-      {gameState === 'EndlessSummary' && currentEndlessGrade && ( <> {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>} <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4"> <div className={`text-center max-w-md md:max-w-xl mx-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 text-white p-5 sm:p-6 md:p-8 rounded-xl relative z-10`}> <TrophyIcon className="w-16 h-16 sm:w-20 mx-auto mb-3 sm:mb-4 animate-subtle-shine"/> <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">{ENDLESS_MODE_SUMMARY_TITLE}</h1> <p className="text-base sm:text-lg md:text-xl mb-1">Lớp: {GRADE_LEVEL_TEXT_MAP[currentEndlessGrade]}</p> <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 sm:mb-2">{ENDLESS_MODE_SCORE_TEXT}: {endlessModeScore}</p> <p className="text-lg sm:text-xl md:text-2xl mb-4 sm:mb-6">{ENDLESS_MODE_QUESTIONS_ANSWERED_TEXT}: {endlessQuestionsAnswered}</p> <div className="flex flex-col sm:flex-row justify-center gap-2.5 sm:gap-3"> <button onClick={handleBackToMap} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 sm:py-3 px-5 sm:px-6 rounded-lg shadow-lg text-sm sm:text-base w-full sm:w-auto"> {BACK_TO_MAP_TEXT} </button> <button onClick={() => handleStartEndlessMode(currentEndlessGrade)} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-gradient-to-r from-orange-400 to-amber-500 hover:opacity-90 text-white font-bold py-2.5 sm:py-3 px-5 sm:px-6 rounded-lg shadow-lg text-sm sm:text-base w-full sm:w-auto"> {PLAY_AGAIN_ENDLESS_TEXT} </button> </div> </div> </div> </> )}
-      {gameState === 'IslandPlaying' && currentQuestion && currentIslandConfig && selectedGrade && selectedIslandDifficulty && ( <> <div className={`w-full h-full flex flex-col animate-fadeInScale ${(currentIslandConfig.targetGradeLevel === GradeLevel.FINAL) ? FINAL_ISLAND_PLAYING_STYLE_CLASS : ''} p-1 sm:p-2`}> <header className={`w-full flex flex-col sm:flex-row justify-between items-center p-2 sm:p-3 mb-1 sm:mb-2 border-b-2 ${(currentIslandConfig.targetGradeLevel === GradeLevel.FINAL) ? 'border-yellow-400/30' : 'border-[var(--border-color)]'}`}> <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-0"> <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--title-text-gradient-from)] text-center sm:text-left">{(currentIslandConfig.targetGradeLevel === GradeLevel.FINAL) ? FINAL_ISLAND_GRADE_TITLE : `${currentIslandConfig.mapIcon} ${currentIslandConfig.name}`}</h1> <p className="text-sm sm:text-base text-[var(--primary-text)] opacity-80">{(currentIslandConfig.targetGradeLevel === GradeLevel.FINAL) ? FINAL_ISLAND_EPIC_DIFFICULTY_TEXT : ISLAND_DIFFICULTY_TEXT_MAP[selectedIslandDifficulty]}</p> </div> <div className="flex items-center gap-3"> <div className={`text-lg sm:text-xl md:text-2xl font-bold flex items-center ${playerLives <= 1 ? 'text-red-500 animate-pulse' : 'text-[var(--accent-color)]'}`}> {Array.from({ length: MAX_PLAYER_LIVES }).map((_, i) => ( i < playerLives ? <HeartIconFilled key={i} className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" /> : <HeartIconBroken key={i} className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 opacity-50" /> ))} </div> <button onClick={handleBackToMap} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} className="bg-[var(--button-secondary-bg)] hover:opacity-90 active:brightness-90 text-[var(--button-secondary-text)] font-semibold py-1.5 px-3 rounded-md text-xs sm:text-sm"> {StopIcon && <StopIcon className="w-4 h-4 mr-1 inline"/>}{BACK_TO_MAP_TEXT} </button> </div> </header> <div className="w-full bg-[var(--border-color)] rounded-full h-2 sm:h-2.5 mb-2 sm:mb-3"> <div className="bg-[var(--accent-color)] h-full rounded-full transition-all duration-300 ease-linear" style={{ width: `${ ( (currentIslandConfig.targetGradeLevel === GradeLevel.FINAL ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND) > 0 ? ((currentQuestionIndexInIsland + 1) / (currentIslandConfig.targetGradeLevel === GradeLevel.FINAL ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND)) * 100 : 0)}%` }} ></div> </div> { (currentIslandConfig.targetGradeLevel === GradeLevel.FINAL && isLoadingNextFinalIslandQuestion) ? (<div className="flex-grow flex flex-col items-center justify-center"> <LoadingSpinner text={FINAL_ISLAND_LOADING_NEXT_CHALLENGE_TEXT} /> </div>) : ( <> <div className="flex-grow flex flex-col justify-center"> <QuestionDisplay question={currentQuestion} /> </div> <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-3"> {currentQuestion.options.map((option, index) => ( <AnswerOption key={index} optionText={option} onClick={() => { setSelectedAnswer(option); playSound(ANSWER_SELECT_SOUND_URL, 0.4); }} disabled={userAttemptShown || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))} isSelected={selectedAnswer === option} isCorrect={option === currentQuestion.correctAnswer} userAttemptShown={userAttemptShown} solutionRevealed={revealSolution} /> ))} </div> <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} /> <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-1 sm:mt-2"> <button onClick={handleHintRequest} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} disabled={isHintModalOpen || hintButtonUsed || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))} className={`flex-1 bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] font-semibold py-2.5 sm:py-3 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 ${hintButtonUsed ? 'opacity-60 cursor-not-allowed' : 'hover:bg-opacity-80 active:scale-95'}`} > <LightbulbIcon className="w-4 h-4 sm:w-5 sm:h-5" /> Gợi Ý {hintButtonUsed && "(Đã dùng)"} </button> <button onClick={handleAnswerSubmit} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} disabled={!selectedAnswer || userAttemptShown || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))} className={`flex-1 bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-4 rounded-lg shadow-xl text-sm sm:text-base transition-all duration-200 ${(!selectedAnswer || userAttemptShown || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))) ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 active:brightness-90'}`} > {(feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution)) ? (feedback.isCorrect ? "Câu Tiếp Theo" : "Tiếp Tục") : "Kiểm Tra Đáp Án"} </button> </div> <HintModal isOpen={isHintModalOpen} onClose={() => setIsHintModalOpen(false)} hint={hint} isLoading={isHintLoading} /> </> )} </div> </> )}
-      
-      {!['StartScreen', 'ThemeSelection', 'GradeSelection', 'IslandMap', 'IslandPlaying', 'IslandComplete', 'GradeComplete', 'Transitioning', 'Error', 'Shop', 'AccessoryCustomization', 'EndlessSummary'].includes(gameState) &&
-        !isIslandLoading && !apiKeyMissing && !(gameState === 'Transitioning' && transitionDetails) && (
-        <div className="w-full h-full flex items-center justify-center text-center p-4">
-          <LoadingSpinner text="Đang tải trò chơi..." />
-        </div>
-      )}
-
+       <HintModal isOpen={isHintModalOpen} onClose={() => setIsHintModalOpen(false)} hint={hint} isLoading={isHintLoading} />
       {showAchievementsScreen && ( <AchievementsScreen achievedAchievements={achievedAchievements} onClose={handleToggleAchievementsScreen} playSound={playSound} currentGradeContext={selectedGrade} collectedItems={collectedItems} allCollectibles={COLLECTIBLE_ITEMS} /> )}
       {showDailyChallengeModal && ( <DailyChallengeModal isOpen={showDailyChallengeModal} dailyChallenge={activeDailyChallenge} weeklyChallenge={activeWeeklyChallenge} onClose={handleToggleDailyChallengeModal} onClaimDailyReward={handleClaimDailyChallengeReward} onClaimWeeklyReward={handleClaimWeeklyChallengeReward} playSound={playSound} timeUntilNextDailyRefresh={timeUntilNextDailyChallengeRefresh} timeUntilNextWeeklyRefresh={timeUntilNextWeeklyChallengeRefresh}/> )}
       <ToastNotification toast={currentToast} onDismiss={() => setCurrentToast(null)} />

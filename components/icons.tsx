@@ -161,8 +161,8 @@ export const CogIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6
   </svg>
 );
 
-export const TreasureChestIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => ( // Using a simpler gift box icon
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+export const TreasureChestIcon: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-6 h-6", style }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} style={style}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h17.25c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125H3.375c-.621 0-1.125-.504-1.125-1.125v-3.75Z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v-5.25m0 5.25a1.5 1.5 0 0 1-1.5-1.5V12a1.5 1.5 0 0 1 1.5-1.5h.008a1.5 1.5 0 0 1 1.5 1.5v.008a1.5 1.5 0 0 1-1.5 1.5H12Zm0-5.25V6.375m0-1.5V3.75m0 1.5a1.5 1.5 0 0 1-1.5-1.5V3.75a1.5 1.5 0 0 1 1.5-1.5h.008a1.5 1.5 0 0 1 1.5 1.5v.008a1.5 1.5 0 0 1-1.5 1.5H12Z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 12.75h18" />

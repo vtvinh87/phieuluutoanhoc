@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { 
     GEMINI_API_MODEL,
@@ -12,7 +11,8 @@ import {
     QUESTIONS_PER_ISLAND,
     QUESTIONS_PER_FINAL_ISLAND, 
     ISLAND_CONFIGS, 
-    ENDLESS_QUESTIONS_BATCH_SIZE
+    ENDLESS_QUESTIONS_BATCH_SIZE,
+    FINAL_TREASURE_ISLAND_ID
 } from '../constants';
 import { GradeLevel, Question, QuestionType, IslandDifficulty, IslandConfig } from "../types";
 import { v4 as uuidv4 } from 'uuid';
@@ -64,23 +64,23 @@ export const generateMathQuestionsForIslandSet = async (
   const difficultyName = ISLAND_DIFFICULTY_TEXT_MAP[difficulty];
   const numberOfQuestionsToGenerate = targetGradeLevel === GradeLevel.FINAL ? QUESTIONS_PER_FINAL_ISLAND : QUESTIONS_PER_ISLAND;
 
-  // For Final Island, we will use generateSingleFinalIslandChallenge. This function handles non-final islands OR the old way for final island if needed.
-  if (targetGradeLevel === GradeLevel.FINAL) {
-      console.warn("generateMathQuestionsForIslandSet called for Final Island. Consider using generateSingleFinalIslandChallenge for sequential loading.");
-      // Fallback to generating all at once if this path is somehow still hit for Final Island batch.
-      // Or, ideally, this path should not be hit for Final Island if sequential loading is implemented in GameScreen.
-      // For now, let's keep the original batch prompt for Final Island here as a fallback or if needed elsewhere.
-      let prompt = `Bạn là một Người Gác Đền Cổ Xưa của Mê Cung Trí Tuệ, chuyên tạo ra những thử thách độc đáo và hóc búa bằng tiếng Việt cho những nhà thám hiểm ưu tú nhất.
-Hòn đảo này là "${islandName}", thử thách cuối cùng. Độ khó mặc định là "Sử Thi".
-Các thử thách nên tập trung vào các chủ đề: ${topics.join(', ')}.
+  let prompt: string;
 
-Bạn cần tạo một BỘ GỒM CHÍNH XÁC ${numberOfQuestionsToGenerate} THỬ THÁCH (câu đố/mật mã). Chúng phải được trả về dưới dạng một MẢNG JSON.
-Mỗi thử thách phải có 4 lựa chọn đáp án (nếu là câu đố trắc nghiệm) hoặc 1 đáp án dạng chữ/số ngắn gọn được trình bày như một lựa chọn duy nhất đúng trong 4 lựa chọn (ba lựa chọn còn lại là các phương án gây nhiễu hợp lý).
+  if (targetGradeLevel === GradeLevel.FINAL) {
+      const isUltimateIsland = islandId === FINAL_TREASURE_ISLAND_ID;
+      const epicDifficultyName = isUltimateIsland ? "Huyền Thoại" : "Sử Thi";
+      prompt = `Bạn là một Người Gác Đền Cổ Xưa của Mê Cung Trí Tuệ, chuyên tạo ra những thử thách độc đáo và hóc búa bằng tiếng Việt cho những nhà thám hiểm ưu tú nhất.
+Hòn đảo này là "${islandName}", một trong những thử thách cuối cùng.
+Độ khó mặc định là "${epicDifficultyName}" - nghĩa là cực kỳ khó, đòi hỏi tư duy sâu sắc và sáng tạo.
+Các thử thách nên tập trung vào các chủ đề: ${topics.join(', ')}, nhưng được biến tấu ở mức độ nâng cao, lắt léo hơn nhiều so với chương trình học thông thường.
+
+Bạn cần tạo một BỘ GỒM CHÍNH XÁC ${numberOfQuestionsToGenerate} THỬ THÁCH. Chúng phải được trả về dưới dạng một MẢNG JSON.
+Mỗi thử thách phải có 4 lựa chọn đáp án.
 
 YÊU CẦU QUAN TRỌNG VỀ CÁC THỬ THÁCH:
 - Sáng tạo, độc đáo, không theo khuôn mẫu toán học thông thường.
 - Thử thách khả năng suy luận logic, giải mã, tư duy không gian, và quan sát tinh tế.
-- Mỗi thử thách nên có độ khó tương đương nhau, ở mức "Sử Thi" - nghĩa là cần suy nghĩ kỹ, không quá dễ dàng.
+- Mỗi thử thách nên có độ khó tương đương nhau, ở mức "${epicDifficultyName}".
 - Ngắn gọn, dễ hiểu về mặt mô tả tình huống/câu đố.
 
 Định dạng JSON cho MỖI thử thách trong mảng (PHẢI TUÂN THỦ NGHIÊM NGẶT):
@@ -115,55 +115,15 @@ HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
 - Đảm bảo "correctAnswer" là một trong "options".
 - Cẩn thận với cú pháp JSON.
 `;
-      // ... rest of the batch generation logic for final island (if used)
-      // This part would be similar to the original function's Gemini call and parsing.
-      // However, the intention is to use generateSingleFinalIslandChallenge.
-      // This block will execute if generateMathQuestionsForIslandSet is explicitly called for GradeLevel.FINAL
-      // for batch generation.
-      let jsonStr = ""; 
-      let retries = 0;
-      while (retries <= MAX_QUESTION_GENERATION_RETRIES) {
-        try {
-          const response: GenerateContentResponse = await currentAi.models.generateContent({
-            model: GEMINI_API_MODEL, contents: prompt, config: { responseMimeType: "application/json" },
-          });
-          jsonStr = response.text.trim();
-          const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
-          const match = jsonStr.match(fenceRegex);
-          if (match && match[2]) jsonStr = match[2].trim();
-          let parsedQuestionDataArray = JSON.parse(jsonStr) as RawQuestionData[];
-          if (!Array.isArray(parsedQuestionDataArray)) throw new Error("Generated data is not an array.");
-          if (parsedQuestionDataArray.length > numberOfQuestionsToGenerate) parsedQuestionDataArray = parsedQuestionDataArray.slice(0, numberOfQuestionsToGenerate);
-          if (parsedQuestionDataArray.length !== numberOfQuestionsToGenerate) throw new Error(`Expected ${numberOfQuestionsToGenerate} questions, got ${parsedQuestionDataArray.length}.`);
-          
-          const processedQuestions: Question[] = [];
-          for (const rawQ of parsedQuestionDataArray) {
-            if (!rawQ.text || typeof rawQ.text !== 'string' || !rawQ.topic || typeof rawQ.topic !== 'string' || !Array.isArray(rawQ.options) || rawQ.options.length === 0 || !rawQ.options.every(opt => typeof opt === 'string') || !rawQ.correctAnswer || typeof rawQ.correctAnswer !== 'string' || !rawQ.options.includes(rawQ.correctAnswer)) {
-              throw new Error("Malformed question data in array."); 
-            }
-            processedQuestions.push({ id: uuidv4(), text: rawQ.text, targetGradeLevel, topic: rawQ.topic, type: QuestionType.MULTIPLE_CHOICE, options: rawQ.options, correctAnswer: rawQ.correctAnswer, islandName, islandId });
-          }
-          return processedQuestions; 
-        } catch (error) {
-          // Retry logic (same as below)
-          console.error(`Error in Final Island batch generation (attempt ${retries + 1}):`, error);
-          if (retries >= MAX_QUESTION_GENERATION_RETRIES) return null;
-          await delay(INITIAL_RETRY_DELAY_MS * Math.pow(2, retries));
-          retries++;
-        }
-      }
-      return null; // Should not reach here if retries exhausted
-  }
-
-
-  // Logic for non-Final islands (batch generation)
-  let topicInstruction = "";
-  if (topics && topics.length > 0) {
-    topicInstruction = `Các câu hỏi nên tập trung vào các chủ đề sau: ${topics.join(', ')}.`;
   } else {
-    topicInstruction = `Các câu hỏi nên phù hợp với chương trình học chung của ${gradeDescription}.`;
-  }
-  const prompt = `Bạn là một giáo viên tiểu học chuyên ra đề toán bằng tiếng Việt, có khả năng sáng tạo những câu hỏi vừa thử thách vừa thú vị cho học sinh trình độ ${gradeDescription}.
+    // Logic for non-Final islands (batch generation)
+    let topicInstruction = "";
+    if (topics && topics.length > 0) {
+      topicInstruction = `Các câu hỏi nên tập trung vào các chủ đề sau: ${topics.join(', ')}.`;
+    } else {
+      topicInstruction = `Các câu hỏi nên phù hợp với chương trình học chung của ${gradeDescription}.`;
+    }
+    prompt = `Bạn là một giáo viên tiểu học chuyên ra đề toán bằng tiếng Việt, có khả năng sáng tạo những câu hỏi vừa thử thách vừa thú vị cho học sinh trình độ ${gradeDescription}.
 Hòn đảo hiện tại là: "${islandName}".
 ${topicInstruction}
 
@@ -227,6 +187,7 @@ HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
 - Đảm bảo "correctAnswer" của mỗi câu là một trong các giá trị trong mảng "options" của câu đó.
 - Hãy cực kỳ cẩn thận với cú pháp JSON: đảm bảo tất cả các chuỗi được trích dẫn kép chính xác, dấu phẩy được đặt đúng giữa các phần tử và thuộc tính đối tượng, tất cả các dấu ngoặc nhọn ({}) và dấu ngoặc vuông ([]) đều được khớp và đóng đúng cách. Không có từ hoặc ký tự thừa nào trong cấu trúc mảng JSON, chỉ có các đối tượng JSON hợp lệ được phân tách bằng dấu phẩy.
 `;
+  }
   
   let jsonStr = ""; 
   let retries = 0;
@@ -350,138 +311,6 @@ HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
   console.error(`Exited retry loop without success or explicit failure for ${islandName} (${difficultyName}). Question set generation failed.`);
   return null; 
 };
-
-
-export const generateSingleFinalIslandChallenge = async (
-    challengeIndex: number, // 0-based index
-    islandConfig: IslandConfig,
-    difficulty: IslandDifficulty // Should typically be HARD for Final Island
-  ): Promise<Question | null> => {
-    const currentAi = initializeAi();
-    if (!currentAi) {
-      console.error(API_KEY_ERROR_MESSAGE);
-      return null;
-    }
-  
-    const { name: islandName, islandId, topics, targetGradeLevel } = islandConfig;
-    const difficultyName = ISLAND_DIFFICULTY_TEXT_MAP[difficulty];
-  
-    const prompt = `Bạn là một Người Gác Đền Cổ Xưa của Mê Cung Trí Tuệ, chuyên tạo ra những thử thách độc đáo và hóc búa bằng tiếng Việt cho những nhà thám hiểm ưu tú nhất.
-Hòn đảo này là "${islandName}", thử thách cuối cùng.
-Bạn cần tạo THỬ THÁCH THỨ ${challengeIndex + 1} trong tổng số ${QUESTIONS_PER_FINAL_ISLAND} thử thách cho hòn đảo này.
-Độ khó của thử thách này phải là "Sử Thi" (${difficultyName}).
-Các thử thách nên tập trung vào các chủ đề: ${topics.join(', ')}.
-  
-YÊU CẦU QUAN TRỌNG VỀ THỬ THÁCH NÀY:
-- Sáng tạo, độc đáo, không theo khuôn mẫu toán học thông thường.
-- Thử thách khả năng suy luận logic, giải mã, tư duy không gian, và quan sát tinh tế.
-- Ngắn gọn, dễ hiểu về mặt mô tả tình huống/câu đố.
-  
-Hãy trả về MỘT đối tượng JSON duy nhất (KHÔNG phải một mảng) cho thử thách này.
-Định dạng JSON cho đối tượng thử thách (PHẢI TUÂN THỦ NGHIÊM NGẶT):
-- "text": Nội dung thử thách/câu đố/mô tả mật mã (string).
-- "topic": Chủ đề chính của thử thách (string, ví dụ: "Câu đố logic", "Mật mã Caesar", "Suy luận hình ảnh").
-- "options": Một mảng gồm 4 chuỗi là các lựa chọn đáp án (string[]). Một trong số đó phải là đáp án đúng. Ba lựa chọn còn lại là các phương án gây nhiễu hợp lý.
-- "correctAnswer": Chuỗi đáp án đúng (string), phải là một trong các giá trị của "options".
-LƯU Ý: KHÔNG được thêm bất kỳ trường nào khác.
-  
-Ví dụ cấu trúc đối tượng JSON mong muốn:
-{
-  "text": "Nếu hôm qua là ngày kia của thứ Sáu, thì ngày mai là thứ mấy?",
-  "topic": "Câu đố logic thời gian",
-  "options": ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm"],
-  "correctAnswer": "Thứ Ba"
-}
-  
-HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
-- Chỉ trả về duy nhất MỘT đối tượng JSON.
-- Nội dung thử thách, chủ đề, và các lựa chọn phải hoàn toàn bằng tiếng Việt.
-- Đảm bảo "correctAnswer" là một trong "options".
-- Cẩn thận với cú pháp JSON (dấu ngoặc kép, dấu phẩy, dấu ngoặc nhọn).`;
-  
-    let jsonStr = "";
-    let retries = 0;
-  
-    while (retries <= MAX_QUESTION_GENERATION_RETRIES) {
-      try {
-        const response: GenerateContentResponse = await currentAi.models.generateContent({
-          model: GEMINI_API_MODEL,
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-            // For single, critical questions, allow thinking. For less critical/batch, consider budget 0.
-            // thinkingConfig: { thinkingBudget: 0 } // Potentially faster if quality holds
-          },
-        });
-  
-        jsonStr = response.text.trim();
-        const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
-        const match = jsonStr.match(fenceRegex);
-        if (match && match[2]) {
-          jsonStr = match[2].trim();
-        }
-  
-        const rawQ = JSON.parse(jsonStr) as RawQuestionData;
-  
-        if (
-          !rawQ || typeof rawQ !== 'object' || Array.isArray(rawQ) || // Ensure it's an object, not an array
-          !rawQ.text || typeof rawQ.text !== 'string' ||
-          !rawQ.topic || typeof rawQ.topic !== 'string' ||
-          !Array.isArray(rawQ.options) || rawQ.options.length !== 4 || // Expect exactly 4 options
-          !rawQ.options.every(opt => typeof opt === 'string') ||
-          !rawQ.correctAnswer || typeof rawQ.correctAnswer !== 'string' ||
-          !rawQ.options.includes(rawQ.correctAnswer)
-        ) {
-          console.error(`Malformed single challenge data (index ${challengeIndex}):`, rawQ, "Original JSON:", jsonStr);
-          throw new Error(`Malformed single challenge data (index ${challengeIndex}).`);
-        }
-  
-        return {
-          id: uuidv4(),
-          text: rawQ.text,
-          targetGradeLevel: targetGradeLevel,
-          topic: rawQ.topic,
-          type: QuestionType.MULTIPLE_CHOICE,
-          options: rawQ.options,
-          correctAnswer: rawQ.correctAnswer,
-          islandName: islandName,
-          islandId: islandId,
-        };
-  
-      } catch (error) {
-        console.error(`Error generating single Final Island challenge (index ${challengeIndex}, attempt ${retries + 1}):`, error);
-        // Similar retry logic as generateMathQuestionsForIslandSet
-        let isRateLimitError = false, isApiKeyError = false, isJsonParseOrFormatError = false;
-        if (error instanceof Error) {
-            const msg = error.message.toLowerCase();
-            if (msg.includes("429") || msg.includes("resource_exhausted") || msg.includes("rate limit")) isRateLimitError = true;
-            if (msg.includes('api key not valid')) isApiKeyError = true;
-            if (error instanceof SyntaxError || msg.includes('json parse error') || msg.includes('malformed') || msg.includes('unexpected token')) isJsonParseOrFormatError = true;
-        } else if (typeof error === 'object' && error !== null) {
-            const strError = String(error).toLowerCase();
-            if (strError.includes("429") || strError.includes("resource_exhausted")) isRateLimitError = true;
-        }
-
-        if (isApiKeyError) { console.error("API Key invalid for single challenge. No retries."); return null; }
-        if (isRateLimitError || isJsonParseOrFormatError) {
-          if (retries < MAX_QUESTION_GENERATION_RETRIES) {
-            const delayMs = INITIAL_RETRY_DELAY_MS * Math.pow(2, retries);
-            console.log(`Retrying single challenge fetch in ${delayMs}ms...`);
-            await delay(delayMs);
-            retries++;
-          } else {
-            console.error(`Max retries for single challenge (index ${challengeIndex}).`);
-            return null;
-          }
-        } else {
-          console.error("Non-retryable error for single challenge.");
-          return null;
-        }
-      }
-    }
-    return null; // Should not be reached if retry logic is correct
-  };
-
 
 export const getMathHint = async (questionText: string, studentTargetGrade: GradeLevel): Promise<string> => {
   const currentAi = initializeAi();

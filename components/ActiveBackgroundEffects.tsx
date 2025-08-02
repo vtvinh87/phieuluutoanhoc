@@ -9,6 +9,8 @@ interface ActiveBackgroundEffectsProps {
   allAccessoriesDetails: ThemeAccessory[];
   triggerConfetti?: boolean;
   onConfettiComplete?: () => void;
+  triggerTreasureSparkle?: boolean;
+  onTreasureSparkleComplete?: () => void;
 }
 
 interface Particle {
@@ -28,6 +30,8 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
   allAccessoriesDetails,
   triggerConfetti,
   onConfettiComplete,
+  triggerTreasureSparkle,
+  onTreasureSparkleComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesArrayRef = useRef<Particle[]>([]);
@@ -43,6 +47,36 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
       (acc) => acc.id === effectId && acc.type === AccessoryType.BACKGROUND_EFFECT
     ) as ThemeAccessory | undefined;
   }, [playerActiveAccessories, currentTheme, allAccessoriesDetails]);
+
+  const drawStar = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, opacity: number) => {
+    const spikes = 5;
+    const outerRadius = size;
+    const innerRadius = size / 2;
+    let rot = (Math.PI / 2) * 3;
+    let step = Math.PI / spikes;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = color;
+    
+    ctx.moveTo(x, y - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      let currentX = x + Math.cos(rot) * outerRadius;
+      let currentY = y + Math.sin(rot) * outerRadius;
+      ctx.lineTo(currentX, currentY);
+      rot += step;
+
+      currentX = x + Math.cos(rot) * innerRadius;
+      currentY = y + Math.sin(rot) * innerRadius;
+      ctx.lineTo(currentX, currentY);
+      rot += step;
+    }
+    ctx.lineTo(x, y - outerRadius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }, []);
 
   const initParticles = useCallback((config: BackgroundEffectConfig, canvas: HTMLCanvasElement) => {
     particlesArrayRef.current = [];
@@ -68,46 +102,24 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
         speedX: baseSpeedX,
         speedY: baseSpeedY,
         color,
-        opacity: Math.random() * 0.5 + 0.3, 
+        opacity: config.opacity !== undefined ? config.opacity : (Math.random() * 0.5 + 0.3),
         shape: particleShape as 'circle' | 'star' | 'square',
       });
     }
   }, []);
   
-  const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, opacity: number) => {
-    const spikes = 5;
-    const outerRadius = size;
-    const innerRadius = size / 2;
-    let rot = (Math.PI / 2) * 3;
-    let step = Math.PI / spikes;
-
-    ctx.beginPath();
-    ctx.moveTo(x, y - outerRadius);
-    for (let i = 0; i < spikes; i++) {
-      let currentX = x + Math.cos(rot) * outerRadius;
-      let currentY = y + Math.sin(rot) * outerRadius;
-      ctx.lineTo(currentX, currentY);
-      rot += step;
-
-      currentX = x + Math.cos(rot) * innerRadius;
-      currentY = y + Math.sin(rot) * innerRadius;
-      ctx.lineTo(currentX, currentY);
-      rot += step;
-    }
-    ctx.lineTo(x, y - outerRadius);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.globalAlpha = opacity;
-    ctx.fill();
-  };
-
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
     const config = currentEffectConfigRef.current;
 
-    if (!canvas || !config || (config as any).oneShot || (config as any).target === 'feedbackIndicator') {
-      animationFrameIdRef.current = null; // Stop animation if no canvas, no config, or it's a one-shot/targeted effect
+    if (!canvas || !config || (config as any).oneShot || (config as any).target ) {
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+      const ctx = canvas?.getContext('2d');
+      ctx?.clearRect(0,0,canvas.width, canvas.height);
       return;
     }
     const ctx = canvas.getContext('2d');
@@ -127,23 +139,27 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
       if (particle.y > canvas.height + particle.size) particle.y = -particle.size;
       else if (particle.y < -particle.size) particle.y = canvas.height + particle.size;
       
-      ctx.globalAlpha = particle.opacity;
       if (particle.shape === 'star') {
         drawStar(ctx, particle.x, particle.y, particle.size, particle.color, particle.opacity);
       } else if (particle.shape === 'square') {
+        ctx.save();
+        ctx.globalAlpha = particle.opacity;
         ctx.fillStyle = particle.color;
         ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
-      } else { 
+        ctx.restore();
+      } else { // circle
+        ctx.save();
+        ctx.globalAlpha = particle.opacity;
         ctx.fillStyle = particle.color;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
-       ctx.globalAlpha = 1; 
     });
 
     animationFrameIdRef.current = requestAnimationFrame(animate);
-  }, []);
+  }, [drawStar]); 
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -152,8 +168,9 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      if (currentEffectConfigRef.current && !(currentEffectConfigRef.current as any).oneShot && !(currentEffectConfigRef.current as any).target) {
-        initParticles(currentEffectConfigRef.current, canvas);
+      const configForResize = currentEffectConfigRef.current;
+      if (configForResize && !(configForResize as any).oneShot && !(configForResize as any).target) {
+        initParticles(configForResize, canvas);
       }
     };
 
@@ -161,8 +178,7 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
       const config = activeBackgroundEffect.config as BackgroundEffectConfig;
       currentEffectConfigRef.current = config;
 
-      if ((config as any).target === 'feedbackIndicator' || (config as any).oneShot) {
-          // If it's a one-shot or targeted, don't start continuous animation loop for this component's canvas
+      if ((config as any).oneShot || (config as any).target) {
           particlesArrayRef.current = [];
           if (animationFrameIdRef.current) {
             cancelAnimationFrame(animationFrameIdRef.current);
@@ -171,7 +187,6 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
           const ctx = canvas.getContext('2d');
           ctx?.clearRect(0,0,canvas.width, canvas.height);
       } else {
-        // For continuous effects
         resizeCanvas(); 
         if (!animationFrameIdRef.current) {
           animate();
@@ -199,43 +214,72 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
     };
   }, [activeBackgroundEffect, initParticles, animate]);
 
-  // Effect for handling confetti trigger
+  // Effect for handling "Correct Answer" confetti
   useEffect(() => {
     if (triggerConfetti && activeBackgroundEffect?.id === 'universal_confetti_correct') {
       const config = activeBackgroundEffect.config as BackgroundEffectConfig;
       
-      let originConfig = { x: 0.5, y: 0.6 }; // Default origin
+      let originConfig = { x: 0.5, y: 0.3 }; 
 
-      // Try to find FeedbackIndicator and target confetti there
       const feedbackIndicatorElement = document.querySelector('.animate-fadeIn[role="alert"]');
       if (feedbackIndicatorElement) {
         const rect = feedbackIndicatorElement.getBoundingClientRect();
-        // Calculate center of the element relative to viewport
         const x = (rect.left + rect.right) / 2;
-        const y = (rect.top + rect.bottom) / 2;
-        // Convert to confetti's 0-1 scale
+        const y = rect.top;
         originConfig = {
           x: x / window.innerWidth,
-          y: y / window.innerHeight,
+          y: (y / window.innerHeight) - 0.05,
         };
       }
 
       confetti({
-        particleCount: config.count || 150, // Use config count or default
-        spread: 70,
+        particleCount: config.count || 120,
+        spread: 90,
         origin: originConfig,
-        colors: Array.isArray(config.particleColor) ? config.particleColor : [config.particleColor || '#FFC700'],
-        scalar: (config.size || 3) / 2.5, // Adjust scalar if needed
-        zIndex: 10000, // Ensure confetti is on top
+        colors: Array.isArray(config.particleColor) ? config.particleColor : ['#FFC700', '#FF69B4', '#00F5D4'],
+        scalar: (config.size || 1.1),
+        shapes: ['star', 'circle', 'square'],
+        decay: 0.92,
+        zIndex: 10000,
       });
       onConfettiComplete?.();
     }
   }, [triggerConfetti, activeBackgroundEffect, onConfettiComplete]);
 
+  // Effect for handling "Treasure Open Sparkle"
+  useEffect(() => {
+    if (triggerTreasureSparkle && activeBackgroundEffect?.id === 'universal_treasure_open_sparkle') {
+      const config = activeBackgroundEffect.config as BackgroundEffectConfig;
+      let originConfig = { x: 0.5, y: 0.5 };
 
-  if (!activeBackgroundEffect || (activeBackgroundEffect.config as any).oneShot || (activeBackgroundEffect.config as any).target === 'feedbackIndicator') {
-    // Don't render this component's canvas if the effect is one-shot (like confetti) or specifically targeted elsewhere.
-    // Confetti will be handled by its own useEffect.
+      const targetElement = document.getElementById('treasure-chest-modal-icon-target');
+      if (targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        originConfig = {
+          x: x / window.innerWidth,
+          y: y / window.innerHeight,
+        };
+      }
+      
+      confetti({
+        particleCount: config.count || 150,
+        spread: 120,
+        origin: originConfig,
+        colors: Array.isArray(config.particleColor) ? config.particleColor : ['#FFD700', '#FFA500', '#FFFACD'],
+        shapes: ['star'],
+        scalar: config.size || 1.2,
+        gravity: 0.3,
+        decay: 0.9,
+        zIndex: 10000,
+      });
+      onTreasureSparkleComplete?.();
+    }
+  }, [triggerTreasureSparkle, activeBackgroundEffect, onTreasureSparkleComplete]);
+
+
+  if (!activeBackgroundEffect || (activeBackgroundEffect.config as any).oneShot || (activeBackgroundEffect.config as any).target) {
     return null; 
   }
 
@@ -248,7 +292,7 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1, 
+        zIndex: 0, // Changed from -1 to 0
         pointerEvents: 'none',
       }}
     />
@@ -256,3 +300,4 @@ const ActiveBackgroundEffects: React.FC<ActiveBackgroundEffectsProps> = ({
 };
 
 export default ActiveBackgroundEffects;
+

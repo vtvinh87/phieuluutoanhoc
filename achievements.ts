@@ -1,10 +1,9 @@
-
 import { Achievement, GradeLevel, IslandConfig, IslandDifficulty, IslandProgressState, IslandStarRatingsState, AllGradesStarRatingsState, CollectedItemsState, AchievementContext } from './types';
 import { ISLAND_CONFIGS, ISLANDS_PER_GRADE, COLLECTIBLE_ITEMS, GRADE_LEVEL_TEXT_MAP, FINAL_TREASURE_ISLAND_ID } from './constants';
 
 const getIslandsForGrade = (grade: GradeLevel, allConfigs: IslandConfig[]): IslandConfig[] => {
   if (grade === GradeLevel.FINAL) {
-    return allConfigs.filter(island => island.islandId === FINAL_TREASURE_ISLAND_ID);
+    return allConfigs.filter(island => island.targetGradeLevel === GradeLevel.FINAL);
   }
   return allConfigs.filter(island => island.targetGradeLevel === grade && island.islandId !== FINAL_TREASURE_ISLAND_ID);
 };
@@ -306,9 +305,25 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     condition: (context: AchievementContext) => !!context.isFinalIslandUnlocked
   },
   {
+    id: 'ACH_FINAL_CHALLENGER',
+    name: 'Thử Thách Gia Tối Thượng',
+    description: () => 'Hoàn thành tất cả 5 hòn đảo thử thách chính.',
+    icon: '⚔️',
+    gradeSpecific: false,
+    isGlobal: true,
+    condition: (context: AchievementContext) => {
+        const { allGradesProgress, allGradeIslandConfigs } = context;
+        if (!allGradesProgress || !allGradeIslandConfigs || !allGradesProgress[GradeLevel.FINAL]) return false;
+        const finalProgress = allGradesProgress[GradeLevel.FINAL];
+        const mainFinalIslands = allGradeIslandConfigs.filter(i => i.targetGradeLevel === GradeLevel.FINAL && i.islandNumber <= 5);
+        if (mainFinalIslands.length < 5) return false;
+        return mainFinalIslands.every(island => finalProgress[island.islandId] === 'completed');
+    }
+  },
+  {
     id: 'ACH_TREASURE_LEGEND',
     name: 'Huyền Thoại Đảo Kho Báu',
-    description: () => 'Hoàn thành Đảo Thử Thách Tối Thượng.',
+    description: () => 'Hoàn thành Thánh Địa Trí Tuệ Tối Thượng.',
     icon: '👑💎',
     gradeSpecific: false,
     isGlobal: true,

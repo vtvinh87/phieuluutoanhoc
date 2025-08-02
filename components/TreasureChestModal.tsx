@@ -28,6 +28,7 @@ interface TreasureChestModalProps {
   onClose: (pointsAwarded: number) => void;
   playSound: (soundUrl: string, volume?: number) => void;
   themeConfig: ThemeConfig;
+  onChestActuallyOpened?: () => void;
 }
 
 type RewardType = 'points' | 'quiz' | 'nothing';
@@ -39,6 +40,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
   onClose,
   playSound,
   themeConfig,
+  onChestActuallyOpened,
 }) => {
   const [isOpening, setIsOpening] = useState(true);
   const [chestOpened, setChestOpened] = useState(false);
@@ -51,9 +53,9 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
 
   const determineReward = () => {
     const rand = Math.random();
-    if (rand < 0.50) return 'points'; // 50% chance for points
-    if (rand < 0.75) return 'quiz';   // 25% chance for quiz (0.50 + 0.25)
-    return 'nothing';                // 25% chance for nothing
+    if (rand < 0.50) return 'points'; 
+    if (rand < 0.75) return 'quiz';   
+    return 'nothing';                
   };
 
   const getRandomInt = (min: number, max: number) => {
@@ -71,12 +73,21 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
       setIsQuizCorrect(null);
       setPointsFromChest(0);
 
-      playSound(TREASURE_OPEN_SOUND_URL, 0.6); // Sound when modal appears (chest appears)
+      playSound(TREASURE_OPEN_SOUND_URL, 0.6); 
 
-      // Simulate chest opening animation
       const openTimer = setTimeout(() => {
         setIsOpening(false);
         setChestOpened(true);
+        // onChestActuallyOpened will be called in the next useEffect when chestOpened and !isOpening
+      }, 1200); 
+
+      return () => clearTimeout(openTimer);
+    }
+  }, [isOpen, playSound]);
+
+  useEffect(() => {
+    if (chestOpened && !isOpening) {
+        onChestActuallyOpened?.(); // Trigger sparkle effect
         const determinedReward = determineReward();
         setRewardType(determinedReward);
 
@@ -87,13 +98,11 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
           const randomQuiz = FUN_QUIZZES[Math.floor(Math.random() * FUN_QUIZZES.length)];
           setCurrentQuiz(randomQuiz);
         } else {
-            setPointsFromChest(0); // For "nothing" case
+            setPointsFromChest(0); 
         }
-      }, 1200); // Duration of "opening" animation
-
-      return () => clearTimeout(openTimer);
     }
-  }, [isOpen, playSound]);
+  }, [chestOpened, isOpening, onChestActuallyOpened]);
+
 
   const handleQuizSubmit = () => {
     if (!currentQuiz) return;
@@ -162,90 +171,102 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
               onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
               className="w-full bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-4 rounded-lg shadow-md text-base sm:text-lg disabled:opacity-60"
             >
-              Trả Lời
+              Trả lời
             </button>
           </div>
         );
+      } else { // Feedback phase
+        return (
+          <div className="text-center animate-fadeIn">
+            {isQuizCorrect ? (
+              <CheckCircleIcon className="w-12 h-12 mx-auto text-[var(--correct-bg)] mb-2" />
+            ) : (
+              <XCircleIcon className="w-12 h-12 mx-auto text-[var(--incorrect-bg)] mb-2" />
+            )}
+            <p className={`text-lg sm:text-xl font-semibold mb-1 ${isQuizCorrect ? 'text-[var(--correct-text)]' : 'text-[var(--incorrect-text)]'}`}>
+              {isQuizCorrect ? TREASURE_CHEST_QUIZ_CORRECT_MESSAGE(pointsFromChest) : TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE}
+            </p>
+            {!isQuizCorrect && (
+              <p className="text-sm sm:text-base text-[var(--secondary-text)]">
+                Đáp án đúng là: {currentQuiz.answer}
+              </p>
+            )}
+          </div>
+        );
       }
-      // Quiz Feedback Phase
-      return (
-        <div className="text-center animate-fadeIn">
-          {isQuizCorrect ? (
-            <CheckCircleIcon className="w-12 h-12 mx-auto text-[var(--correct-bg)] mb-2" />
-          ) : (
-            <XCircleIcon className="w-12 h-12 mx-auto text-[var(--incorrect-bg)] mb-2" />
-          )}
-          <p className={`text-lg sm:text-xl font-semibold mb-1 ${isQuizCorrect ? 'text-[var(--correct-text)]' : 'text-[var(--incorrect-text)]'}`}>
-            {isQuizCorrect ? TREASURE_CHEST_QUIZ_CORRECT_MESSAGE(pointsFromChest) : TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE}
-          </p>
-          {!isQuizCorrect && <p className="text-sm sm:text-base text-[var(--secondary-text)]">Đáp án đúng là: {currentQuiz.answer}</p>}
-        </div>
-      );
     }
     if (rewardType === 'nothing') {
       return (
         <div className="text-center animate-fadeIn">
-          <SparklesIcon className="w-12 h-12 mx-auto text-[var(--secondary-text)] opacity-70 mb-3" />
-          <p className="text-md sm:text-lg">{TREASURE_CHEST_THANKS_MESSAGE}</p>
+          <SparklesIcon className="w-16 h-16 mx-auto text-[var(--secondary-text)] opacity-70 mb-3" />
+          <p className="text-lg sm:text-xl font-medium">{TREASURE_CHEST_THANKS_MESSAGE}</p>
         </div>
       );
     }
-    return <LoadingSpinner text="Đang mở rương..." />; // Should not be visible for long
+    return (
+      <div className="h-24 flex items-center justify-center">
+        <LoadingSpinner text="Đang mở rương..." />
+      </div>
+    );
   };
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-4 z-[60] transition-opacity duration-300 bg-[var(--modal-bg-backdrop)]`}
-      onClick={handleCloseModal} // Close if backdrop is clicked
+      className={`fixed inset-0 flex items-center justify-center p-4 z-[70] transition-opacity duration-300 bg-[var(--modal-bg-backdrop)] animate-fadeIn`}
+      onClick={handleCloseModal}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="treasure-chest-modal-title"
+      aria-labelledby="treasure-modal-title"
     >
       <div
-        className={`p-5 sm:p-7 rounded-xl shadow-2xl w-full max-w-md relative transform transition-all duration-300 scale-100 animate-slideUp text-[var(--primary-text)] border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}
+        className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-md relative transform transition-all duration-300 scale-100 animate-slideUp text-[var(--primary-text)] border-2 border-[var(--border-color)] ${themeConfig.frostedGlassOpacity || ''}`}
         style={{ background: themeConfig.modalContentBg }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={handleCloseModal}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors"
-          aria-label={CLOSE_BUTTON_TEXT}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-7 h-7 sm:w-8 sm:h-8">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <h2 id="treasure-chest-modal-title" className="text-xl sm:text-2xl font-bold text-[var(--modal-header-text)] mb-3 text-center">
-          {TREASURE_MODAL_TITLE}
-        </h2>
-        <p className="text-center text-sm sm:text-md text-[var(--secondary-text)] opacity-80 mb-4 sm:mb-5">
-            Tại đảo: <span className="font-semibold">{islandName}</span>
-        </p>
-
-        <div className="flex flex-col items-center justify-center min-h-[150px] sm:min-h-[180px] my-3">
-          {isOpening && (
-            <div className="animate-pulse">
-                <TreasureChestIcon className="w-24 h-24 sm:w-32 sm:h-32 text-[var(--accent-color)] opacity-80" />
-            </div>
-          )}
-          {chestOpened && !isOpening && (
-            <>
-                {!rewardType && <LoadingSpinner text="Xem nào..."/>}
-                {rewardType && renderRewardContent()}
-            </>
-          )}
-        </div>
-
-        {chestOpened && !isOpening && rewardType && (quizPhase === 'question' && rewardType === 'quiz' ? null : ( // Don't show close button during quiz question phase
+        {!chestOpened && (
             <button
-                onClick={handleCloseModal}
-                onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)}
-                className="mt-4 sm:mt-5 w-full bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold py-2.5 sm:py-3 px-4 rounded-lg shadow-md text-base sm:text-lg"
+            onClick={handleCloseModal}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-[var(--primary-text)] hover:opacity-70 active:opacity-50 transition-colors z-20"
+            aria-label={CLOSE_BUTTON_TEXT}
             >
-                {CLOSE_BUTTON_TEXT}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-7 h-7 sm:w-8 sm:h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
             </button>
-        ))}
+        )}
+        <header className="text-center mb-4 sm:mb-5">
+            {/* Add id here for targeting by sparkle effect */}
+           <div id="treasure-chest-modal-icon-target" className="inline-block">
+                <TreasureChestIcon
+                    className={`
+                    w-20 h-20 sm:w-24 sm:h-24 mx-auto text-[var(--accent-color)] mb-2 sm:mb-3
+                    transition-transform duration-1000 ease-in-out
+                    ${isOpening ? 'animate-bounce' : ''}
+                    ${chestOpened ? 'transform scale-110 -rotate-6' : ''}
+                    `}
+                    style={chestOpened ? { filter: 'drop-shadow(0 0 10px gold)' } : {}}
+                />
+            </div>
+          <h2 id="treasure-modal-title" className="text-xl md:text-2xl font-bold text-[var(--modal-header-text)]">
+            {TREASURE_MODAL_TITLE}
+          </h2>
+          <p className="text-sm text-[var(--secondary-text)] opacity-80 mt-1">
+            Tại: <span className="font-semibold">{islandName}</span>
+          </p>
+        </header>
+
+        <div className="my-4 min-h-[80px] sm:min-h-[100px] flex items-center justify-center">
+          {isOpening ? <LoadingSpinner text="Đang mở..." /> : renderRewardContent()}
+        </div>
+        
+        {chestOpened && (
+            <button
+            onClick={handleCloseModal}
+            className="mt-6 w-full bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-text)] font-bold py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-lg"
+            >
+            {CLOSE_BUTTON_TEXT}
+            </button>
+        )}
       </div>
     </div>
   );

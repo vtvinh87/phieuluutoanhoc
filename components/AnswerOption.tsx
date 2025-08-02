@@ -27,6 +27,8 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
   let textColorClass = 'text-[var(--button-answer-option-text)]';
   let ringColorClass = 'ring-[var(--button-answer-option-ring)] focus:ring-[var(--button-answer-option-ring)]';
   let currentOpacity = 'opacity-100';
+  // Use CSS variable for shadow, with a fallback to Tailwind's shadow-md
+  let shadowClass = 'shadow-[var(--button-answer-option-shadow,theme(boxShadow.md))]';
 
 
   if (userAttemptShown) {
@@ -41,13 +43,12 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
           textColorClass = 'text-[var(--correct-text)]';
           ringColorClass = 'ring-[var(--correct-ring)] focus:ring-[var(--correct-ring)]';
         } else { 
-          bgColorClass = 'bg-gray-500'; // Neutral for incorrect, unselected, revealed
+          bgColorClass = 'bg-gray-500'; 
           textColorClass = 'text-gray-300';
           ringColorClass = 'ring-gray-400 focus:ring-gray-400';
           currentOpacity = 'opacity-60';
         }
       } else {
-         // Default button style, but slightly dimmed as it's not the selected one during an attempt
          bgColorClass = 'bg-[var(--button-answer-option-bg)]';
          textColorClass = 'text-[var(--button-answer-option-text)]';
          ringColorClass = 'ring-[var(--button-answer-option-ring)] focus:ring-[var(--button-answer-option-ring)]';
@@ -65,7 +66,7 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={`
-        w-full p-3 sm:p-4 md:p-4 rounded-lg shadow-md transition-all duration-200 ease-in-out
+        w-full p-3 sm:p-4 md:p-4 rounded-lg ${shadowClass} transition-all duration-200 ease-in-out
         text-sm sm:text-base md:text-lg font-semibold focus:outline-none focus:ring-2 sm:focus:ring-4 
         ${bgColorClass} ${textColorClass} ${ringColorClass} ${currentOpacity}
         ${disabled && !userAttemptShown ? 'opacity-60 cursor-not-allowed' : ''}

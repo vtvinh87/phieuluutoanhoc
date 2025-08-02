@@ -1,9 +1,9 @@
 import { GradeLevel, IslandConfig, IslandDifficulty, Theme, FunQuiz, MessageInBottleContent, FriendlyNPC, NPCInteraction, CollectibleItem, DailyChallengeDefinition, DailyChallengeType, WeeklyChallengeDefinition, WeeklyChallengeType, ThemeAccessory, AccessoryType, UIAccentConfig, SoundPackVariationConfig, BackgroundEffectConfig, CursorTrailConfig } from './types';
 
-export const GEMINI_API_MODEL = 'gemini-2.5-flash-preview-04-17';
+export const GEMINI_API_MODEL = 'gemini-2.5-flash';
 
 export const QUESTIONS_PER_ISLAND = 5;
-export const QUESTIONS_PER_FINAL_ISLAND = 4; // Số lượng câu hỏi/thử thách đặc biệt cho đảo cuối
+export const QUESTIONS_PER_FINAL_ISLAND = 5; // Số lượng câu hỏi/thử thách đặc biệt cho đảo cuối
 export const MAX_PLAYER_LIVES = 3;
 export const ISLANDS_PER_GRADE = 10;
 
@@ -58,6 +58,7 @@ export const VIEW_ACHIEVEMENTS_BUTTON_TEXT = "Xem Huy Hiệu";
 export const ACHIEVEMENTS_SCREEN_TITLE = "Bộ Sưu Tập Huy Hiệu";
 export const NO_ACHIEVEMENTS_YET_TEXT = "Bạn chưa đạt được huy hiệu nào. Tiếp tục khám phá nhé!";
 export const FILTER_ALL_ACHIEVEMENTS_TEXT = "Tất cả Huy hiệu";
+export const FILTER_GRADE_ACHIEVEMENTS_TEXT = (grade: GradeLevel): string => `Huy hiệu Lớp ${GRADE_LEVEL_TEXT_MAP[grade]}`;
 export const FILTER_GLOBAL_ACHIEVEMENTS_TEXT = "Huy hiệu Toàn Cầu";
 export const CLOSE_BUTTON_TEXT = "Đóng";
 export const ACHIEVED_ON_TEXT = "Đạt được lúc:";
@@ -76,6 +77,7 @@ export const SHOP_BACK_BUTTON_TEXT = "Quay Lại Chọn Lớp";
 export const MANAGE_ACCESSORIES_BUTTON_TEXT = "Tùy Chỉnh Giao Diện";
 export const ACCESSORY_CUSTOMIZATION_MODAL_TITLE = "Tùy Chỉnh Phụ Kiện Giao Diện";
 export const CHOOSE_THEME_TO_CUSTOMIZE_TEXT = "Chọn Giao Diện để Tùy Chỉnh";
+export const ACCESSORIES_FOR_THEME_TEXT = (themeName: string) => `Phụ kiện cho Giao Diện: ${themeName}`;
 export const ACTIVATE_FOR_THIS_THEME_TEXT = "Kích hoạt cho giao diện này";
 export const NO_OWNED_COMPATIBLE_ACCESSORIES_TEXT = "Bạn chưa sở hữu phụ kiện nào tương thích với giao diện này.";
 export const DEACTIVATE_TEXT = "Hủy Kích Hoạt";
@@ -91,13 +93,12 @@ export const REWARD_TEXT_MEDIUM_PERFECT = "Không thể tin được! Chinh ph�
 export const REWARD_TEXT_HARD_PERFECT = "Đỉnh của chóp! Đảo Khó cũng không làm khó được bạn!";
 export const SHOOTING_STAR_CLICK_SUCCESS_MESSAGE = (points: number): string => `Bạn bắt được ngôi sao may mắn và nhận ${points} điểm!`;
 export const COLLECTIBLE_COLLECTION_TOAST_MESSAGE = (itemName: string): string => `Bạn đã tìm thấy "${itemName}"!`;
-export const FILTER_GRADE_ACHIEVEMENTS_TEXT = (grade: GradeLevel): string => `Huy hiệu Lớp ${GRADE_LEVEL_TEXT_MAP[grade]}`;
+
 export const TREASURE_CHEST_THANKS_MESSAGE = "Cảm ơn bạn đã mở rương! Chúc may mắn lần sau.";
 export const TREASURE_CHEST_POINTS_MESSAGE = (points: number): string => `Bạn tìm thấy ${points} điểm trong rương!`;
 export const TREASURE_CHEST_QUIZ_CORRECT_MESSAGE = (points: number): string => `Chính xác! Bạn nhận được ${points} điểm từ câu đố!`;
 export const TREASURE_CHEST_QUIZ_INCORRECT_MESSAGE = "Rất tiếc, câu trả lời chưa đúng.";
 export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn độ khó cho đảo ${islandName}`;
-export const ACCESSORIES_FOR_THEME_TEXT = (themeName: string) => `Phụ kiện cho Giao Diện: ${themeName}`;
 
 
 // Endless Mode
@@ -230,10 +231,10 @@ export const WEEKLY_CHALLENGE_PROGRESS_SOUND_URL = DAILY_CHALLENGE_PROGRESS_SOUN
 export const WEEKLY_CHALLENGE_COMPLETE_SOUND_URL = VICTORY_FANFARE_SOUND_URL; 
 
 // Placeholder sound URLs for custom sound packs
-export const CUSTOM_SOUND_NEON_CLICK = '/sounds/neon_ui_click.mp3'; // Placeholder
-export const CUSTOM_SOUND_NEON_CORRECT = '/sounds/neon_ui_correct.mp3'; // Placeholder
-export const CUSTOM_SOUND_GIRLY_CLICK = '/sounds/girly_ui_click.mp3'; // Placeholder
-export const CUSTOM_SOUND_GIRLY_CORRECT = '/sounds/girly_ui_correct.mp3'; // Placeholder
+export const CUSTOM_SOUND_NEON_CLICK = '/sounds/neon_ui_click.mp3'; 
+export const CUSTOM_SOUND_NEON_CORRECT = '/sounds/neon_ui_correct.mp3'; 
+export const CUSTOM_SOUND_GIRLY_CLICK = '/sounds/girly_ui_click.mp3'; 
+export const CUSTOM_SOUND_GIRLY_CORRECT = '/sounds/girly_ui_correct.mp3'; 
 
 
 // Icon URLs & Emojis
@@ -264,7 +265,7 @@ export const TREASURE_QUIZ_REWARD_POINTS_MAX = 25;
 
 
 // Final Treasure Island ID
-export const FINAL_TREASURE_ISLAND_ID = "gFinal_main_treasure";
+export const FINAL_TREASURE_ISLAND_ID = "gFinal_ultimate_wisdom";
 
 // Daily Challenge Definitions
 import { CHALLENGE_ACTION_ISLAND_COMPLETED, CHALLENGE_ACTION_STAR_EARNED, CHALLENGE_ACTION_CORRECT_ANSWER, CHALLENGE_ACTION_TREASURE_CHEST_OPENED, CHALLENGE_ACTION_SHOOTING_STAR_COLLECTED, CHALLENGE_ACTION_NPC_INTERACTED, CHALLENGE_ACTION_DAILY_CHALLENGE_REWARD_CLAIMED, CHALLENGE_ACTION_ACHIEVEMENT_UNLOCKED_INGAME } from './types';
@@ -404,175 +405,303 @@ export const ISLAND_CONFIGS: IslandConfig[] = [
   { islandId: "g2_island_05_time_clock_hours_halfhours", islandNumber: 5, name: "Tháp Đồng Hồ Chính Xác", description: "Xem giờ đúng, giờ rưỡi.", topics: ["xem giờ đúng", "xem giờ rưỡi"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "⏰" },
   { islandId: "g2_island_06_measurement_length_cm_m", islandNumber: 6, name: "Sông Đo Độ Dài (cm, m)", description: "Đo độ dài bằng cm, m.", topics: ["đơn vị đo độ dài cm, m", "ước lượng độ dài"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏞️" },
   { islandId: "g2_island_07_shapes_3d_basic", islandNumber: 7, name: "Xưởng Hình Khối Kỳ Diệu", description: "Nhận biết hình khối cơ bản.", topics: ["hình lập phương", "hình hộp chữ nhật", "hình cầu", "hình trụ"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧊" },
-  { islandId: "g2_island_08_problem_solving_multistep_simple", islandNumber: 8, name: "Mê Cung Toán Đố Lớp 2", description: "Giải toán đố nhiều bước đơn giản.", topics: ["toán đố kết hợp cộng trừ", "toán đố nhân chia đơn giản"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧩" },
-  { islandId: "g2_island_09_data_simple_charts", islandNumber: 9, name: "Vườn Thống Kê Nhỏ", description: "Đọc biểu đồ tranh đơn giản.", topics: ["biểu đồ tranh"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "📊" },
-  { islandId: "g2_island_10_review_grade2", islandNumber: 10, name: "Ngọn Hải Đăng Lớp 2", description: "Ôn tập kiến thức lớp 2.", topics: ["cộng trừ phạm vi 100", "nhân chia (bảng 2,3,4,5)", "thời gian", "đo lường"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "💡" },
-   // --- GRADE 3 --- (10 Islands)
-  { islandId: "g3_island_01_numbers_1000", islandNumber: 1, name: "Vương Quốc Nghìn Số", description: "Số đến 1000, so sánh, làm tròn.", topics: ["số có ba chữ số", "so sánh số phạm vi 1000", "làm tròn số đến hàng chục, hàng trăm"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🏰" },
-  { islandId: "g3_island_02_multiplication_division_tables", islandNumber: 2, name: "Đấu Trường Bảng Cửu Chương", description: "Hoàn thiện bảng nhân chia.", topics: ["bảng nhân 6,7,8,9", "bảng chia 6,7,8,9"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚔️" },
-  { islandId: "g3_island_03_addition_subtraction_1000", islandNumber: 3, name: "Thác Cộng Trừ Nghìn Lớn", description: "Cộng trừ trong phạm vi 1000.", topics: ["cộng trừ có nhớ phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌊" },
-  { islandId: "g3_island_04_fractions_intro", islandNumber: 4, name: "Đảo Phân Số Kỳ Diệu", description: "Làm quen với phân số.", topics: ["1/2", "1/3", "1/4", "1/5"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🍕" },
-  { islandId: "g3_island_05_time_minutes_calendar", islandNumber: 5, name: "Lịch Vạn Niên Thời Gian", description: "Xem giờ đến phút, xem lịch.", topics: ["xem giờ chính xác đến phút", "xem lịch (ngày, tháng, năm)"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "📆" },
-  { islandId: "g3_island_06_measurement_weight_g_kg", islandNumber: 6, name: "Cân Đo Trọng Lượng (g, kg)", description: "Đo trọng lượng bằng g, kg.", topics: ["đơn vị đo khối lượng g, kg", "cân đĩa"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚖️" },
-  { islandId: "g3_island_07_geometry_perimeter", islandNumber: 7, name: "Vườn Chu Vi Hình Học", description: "Tính chu vi hình vuông, chữ nhật.", topics: ["chu vi hình vuông", "chu vi hình chữ nhật"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌳" },
-  { islandId: "g3_island_08_problem_solving_complex", islandNumber: 8, name: "Kim Tự Tháp Toán Đố Lớp 3", description: "Giải toán đố phức tạp hơn.", topics: ["toán đố nhiều bước liên quan nhân chia"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🔺" },
-  { islandId: "g3_island_09_money_transactions", islandNumber: 9, name: "Siêu Thị Tiền Tệ Thông Minh", description: "Tính toán tiền tệ đơn giản.", topics: ["cộng trừ tiền tệ", "bài toán mua bán"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🛒" },
-  { islandId: "g3_island_10_review_grade3", islandNumber: 10, name: "Đài Thiên Văn Lớp 3", description: "Ôn tập kiến thức lớp 3.", topics: ["số đến 10000", "nhân chia thành thạo", "phân số", "chu vi"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🔭" },
+  { islandId: "g2_island_08_problem_solving_2step", islandNumber: 8, name: "Vực Thẳm Toán Đố (2 bước)", description: "Giải toán đố 2 bước tính.", topics: ["toán đố cộng trừ 2 bước"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧩" },
+  { islandId: "g2_island_09_geometry_perimeter_basic", islandNumber: 9, name: "Đầm Lầy Chu Vi", description: "Tính chu vi hình đơn giản.", topics: ["chu vi hình tam giác", "chu vi hình chữ nhật", "chu vi hình vuông"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌿" },
+  { islandId: "g2_island_10_review_grade2", islandNumber: 10, name: "Ngọn Hải Đăng Lớp 2", description: "Ôn tập kiến thức lớp 2.", topics: ["cộng trừ 100", "nhân chia cơ bản", "thời gian", "đo lường", "hình học"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌟" },
+
+  // --- GRADE 3 --- (10 Islands)
+  { islandId: "g3_island_01_counting_1_1000", islandNumber: 1, name: "Sa Mạc Ngàn Số", description: "Số trong phạm vi 1000.", topics: ["số có ba chữ số", "so sánh số phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🏜️" },
+  { islandId: "g3_island_02_addition_subtraction_1000", islandNumber: 2, name: "Hẻm Núi Cộng Trừ (P.vi 1000)", description: "Cộng trừ trong phạm vi 1000.", topics: ["cộng trừ phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⛰️" },
+  { islandId: "g3_island_03_multiplication_division_tables", islandNumber: 3, name: "Thác Nước Bảng Cửu Chương", description: "Bảng nhân, chia (2-9).", topics: ["bảng nhân 2-9", "bảng chia 2-9"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌊" },
+  { islandId: "g3_island_04_fractions_intro", islandNumber: 4, name: "Vườn Phân Số Diệu Kỳ", description: "Làm quen phân số đơn giản.", topics: ["1/2", "1/3", "1/4", "so sánh phân số đơn giản"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🍓" },
+  { islandId: "g3_island_05_time_minutes", islandNumber: 5, name: "Đồng Hồ Tinh Xảo (phút)", description: "Xem giờ đến từng phút.", topics: ["xem giờ phút", "khoảng thời gian"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🕰️" },
+  { islandId: "g3_island_06_measurement_weight_g_kg", islandNumber: 6, name: "Cân Đo Trọng Lượng (g, kg)", description: "Đo trọng lượng bằng g, kg.", topics: ["đơn vị đo trọng lượng g, kg"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚖️" },
+  { islandId: "g3_island_07_geometry_area_basic", islandNumber: 7, name: "Cánh Đồng Diện Tích", description: "Tính diện tích hình chữ nhật.", topics: ["diện tích hình chữ nhật"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌾" },
+  { islandId: "g3_island_08_problem_solving_multi_step", islandNumber: 8, name: "Mê Cung Toán Đố Phức Tạp", description: "Giải toán đố nhiều bước.", topics: ["toán đố nhiều bước (cộng, trừ, nhân, chia)"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌀" },
+  { islandId: "g3_island_09_data_handling_bar_charts", islandNumber: 9, name: "Thống Kê Biểu Đồ Cột", description: "Đọc biểu đồ cột đơn giản.", topics: ["đọc biểu đồ cột"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "📊" },
+  { islandId: "g3_island_10_review_grade3", islandNumber: 10, name: "Cung Điện Tri Thức Lớp 3", description: "Ôn tập kiến thức lớp 3.", topics: ["số đến 1000", "4 phép tính", "phân số", "thời gian", "đo lường", "hình học"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌟" },
 
   // --- GRADE 4 --- (10 Islands)
-  { islandId: "g4_island_01_numbers_large", islandNumber: 1, name: "Thiên Hà Triệu Số", description: "Số đến hàng triệu, lớp triệu.", topics: ["số có nhiều chữ số", "hàng và lớp", "so sánh số lớn"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌌" },
-  { islandId: "g4_island_02_multiplication_division_large_numbers", islandNumber: 2, name: "Xưởng Nhân Chia Số Lớn", description: "Nhân chia với số có nhiều chữ số.", topics: ["nhân với số có hai, ba chữ số", "chia cho số có một, hai chữ số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "⚙️" },
-  { islandId: "g4_island_03_fractions_operations", islandNumber: 3, name: "Thung Lũng Phân Số Cao Cấp", description: "Cộng trừ phân số cùng mẫu.", topics: ["so sánh phân số", "cộng trừ phân số cùng mẫu số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏞️" },
-  { islandId: "g4_island_04_decimals_intro", islandNumber: 4, name: "Hồ Thập Phân Huyền Bí", description: "Làm quen số thập phân.", topics: ["khái niệm số thập phân", "đọc viết số thập phân"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "💧" },
-  { islandId: "g4_island_05_geometry_area", islandNumber: 5, name: "Công Viên Diện Tích Rộng Lớn", description: "Tính diện tích hình chữ nhật, vuông.", topics: ["diện tích hình chữ nhật", "diện tích hình vuông"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏞️" },
-  { islandId: "g4_island_06_measurement_volume_capacity", islandNumber: 6, name: "Bể Chứa Thể Tích (ml, l)", description: "Đo thể tích, dung tích.", topics: ["ml, l", "đổi đơn vị đo thể tích"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧪" },
-  { islandId: "g4_island_07_average_problem", islandNumber: 7, name: "Đỉnh Cao Trung Bình Cộng", description: "Bài toán tìm trung bình cộng.", topics: ["tìm trung bình cộng của nhiều số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📈" },
-  { islandId: "g4_island_08_problem_solving_ratio_proportion_simple", islandNumber: 8, name: "Cầu Tỷ Lệ Đơn Giản", description: "Bài toán liên quan đến tỷ lệ.", topics: ["bài toán rút về đơn vị", "bài toán tìm hai số khi biết tổng và tỷ"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌉" },
-  { islandId: "g4_island_09_data_bar_charts", islandNumber: 9, name: "Bảo Tàng Biểu Đồ Cột", description: "Đọc và phân tích biểu đồ cột.", topics: ["biểu đồ cột"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏛️" },
-  { islandId: "g4_island_10_review_grade4", islandNumber: 10, name: "Thư Viện Cổ Lớp 4", description: "Ôn tập kiến thức lớp 4.", topics: ["số tự nhiên lớn", "bốn phép tính với số tự nhiên", "phân số", "diện tích"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📚" },
+  { islandId: "g4_island_01_counting_1_1000000", islandNumber: 1, name: "Thiên Hà Triệu Số", description: "Số đến hàng triệu.", topics: ["số có nhiều chữ số", "lớp triệu", "so sánh số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌌" },
+  { islandId: "g4_island_02_arithmetic_large_numbers", islandNumber: 2, name: "Đại Dương Tính Toán Số Lớn", description: "Cộng, trừ, nhân, chia số lớn.", topics: ["cộng trừ nhân chia số tự nhiên"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🐳" },
+  { islandId: "g4_island_03_fractions_operations", islandNumber: 3, name: "Quần Đảo Phép Tính Phân Số", description: "Cộng, trừ phân số cùng mẫu.", topics: ["cộng phân số cùng mẫu", "trừ phân số cùng mẫu"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏝️" },
+  { islandId: "g4_island_04_decimals_intro", islandNumber: 4, name: "Hồ Thập Phân Huyền Bí", description: "Làm quen số thập phân.", topics: ["khái niệm số thập phân", "so sánh số thập phân đơn giản"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "💧" },
+  { islandId: "g4_island_05_geometry_angles", islandNumber: 5, name: "Thung Lũng Góc Nhọn Tù", description: "Nhận biết các loại góc.", topics: ["góc vuông", "góc nhọn", "góc tù", "góc bẹt"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📐" },
+  { islandId: "g4_island_06_measurement_volume_ml_l", islandNumber: 6, name: "Suối Nguồn Thể Tích (ml, l)", description: "Đo thể tích bằng ml, l.", topics: ["đơn vị đo thể tích ml, l"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧪" },
+  { islandId: "g4_island_07_problem_solving_average", islandNumber: 7, name: "Đồi Trung Bình Cộng Thông Thái", description: "Tính trung bình cộng.", topics: ["trung bình cộng"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧠" },
+  { islandId: "g4_island_08_geometry_parallel_perpendicular", islandNumber: 8, name: "Vách Đá Song Song Vuông Góc", description: "Đường thẳng song song, vuông góc.", topics: ["đường thẳng song song", "đường thẳng vuông góc"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏛️" },
+  { islandId: "g4_island_09_data_handling_pie_charts", islandNumber: 9, name: "Vòng Tròn Biểu Đồ Kỳ Thú", description: "Đọc biểu đồ hình tròn.", topics: ["đọc biểu đồ hình tròn"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🥧" },
+  { islandId: "g4_island_10_review_grade4", islandNumber: 10, name: "Kim Tự Tháp Lớp 4", description: "Ôn tập kiến thức lớp 4.", topics: ["số tự nhiên", "phân số", "số thập phân", "hình học", "đo lường"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌟" },
 
   // --- GRADE 5 --- (10 Islands)
-  { islandId: "g5_island_01_decimals_operations", islandNumber: 1, name: "Đại Dương Thập Phân Bao La", description: "Cộng, trừ, nhân, chia số thập phân.", topics: ["cộng trừ số thập phân", "nhân chia số thập phân"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🌊" },
-  { islandId: "g5_island_02_percentage_intro", islandNumber: 2, name: "Rừng Tỷ Lệ Phần Trăm", description: "Làm quen với tỷ số phần trăm.", topics: ["khái niệm tỷ số phần trăm", "tìm tỷ số phần trăm của hai số"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🌲" },
-  { islandId: "g5_island_03_geometry_triangle_circle_area", islandNumber: 3, name: "Đền Thờ Diện Tích Tam Giác Tròn", description: "Diện tích tam giác, hình tròn.", topics: ["diện tích hình tam giác", "chu vi, diện tích hình tròn"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⛩️" },
-  { islandId: "g5_island_04_motion_problems_simple", islandNumber: 4, name: "Xa Lộ Chuyển Động Đều", description: "Bài toán chuyển động đều đơn giản.", topics: ["quãng đường, vận tốc, thời gian"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🛣️" },
-  { islandId: "g5_island_05_measurement_volume_cube_cuboid", islandNumber: 5, name: "Xưởng Đúc Thể Tích Khối", description: "Thể tích hình hộp chữ nhật, lập phương.", topics: ["thể tích hình hộp chữ nhật", "thể tích hình lập phương"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏭" },
-  { islandId: "g5_island_06_problem_solving_percentage", islandNumber: 6, name: "Chợ Giảm Giá Phần Trăm", description: "Bài toán liên quan tỷ số phần trăm.", topics: ["tìm giá trị phần trăm của một số", "bài toán lãi suất, giảm giá"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🛍️" },
-  { islandId: "g5_island_07_data_analysis_charts", islandNumber: 7, name: "Viện Nghiên Cứu Biểu Đồ", description: "Phân tích các loại biểu đồ.", topics: ["biểu đồ đường", "biểu đồ quạt"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🔬" },
-  { islandId: "g5_island_08_number_sequences_patterns", islandNumber: 8, name: "Thung Lũng Dãy Số Thông Thái", description: "Tìm quy luật dãy số phức tạp.", topics: ["dãy số cách đều", "dãy số có quy luật phức tạp"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏞️" },
-  { islandId: "g5_island_09_logic_reasoning_puzzles", islandNumber: 9, name: "Hang Động Tư Duy Logic", description: "Câu đố logic, suy luận toán học.", topics: ["suy luận logic", "toán vui"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🧠" },
-  { islandId: "g5_island_10_review_grade5", islandNumber: 10, name: "Cổng Vinh Quang Lớp 5", description: "Tổng ôn kiến thức tiểu học.", topics: ["ôn tập số thập phân", "tỷ số phần trăm", "hình học không gian", "toán chuyển động"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🎓" },
-
+  { islandId: "g5_island_01_decimals_operations", islandNumber: 1, name: "Vương Quốc Phép Tính Thập Phân", description: "Cộng, trừ, nhân, chia số thập phân.", topics: ["cộng trừ nhân chia số thập phân"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "👑" },
+  { islandId: "g5_island_02_percentages", islandNumber: 2, name: "Thị Trấn Tỷ Lệ Phần Trăm", description: "Làm quen tỷ số phần trăm.", topics: ["tỷ số phần trăm", "ứng dụng tỷ số phần trăm"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📈" },
+  { islandId: "g5_island_03_geometry_circle_area_circumference", islandNumber: 3, name: "Công Viên Hình Tròn Viên Mãn", description: "Chu vi, diện tích hình tròn.", topics: ["chu vi hình tròn", "diện tích hình tròn"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⭕" },
+  { islandId: "g5_island_04_motion_problems", islandNumber: 4, name: "Đường Đua Chuyển Động Thần Tốc", description: "Giải toán chuyển động đều.", topics: ["vận tốc", "quãng đường", "thời gian"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏎️" },
+  { islandId: "g5_island_05_geometry_3d_volume", islandNumber: 5, name: "Kho Tàng Hình Khối Ba Chiều", description: "Thể tích hình hộp chữ nhật, lập phương.", topics: ["thể tích hình hộp chữ nhật", "thể tích hình lập phương"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📦" },
+  { islandId: "g5_island_06_problem_solving_ratio_proportion", islandNumber: 6, name: "Cầu Tỷ Lệ Cân Bằng", description: "Bài toán về tỷ lệ.", topics: ["tỷ lệ thuận", "tỷ lệ nghịch (đơn giản)"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⚖️" },
+  { islandId: "g5_island_07_algebra_simple_equations", islandNumber: 7, name: "Hang Động Tìm X Bí Ẩn", description: "Giải phương trình đơn giản (tìm x).", topics: ["tìm x trong phép tính"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🔍" },
+  { islandId: "g5_island_08_data_handling_probability_intro", islandNumber: 8, name: "Sòng Bạc Xác Suất May Mắn", description: "Làm quen xác suất đơn giản.", topics: ["khả năng xảy ra của sự kiện"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🎲" },
+  { islandId: "g5_island_09_financial_math_interest_discount", islandNumber: 9, name: "Ngân Hàng Lãi Suất Thông Minh", description: "Toán lãi suất, giảm giá.", topics: ["tính lãi đơn giản", "tính giảm giá"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏦" },
+  { islandId: "g5_island_10_review_grade5", islandNumber: 10, name: "Đài Thiên Văn Lớp 5", description: "Ôn tập kiến thức lớp 5.", topics: ["số thập phân", "tỷ số phần trăm", "hình học không gian", "toán chuyển động"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🌟" },
+  
+  // --- FINAL GRADE CHALLENGES ---
   {
-    islandId: FINAL_TREASURE_ISLAND_ID,
-    islandNumber: 1, // Only one island in this "grade"
-    name: "Mê Cung Trí Tuệ Cổ Đại",
-    description: "Nơi huyền thoại được thử thách, kho báu trí tuệ đang chờ đợi.",
-    topics: ["Câu đố logic cổ đại", "Mật mã kho báu", "Thử thách tư duy trừu tượng", "Suy luận không gian (mô tả bằng lời)", "Câu đố mẹo toán học", "Giải mã ký hiệu cổ"],
+    islandId: "gFinal_1_numbers",
+    islandNumber: 1,
+    name: "Hầm Mộ Số Học Sơ Khai",
+    description: "Những thử thách khó nhất về số đếm, so sánh và các phép tính cơ bản của Lớp 1.",
+    topics: ["toán đố logic phạm vi 20", "quy luật số phức tạp", "so sánh và sắp xếp sáng tạo", "khái niệm về nhóm và phần tử"],
     targetGradeLevel: GradeLevel.FINAL,
-    mapIcon: "👑💎" 
+    mapIcon: "💀"
+  },
+  {
+    islandId: "gFinal_2_operations",
+    islandNumber: 2,
+    name: "Đài Thiên Văn Phép Tính",
+    description: "Thử thách đỉnh cao về cộng trừ có nhớ, nhân chia và cấu tạo số của Lớp 2.",
+    topics: ["bài toán nhiều bước kết hợp cộng trừ nhân chia", "cấu tạo số nâng cao (trăm, chục, đơn vị)", "chu vi và hình khối logic", "ước lượng và làm tròn thông minh"],
+    targetGradeLevel: GradeLevel.FINAL,
+    mapIcon: "🔭"
+  },
+  {
+    islandId: "gFinal_3_fractions",
+    islandNumber: 3,
+    name: "Vực Thẳm Phân Số Vĩnh Cửu",
+    description: "Những câu đố hóc búa nhất về phân số, số lớn và đo lường của Lớp 3.",
+    topics: ["bài toán phân số phức tạp", "diện tích và các hình ghép", "logic về thời gian và trọng lượng", "nhân chia số lớn có dư"],
+    targetGradeLevel: GradeLevel.FINAL,
+    mapIcon: "♾️"
+  },
+  {
+    islandId: "gFinal_4_geometry",
+    islandNumber: 4,
+    name: "Mê Cung Góc Cạnh Vô Tận",
+    description: "Thử thách không gian và logic về hình học, số thập phân của Lớp 4.",
+    topics: ["logic góc và đường thẳng song song/vuông góc", "bài toán trung bình cộng nâng cao", "suy luận từ biểu đồ", "số thập phân trong các tình huống lạ"],
+    targetGradeLevel: GradeLevel.FINAL,
+    mapIcon: "🌀"
+  },
+  {
+    islandId: "gFinal_5_logic",
+    islandNumber: 5,
+    name: "Tháp Cao Tư Duy Chuyển Động",
+    description: "Những bài toán tổng hợp khó nhất về tỉ lệ, chuyển động và phần trăm của Lớp 5.",
+    topics: ["toán chuyển động phức tạp (ngược chiều, cùng chiều)", "bài toán phần trăm và lãi suất lắt léo", "thể tích hình khối phức hợp", "tìm x trong các biểu thức nâng cao"],
+    targetGradeLevel: GradeLevel.FINAL,
+    mapIcon: "🗼"
+  },
+  {
+    islandId: "gFinal_ultimate_wisdom",
+    islandNumber: 6, // Hidden Island
+    name: "Thánh Địa Trí Tuệ Tối Thượng",
+    description: "Nơi chỉ huyền thoại mới có thể chinh phục. Tổng hợp những câu đố logic khó nhất từ mọi cấp độ.",
+    topics: [
+      "Câu đố logic kinh điển cấp độ khó",
+      "Mật mã và suy luận ký tự",
+      "Tư duy không gian và hình học phi truyền thống",
+      "Bài toán thực tế yêu cầu phân tích đa chiều",
+      "Kết hợp kiến thức từ lớp 1 đến lớp 5"
+    ],
+    targetGradeLevel: GradeLevel.FINAL,
+    mapIcon: "💎"
   }
-];
-
-// Messages in a Bottle
-export const MESSAGES_IN_BOTTLE: MessageInBottleContent[] = [
-  { id: "wish1", text: "Ước gì mình học thật giỏi toán!", type: "wish" },
-  { id: "quote1", text: "Thiên tài một phần trăm là cảm hứng và chín mươi chín phần trăm là mồ hôi. - Thomas Edison", type: "quote" },
-  { id: "hint1", text: "Đôi khi, vẽ hình ra sẽ giúp bạn giải toán dễ hơn đó!", type: "hint" },
-  { id: "wish2", text: "Mong rằng mọi bài kiểm tra đều đạt điểm 10!", type: "wish" },
-  { id: "quote2", text: "Việc học giống như con thuyền bơi ngược dòng, không tiến ắt sẽ lùi.", type: "quote" },
 ];
 
 // Fun Quizzes for Treasure Chests
 export const FUN_QUIZZES: FunQuiz[] = [
-  { id: "quiz1", question: "Con gì đầu dê đuôi ốc?", answer: "Con dốc", points: TREASURE_QUIZ_REWARD_POINTS_MIN, type: 'fill' },
-  { id: "quiz2", question: "1 cộng 1 bằng mấy (đố mẹo)?", answer: "11", options: ["2", "0", "11", "3"], points: TREASURE_QUIZ_REWARD_POINTS_MAX, type: 'mc' },
-  { id: "quiz3", question: "Trong một cuộc thi chạy, nếu bạn vượt qua người thứ hai, bạn sẽ đứng thứ mấy?", answer: "Thứ hai", options: ["Thứ nhất", "Thứ hai", "Thứ ba", "Không biết"], points: TREASURE_QUIZ_REWARD_POINTS_MIN, type: 'mc' },
-  { id: "quiz4", question: "Cái gì luôn đi nhưng không bao giờ đến nơi?", answer: "Thời gian", type: 'fill', points: TREASURE_QUIZ_REWARD_POINTS_MAX },
+  { id: "fq1", question: "Con gì buổi sáng đi bằng 4 chân, buổi trưa đi bằng 2 chân, buổi tối đi bằng 3 chân?", answer: "Con người", points: 20, type: 'fill' },
+  { id: "fq2", question: "Cái gì luôn ở phía trước bạn nhưng bạn không bao giờ nhìn thấy?", answer: "Tương lai", points: 15, type: 'fill' },
+  { id: "fq3", question: "Trong một cuộc đua, nếu bạn vượt qua người thứ hai, bạn đang ở vị trí thứ mấy?", options: ["Thứ nhất", "Thứ hai", "Thứ ba", "Thứ tư"], answer: "Thứ hai", points: 18, type: 'mc' },
+  { id: "fq4", question: "Có một rổ táo, trong rổ có 5 quả. Làm sao để chia cho 5 bạn, mỗi bạn 1 quả mà trong rổ vẫn còn 1 quả?", answer: "Đưa cho 4 bạn mỗi bạn 1 quả, bạn cuối cùng nhận cả rổ táo", points: 22, type: 'fill' },
+  { id: "fq5", question: "Cái gì càng lớn càng bé?", answer: "Cua", points: 16, type: 'fill' },
+  { id: "fq6", question: "Cái gì có thể đi khắp thế giới mà vẫn ở nguyên một chỗ?", options: ["Con tem", "Cái bóng", "Suy nghĩ", "Giấc mơ"], answer: "Con tem", points: 19, type: 'mc' },
+];
+
+// Messages in a Bottle
+export const MESSAGES_IN_BOTTLE: MessageInBottleContent[] = [
+  { id: "mib1", text: "Ước gì mình có một cây kem thật to!", type: "wish" },
+  { id: "mib2", text: "Học tập là hạt giống của kiến thức, kiến thức là hạt giống của hạnh phúc. - Ngạn ngữ Gruzia", type: "quote" },
+  { id: "mib3", text: "Đôi khi, câu trả lời khó nhất lại nằm ở ngay trước mắt.", type: "hint" },
+  { id: "mib4", text: "Một ngày nào đó tôi sẽ khám phá hết các hòn đảo!", type: "wish" },
+  { id: "mib5", text: "Sự khác biệt giữa bình thường và phi thường chỉ là một chút 'thêm'. - Jimmy Johnson", type: "quote" },
+  { id: "mib6", text: "Đừng ngại thử thách, chúng giúp bạn mạnh mẽ hơn.", type: "hint" },
 ];
 
 // Friendly NPCs
 export const FRIENDLY_NPCS: FriendlyNPC[] = [
-  { id: "npc_owl", name: "Cú Thông Thái", imageUrl: "https://i.ibb.co/VvzK93T/npc-cu-thong-thai.png" },
-  { id: "npc_squirrel", name: "Sóc Nhanh Nhẹn", imageUrl: "https://i.ibb.co/bJCqN70/npc-soc-nhanh-nhen.png" },
-  { id: "npc_turtle", name: "Rùa Kiên Trì", imageUrl: "https://i.ibb.co/kSvFrCx/npc-rua-kien-tri.png" },
+  { id: "npc_parrot", name: "Vẹt Thông Thái Kiki", imageUrl: "https://i.ibb.co/YPGvL2d/npc-parrot-kiki.png" },
+  { id: "npc_monkey", name: "Khỉ Lém Lỉnh Miko", imageUrl: "https://i.ibb.co/7bgGjWb/npc-monkey-miko.png" },
+  { id: "npc_turtle", name: "Rùa Già Hiền Triết Toto", imageUrl: "https://i.ibb.co/KscvTj1/npc-turtle-toto.png" },
+  { id: "npc_crab", name: "Cua Càng To Rocky", imageUrl: "https://i.ibb.co/1njC5P1/npc-crab-rocky.png" },
 ];
 
 // NPC Interactions
 export const NPC_INTERACTIONS: NPCInteraction[] = [
-  { id: "owl_fact1", npcIds: ["npc_owl"], type: "fact", text: "Bạn có biết rằng số Pi (π) là một hằng số toán học vô cùng thú vị không? Nó có vô hạn chữ số sau dấu phẩy đấy!", points: 5 },
-  { id: "owl_riddle1", npcIds: ["npc_owl"], type: "riddle", text: "Tôi có các thành phố, nhưng không có nhà cửa. Tôi có núi, nhưng không có cây. Tôi có nước, nhưng không có cá. Tôi là gì?", answer: "Bản đồ", points: 15 },
-  { id: "squirrel_encouragement1", npcIds: ["npc_squirrel"], type: "encouragement", text: "Cố lên nào! Mỗi bài toán giải được là một bước tiến lớn đó!", points: 3 },
-  { id: "squirrel_riddle1", npcIds: ["npc_squirrel"], type: "riddle", text: "Cái gì càng lấy đi càng lớn?", answer: "Cái hố", points: 10 },
-  { id: "turtle_fact1", npcIds: ["npc_turtle"], type: "fact", text: "Từ từ mà chắc! Cũng giống như giải toán, cẩn thận từng bước sẽ giúp bạn đến đích.", points: 5 },
-  { id: "turtle_riddle1", npcIds: ["npc_turtle"], type: "riddle", text: "Buổi sáng đi bằng 4 chân, buổi trưa đi bằng 2 chân, buổi tối đi bằng 3 chân. Đó là con gì?", answer: "Con người", points: 20 },
-  { id: "generic_encouragement", type: "encouragement", text: "Bạn đang làm rất tốt! Tiếp tục khám phá nhé!", points: 2 },
+  { id: "int_fact1", npcIds: ["npc_turtle"], type: "fact", text: "Đảo Kho Báu này đã tồn tại hàng ngàn năm rồi đấy, cậu bé ạ!", points: 5 },
+  { id: "int_enc1", npcIds: ["npc_parrot"], type: "encouragement", text: "Cứ tiếp tục cố gắng, kho báu tri thức đang chờ bạn phía trước!", points: 3 },
+  { id: "int_riddle1", npcIds: ["npc_monkey"], type: "riddle", text: "Tôi có thành phố nhưng không có nhà, có rừng nhưng không có cây, có nước nhưng không có cá. Tôi là gì?", answer: "Bản đồ", points: 25 },
+  { id: "int_fact2", npcIds: ["npc_crab"], type: "fact", text: "Nghe nói có những viên đá quý ẩn giấu trên đảo này, chúng giúp người sở hữu thông minh hơn!", points: 5 },
+  { id: "int_enc2", npcIds: ["npc_turtle"], type: "encouragement", text: "Mỗi câu hỏi bạn giải được là một bước tiến gần hơn đến kho báu vĩ đại.", points: 3 },
+  { id: "int_riddle2", npcIds: ["npc_parrot"], type: "riddle", text: "Cái gì có nhiều chìa khóa nhưng không mở được ổ khóa nào?", answer: "Đàn piano", points: 20 },
 ];
 
 // Collectible Items
 export const COLLECTIBLE_ITEMS: CollectibleItem[] = [
-  { id: "shell_rare", name: "Vỏ Sò Ánh Kim", icon: "🐚", description: "Một vỏ sò hiếm với những đường vân lấp lánh như vàng." },
-  { id: "map_ancient", name: "Bản Đồ Cổ Đại", icon: "🗺️", description: "Mảnh bản đồ cũ kỹ, dường như dẫn đến một kho báu bị lãng quên." },
-  { id: "gem_blue", name: "Viên Đá Saphia", icon: "💎", description: "Viên đá quý màu xanh biển sâu, tỏa ra ánh sáng huyền bí." },
-  { id: "compass_magic", name: "La Bàn Kỳ Diệu", icon: "🧭", description: "Chiếc la bàn không chỉ hướng, mà còn rung nhẹ khi ở gần điều bí ẩn." },
-  { id: "feather_phoenix", name: "Lông Vũ Phượng Hoàng", icon: "🪶", description: "Một chiếc lông vũ ấm áp, được cho là rơi từ một con phượng hoàng lửa." },
+  { id: "col_seashell", name: "Vỏ Sò Ánh Kim", icon: "🐚", description: "Một vỏ sò hiếm có, phát ra ánh sáng lung linh kỳ ảo." },
+  { id: "col_starfish", name: "Sao Biển Cầu Vồng", icon: "⭐", description: "Loài sao biển này có thể đổi màu theo tâm trạng của người tìm thấy nó." },
+  { id: "col_map_fragment", name: "Mảnh Bản Đồ Cổ", icon: "📜", description: "Một mảnh của tấm bản đồ dẫn đến kho báu huyền thoại, đã bị xé rách." },
+  { id: "col_pirate_coin", name: "Đồng Xu Hải Tặc", icon: "🪙", description: "Một đồng xu cổ xưa, có lẽ thuộc về một thuyền trưởng hải tặc lừng danh." },
+  { id: "col_crystal_shard", name: "Mảnh Pha Lê Năng Lượng", icon: "🔮", description: "Chứa đựng năng lượng bí ẩn, có thể là chìa khóa cho một bí mật nào đó." },
 ];
 
 // Shop Accessories
 export const SHOP_ACCESSORIES: ThemeAccessory[] = [
   {
-    id: "neon_star_effect",
-    name: "Hiệu Ứng Sao Neon",
-    description: "Thêm các ngôi sao neon lấp lánh bay nhẹ nhàng trên nền giao diện Chiến Binh Neon.",
-    iconUrl: "https://i.ibb.co/yWw0kF6/icon-neon-star-effect.png",
-    price: 150,
+    id: "neon_star_background",
+    name: "Nền Sao Neon",
+    description: "Thêm hiệu ứng các ngôi sao neon lấp lánh bay lượn trên nền.",
+    iconUrl: "https://i.ibb.co/KqrBChz/icon-neon-stars.png",
+    price: 100,
     appliesToTheme: [Theme.NEON],
     type: AccessoryType.BACKGROUND_EFFECT,
-    config: { particleShape: 'star', particleColor: '#00f5d4', count: 30, speed: 0.3, size: 2, sizeVariation: 1, opacity: 0.8 } as BackgroundEffectConfig
+    config: {
+      particleShape: 'star',
+      particleColor: ['#00f5d4', '#fa2772', '#7DF9FF', '#AD00FF'],
+      count: 50,
+      speed: 0.5,
+      size: 2,
+      sizeVariation: 1,
+      opacity: 0.7
+    } as BackgroundEffectConfig,
   },
   {
-    id: "girly_sparkle_cursor",
-    name: "Con Trỏ Lấp Lánh",
-    description: "Thêm một vệt sáng lấp lánh màu hồng theo sau con trỏ chuột của bạn.",
-    iconUrl: "https://i.ibb.co/PN20rW8/icon-girly-sparkle-cursor.png",
-    price: 100,
+    id: "girly_heart_cursor",
+    name: "Con Trỏ Tim Bay Bổng",
+    description: "Con trỏ chuột của bạn sẽ để lại một vệt hình trái tim hồng đáng yêu.",
+    iconUrl: "https://i.ibb.co/WpYhVzC/icon-girly-cursor.png",
+    price: 80,
     appliesToTheme: [Theme.GIRLY],
     type: AccessoryType.CURSOR_TRAIL,
-    config: { trailColor: '#f472b6', trailLength: 12, fadeSpeed: 0.08, particleSize: 2.5, shape: 'star' } as CursorTrailConfig
+    config: {
+      trailColor: ['#f472b6', '#ec4899', '#fda4af'],
+      trailLength: 15,
+      fadeSpeed: 0.05,
+      particleSize: 8,
+      shape: 'star', // Using 'star' for hearts as an example, actual heart shape may need custom draw logic
+    } as CursorTrailConfig,
   },
   {
-    id: "aero_bubble_border",
-    name: "Viền Bong Bóng Aero",
-    description: "Thêm hiệu ứng viền bong bóng tinh tế cho các nút và thẻ trong giao diện Frutiger Aero.",
-    iconUrl: "https://i.ibb.co/QjT9P1x/icon-aero-bubble-border.png",
-    price: 80,
+    id: "frutiger_bubble_background",
+    name: "Nền Bong Bóng Frutiger",
+    description: "Hiệu ứng bong bóng nhẹ nhàng trôi nổi, tạo cảm giác tươi mới và trong trẻo.",
+    iconUrl: "https://i.ibb.co/PZfPSTC/icon-frutiger-bubbles.png",
+    price: 90,
     appliesToTheme: [Theme.FRUTIGER_AERO, Theme.DEFAULT],
-    type: AccessoryType.UI_ACCENT,
-    config: { 
-      cssVariables: { 
-        '--accessory-button-border': '2px dotted rgba(100, 180, 255, 0.6)',
-        '--accessory-card-box-shadow': '0 0 12px rgba(100, 180, 255, 0.4)',
-      } 
-    } as UIAccentConfig
+    type: AccessoryType.BACKGROUND_EFFECT,
+    config: {
+      particleShape: 'circle',
+      particleColor: ['rgba(34,211,238,0.5)', 'rgba(103,232,249,0.4)', 'rgba(165,243,252,0.6)'],
+      count: 30,
+      speed: 0.3,
+      size: 15,
+      sizeVariation: 8,
+      opacity: 0.6
+    } as BackgroundEffectConfig,
   },
   {
     id: "neon_button_glow",
-    name: "Nút Neon Phát Sáng",
-    description: "Làm cho các nút chính trong giao diện Neon có thêm hiệu ứng hào quang phát sáng.",
-    iconUrl: "https://i.ibb.co/7Kx3xDs/icon-neon-button-glow.png", // Placeholder
+    name: "Viền Nút Neon Rực Sáng",
+    description: "Các nút bấm chính sẽ có thêm hiệu ứng viền neon phát sáng nổi bật.",
+    iconUrl: "https://i.ibb.co/mJ3X3kL/icon-neon-button-glow.png",
     price: 120,
     appliesToTheme: [Theme.NEON],
     type: AccessoryType.UI_ACCENT,
     config: {
       cssVariables: {
-        '--button-primary-shadow': '0 0 8px var(--accent, #00f5d4), 0 0 16px var(--accent, #00f5d4)',
-        '--button-answer-option-shadow': '0 0 6px var(--accent, #fa2772)',
+        '--button-primary-shadow': '0 0 10px 5px green',
+        '--button-answer-option-shadow': '0 0 10px 5px green',
       }
-    } as UIAccentConfig
+    } as UIAccentConfig,
   },
   {
-    id: "girly_sound_pack",
-    name: "Gói Âm Thanh Kẹo Ngọt",
-    description: "Thay đổi một số âm thanh trong game thành phiên bản ngọt ngào, vui tai hơn cho giao diện Công Chúa.",
-    iconUrl: "https://i.ibb.co/GMSdGkB/icon-girly-sound-pack.png", // Placeholder
+    id: "girly_sparkle_accent",
+    name: "Điểm Nhấn Lấp Lánh",
+    description: "Một vài chi tiết trên giao diện sẽ được thêm hiệu ứng lấp lánh nhẹ nhàng.",
+    iconUrl: "https://i.ibb.co/s1N371w/icon-girly-sparkle.png",
     price: 70,
     appliesToTheme: [Theme.GIRLY],
-    type: AccessoryType.SOUND_PACK_VARIATION,
+    type: AccessoryType.UI_ACCENT,
     config: {
-      sounds: {
-        [BUTTON_CLICK_SOUND_URL]: CUSTOM_SOUND_GIRLY_CLICK, // Placeholder path
-        [CORRECT_ANSWER_SOUND_URL]: CUSTOM_SOUND_GIRLY_CORRECT, // Placeholder path
+      cssVariables: {
+        '--accessory-card-box-shadow': '0 0 15px 5px rgba(244, 114, 182, 0.3)', // Pinkish glow
+        '--title-text-gradient-from': '#f9a8d4', // Lighter pink
+        '--title-text-gradient-to': '#db2777',   // Deeper pink
       }
-    } as SoundPackVariationConfig
+    } as UIAccentConfig,
   },
   {
     id: "universal_confetti_correct",
     name: "Pháo Hoa Chúc Mừng",
-    description: "Hiệu ứng pháo hoa nhỏ bắn ra khi trả lời đúng câu hỏi. Áp dụng cho mọi giao diện.",
-    iconUrl: "https://i.ibb.co/8XJ30fQ/icon-universal-confetti.png", // Placeholder
-    price: 200,
+    description: "Bắn pháo hoa rực rỡ mỗi khi bạn trả lời đúng. Áp dụng cho mọi giao diện.",
+    iconUrl: "https://i.ibb.co/stY0N0S/icon-confetti-correct.png",
+    price: 150,
     appliesToTheme: 'all',
-    type: AccessoryType.BACKGROUND_EFFECT, // Could be UI_ACCENT if it's a small overlay animation
-    config: { particleShape: 'circle', particleColor: ['#FFD700', '#FF69B4', '#00F5D4', '#FF4500'], count: 15, speed: 2, size: 3, oneShot: true, target: 'feedbackIndicator' } as BackgroundEffectConfig // Custom 'oneShot' and 'target' properties
-  }
+    type: AccessoryType.BACKGROUND_EFFECT,
+    config: {
+      particleShape: "circle", 
+      particleColor: ["#FFC700", "#FF69B4", "#00F5D4", "#FF4E50", "#FC913A"], 
+      count: 120,          
+      size: 1.1,          
+      oneShot: true,       
+      target: 'feedbackIndicator' 
+    } as BackgroundEffectConfig,
+  },
+  {
+    id: "universal_treasure_open_sparkle",
+    name: "Lấp Lánh Mở Rương",
+    description: "Tạo hiệu ứng lấp lánh khi mở rương báu. Áp dụng cho mọi giao diện.",
+    iconUrl: "https://i.ibb.co/VMD0b0c/icon-treasure-sparkle.png",
+    price: 180,
+    appliesToTheme: 'all',
+    type: AccessoryType.BACKGROUND_EFFECT,
+    config: {
+      particleShape: 'star', 
+      particleColor: ['#FFD700', '#FFA500', '#FFFACD', '#F0E68C'], 
+      count: 150,
+      size: 1.2, 
+      oneShot: true,
+      target: 'treasureChestModalIcon' 
+    } as BackgroundEffectConfig,
+  },
+  {
+    id: "neon_sound_pack",
+    name: "Gói Âm Thanh Neon",
+    description: "Thay đổi một số âm thanh giao diện thành phong cách Neon.",
+    iconUrl: "https://i.ibb.co/DkF7bCv/icon-neon-sound.png",
+    price: 200,
+    appliesToTheme: [Theme.NEON],
+    type: AccessoryType.SOUND_PACK_VARIATION,
+    config: {
+      sounds: {
+        [BUTTON_CLICK_SOUND_URL]: CUSTOM_SOUND_NEON_CLICK,
+        [CORRECT_ANSWER_SOUND_URL]: CUSTOM_SOUND_NEON_CORRECT,
+      }
+    } as SoundPackVariationConfig,
+  },
+  {
+    id: "girly_sound_pack",
+    name: "Gói Âm Thanh Lấp Lánh",
+    description: "Thay đổi một số âm thanh giao diện thành phong cách Công Chúa Lấp Lánh.",
+    iconUrl: "https://i.ibb.co/yR0tDjj/icon-girly-sound.png",
+    price: 190,
+    appliesToTheme: [Theme.GIRLY],
+    type: AccessoryType.SOUND_PACK_VARIATION,
+    config: {
+      sounds: {
+        [BUTTON_CLICK_SOUND_URL]: CUSTOM_SOUND_GIRLY_CLICK,
+        [CORRECT_ANSWER_SOUND_URL]: CUSTOM_SOUND_GIRLY_CORRECT,
+      }
+    } as SoundPackVariationConfig,
+  },
 ];
