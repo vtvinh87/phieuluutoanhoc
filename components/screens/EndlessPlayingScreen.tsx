@@ -1,8 +1,8 @@
 import React from 'react';
 import { Question, GradeLevel, IslandDifficulty } from '../../types';
 import {
-    GRADE_LEVEL_TEXT_MAP, ISLAND_DIFFICULTY_TEXT_MAP, HOVER_SOUND_URL, ENDLESS_MODE_LIVES,
-    ENDLESS_MODE_TITLE_TEXT, ENDLESS_MODE_SCORE_TEXT, ENDLESS_MODE_QUESTIONS_ANSWERED_TEXT, ENDLESS_MODE_DIFFICULTY
+    GRADE_LEVEL_TEXT_MAP, HOVER_SOUND_URL, ENDLESS_MODE_LIVES,
+    ENDLESS_MODE_TITLE_TEXT, ENDLESS_MODE_SCORE_TEXT, ENDLESS_MODE_QUESTIONS_ANSWERED_TEXT, ENDLESS_DIFFICULTY_LEVEL_TEXT_MAP
 } from '../../constants';
 import QuestionDisplay from '../QuestionDisplay';
 import AnswerOption from '../AnswerOption';
@@ -25,18 +25,21 @@ interface EndlessPlayingScreenProps extends ScreenWithAudioProps {
     revealSolution: boolean;
     isHintModalOpen: boolean;
     hintButtonUsed: boolean;
+    endlessDifficultyLevel: number;
     onAnswerSelect: (answer: string) => void;
     onAnswerSubmit: () => void;
     onHintRequest: () => void;
     onBackToMap: () => void;
 }
 
-export const EndlessPlayingScreen: React.FC<EndlessPlayingScreenProps> = ({ currentQuestion, currentEndlessGrade, endlessModeLives, endlessModeScore, endlessQuestionsAnswered, selectedAnswer, userAttemptShown, feedback, revealSolution, isHintModalOpen, hintButtonUsed, onAnswerSelect, onAnswerSubmit, onHintRequest, onBackToMap, playSound }) => (
+export const EndlessPlayingScreen: React.FC<EndlessPlayingScreenProps> = ({ currentQuestion, currentEndlessGrade, endlessModeLives, endlessModeScore, endlessQuestionsAnswered, selectedAnswer, userAttemptShown, feedback, revealSolution, isHintModalOpen, hintButtonUsed, endlessDifficultyLevel, onAnswerSelect, onAnswerSubmit, onHintRequest, onBackToMap, playSound }) => (
     <div className={`w-full h-full flex flex-col animate-fadeInScale p-1 sm:p-2`}>
         <header className={`w-full flex flex-col sm:flex-row justify-between items-center p-2 sm:p-3 mb-1 sm:mb-2 border-b-2 border-[var(--border-color)]`}>
             <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-0">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--title-text-gradient-from)] text-center sm:text-left">{ENDLESS_MODE_TITLE_TEXT(GRADE_LEVEL_TEXT_MAP[currentEndlessGrade])}</h1>
-                <p className="text-sm sm:text-base text-[var(--primary-text)] opacity-80">{ISLAND_DIFFICULTY_TEXT_MAP[ENDLESS_MODE_DIFFICULTY]}</p>
+                <p className="text-sm sm:text-base text-[var(--primary-text)] opacity-80">
+                    Cấp Độ Khó: <span className="font-semibold">{ENDLESS_DIFFICULTY_LEVEL_TEXT_MAP[endlessDifficultyLevel]}</span>
+                </p>
             </div>
             <div className="flex items-center gap-3">
                 <div className={`text-lg sm:text-xl md:text-2xl font-bold flex items-center ${endlessModeLives <= 1 ? 'text-red-500 animate-pulse' : 'text-[var(--accent-color)]'}`}>
@@ -56,13 +59,16 @@ export const EndlessPlayingScreen: React.FC<EndlessPlayingScreenProps> = ({ curr
         <div className="flex-grow flex flex-col justify-center">
             <QuestionDisplay question={currentQuestion} />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-3">
+        
+        <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 my-2 sm:my-3">
             {currentQuestion.options.map((option, index) => (
                 <AnswerOption key={index} optionText={option} onClick={() => onAnswerSelect(option)} disabled={userAttemptShown} isSelected={selectedAnswer === option} isCorrect={option === currentQuestion.correctAnswer} userAttemptShown={userAttemptShown} solutionRevealed={revealSolution} />
             ))}
         </div>
-        <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-1 sm:mt-2">
+        
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-auto">
             <button onClick={onHintRequest} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} disabled={isHintModalOpen || hintButtonUsed || userAttemptShown} className={`flex-1 bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] font-semibold py-2.5 sm:py-3 px-4 rounded-lg shadow-[var(--button-primary-shadow,theme(boxShadow.md))] flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 ${hintButtonUsed ? 'opacity-60 cursor-not-allowed' : 'hover:bg-opacity-80 active:scale-95'}`}>
                 <LightbulbIcon className="w-4 h-4 sm:w-5 sm:h-5" /> Gợi Ý {hintButtonUsed && "(Đã dùng)"}
             </button>

@@ -29,11 +29,17 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
   let currentOpacity = 'opacity-100';
   // Use CSS variable for shadow, with a fallback to Tailwind's shadow-md
   let shadowClass = 'shadow-[var(--button-answer-option-shadow,theme(boxShadow.md))]';
+  let animationClass = '';
 
 
   if (userAttemptShown) {
     if (isSelected) {
-      bgColorClass = isCorrect ? 'bg-[var(--correct-bg)]' : 'bg-[var(--incorrect-bg)]';
+      if (isCorrect) {
+          bgColorClass = 'bg-[var(--correct-bg)]';
+          animationClass = 'animate-pulse-glow-soft';
+      } else {
+          bgColorClass = 'bg-[var(--incorrect-bg)]';
+      }
       textColorClass = isCorrect ? 'text-[var(--correct-text)]' : 'text-[var(--incorrect-text)]';
       ringColorClass = isCorrect ? 'ring-[var(--correct-ring)] focus:ring-[var(--correct-ring)]' : 'ring-[var(--incorrect-ring)] focus:ring-[var(--incorrect-ring)]';
     } else {
@@ -42,6 +48,7 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
           bgColorClass = 'bg-[var(--correct-bg)]'; 
           textColorClass = 'text-[var(--correct-text)]';
           ringColorClass = 'ring-[var(--correct-ring)] focus:ring-[var(--correct-ring)]';
+          animationClass = 'animate-pulse-glow-soft';
         } else { 
           bgColorClass = 'bg-gray-500'; 
           textColorClass = 'text-gray-300';
@@ -68,7 +75,7 @@ const AnswerOption: React.FC<AnswerOptionProps> = ({
       className={`
         w-full p-3 sm:p-4 md:p-4 rounded-lg ${shadowClass} transition-all duration-200 ease-in-out
         text-sm sm:text-base md:text-lg font-semibold focus:outline-none focus:ring-2 sm:focus:ring-4 
-        ${bgColorClass} ${textColorClass} ${ringColorClass} ${currentOpacity}
+        ${bgColorClass} ${textColorClass} ${ringColorClass} ${currentOpacity} ${animationClass}
         ${disabled && !userAttemptShown ? 'opacity-60 cursor-not-allowed' : ''}
         ${!disabled ? 'transform hover:scale-105 active:scale-95 active:brightness-90' : ''}
       `}

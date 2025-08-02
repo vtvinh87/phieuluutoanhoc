@@ -59,13 +59,16 @@ export const IslandPlayingScreen: React.FC<IslandPlayingScreenProps> = ({ curren
         <div className="flex-grow flex flex-col justify-center">
             <QuestionDisplay question={currentQuestion} />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-3">
+        
+        <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 my-2 sm:my-3">
             {currentQuestion.options.map((option, index) => (
                 <AnswerOption key={index} optionText={option} onClick={() => onAnswerSelect(option)} disabled={userAttemptShown || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))} isSelected={selectedAnswer === option} isCorrect={option === currentQuestion.correctAnswer} userAttemptShown={userAttemptShown} solutionRevealed={revealSolution} />
             ))}
         </div>
-        <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-1 sm:mt-2">
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-auto">
             <button onClick={onHintRequest} onMouseEnter={() => playSound(HOVER_SOUND_URL, 0.2)} disabled={isHintModalOpen || hintButtonUsed || (feedback.isCorrect === true || (playerLives === 0 && feedback.isCorrect === false && revealSolution))} className={`flex-1 bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] font-semibold py-2.5 sm:py-3 px-4 rounded-lg shadow-[var(--button-primary-shadow,theme(boxShadow.md))] flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 ${hintButtonUsed ? 'opacity-60 cursor-not-allowed' : 'hover:bg-opacity-80 active:scale-95'}`}>
                 <LightbulbIcon className="w-4 h-4 sm:w-5 sm:h-5" /> Gợi Ý {hintButtonUsed && "(Đã dùng)"}
             </button>

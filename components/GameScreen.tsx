@@ -35,7 +35,7 @@ import {
     NPC_INTERACTION_SOUND_URL, NPC_RIDDLE_SUCCESS_SOUND_URL, NPC_RIDDLE_FAIL_SOUND_URL, COLLECTIBLE_ITEMS,
     COLLECTIBLE_SPAWN_CHANCE, ACTIVE_COLLECTIBLE_KEY, COLLECTED_ITEMS_KEY, COLLECTIBLE_SPAWN_SOUND_URL,
     COLLECTIBLE_COLLECT_SOUND_URL, COLLECTIBLE_COLLECTION_TOAST_MESSAGE, TREASURE_CHEST_POINTS_MESSAGE,
-    ENDLESS_MODE_LIVES, ENDLESS_QUESTIONS_BATCH_SIZE, ENDLESS_MODE_DIFFICULTY, ENDLESS_MODE_GRADE_COMPLETE_MESSAGE,
+    ENDLESS_MODE_LIVES, ENDLESS_QUESTIONS_BATCH_SIZE, ENDLESS_MODE_GRADE_COMPLETE_MESSAGE,
     ENDLESS_MODE_UNLOCKED_MESSAGE, FINAL_ISLAND_UNLOCK_MESSAGE,
     FINAL_ISLAND_ACCESS_BUTTON_TEXT, FINAL_ISLAND_GRADE_TITLE, ENDLESS_UNLOCKED_KEY_PREFIX, FINAL_ISLAND_UNLOCKED_KEY,
     ENDLESS_MODE_START_SOUND_URL, FINAL_ISLAND_UNLOCK_SOUND_URL, FINAL_ISLAND_AMBIENT_SOUND_URL, FINAL_TREASURE_ISLAND_ID,
@@ -50,7 +50,7 @@ import {
     WEEKLY_CHALLENGE_COMPLETE_SOUND_URL, WEEKLY_CHALLENGE_PROGRESS_SOUND_URL,
     ENDLESS_MODE_LOADING_TEXT, ENDLESS_MODE_ERROR_TEXT, ENDLESS_MODE_TITLE_TEXT,
     SHOP_ACCESSORIES, PLAYER_OWNED_ACCESSORIES_KEY, SHOP_TITLE_TEXT, SHOP_BACK_BUTTON_TEXT, PLAYER_ACTIVE_ACCESSORIES_KEY,
-    MANAGE_ACCESSORIES_BUTTON_TEXT
+    MANAGE_ACCESSORIES_BUTTON_TEXT, ENDLESS_MODE_STARTING_DIFFICULTY, ENDLESS_MODE_STREAK_TO_CHANGE_DIFFICULTY, ENDLESS_MODE_MAX_DIFFICULTY, ENDLESS_MODE_MIN_DIFFICULTY
 } from '../constants';
 import { getMathHint, generateMathQuestionsForIslandSet, generateEndlessMathQuestions, delay as apiDelay } from '../services/geminiService';
 import { 
@@ -168,6 +168,11 @@ const GameScreen: React.FC = () => {
   const [endlessQuestionsAnswered, setEndlessQuestionsAnswered] = useState(0);
   const [endlessQuestionBatch, setEndlessQuestionBatch] = useState<Question[]>([]);
   const [currentEndlessQuestionIndex, setCurrentEndlessQuestionIndex] = useState(0);
+  const [endlessDifficultyLevel, setEndlessDifficultyLevel] = useState(ENDLESS_MODE_STARTING_DIFFICULTY);
+  const [endlessCorrectStreak, setEndlessCorrectStreak] = useState(0);
+  const [endlessIncorrectStreak, setEndlessIncorrectStreak] = useState(0);
+  const [preloadedEndlessBatch, setPreloadedEndlessBatch] = useState<Question[]>([]);
+  const [isPreloadingEndlessBatch, setIsPreloadingEndlessBatch] = useState(false);
 
   const [activeDailyChallenge, setActiveDailyChallenge] = useState<ActiveDailyChallengeState>(null);
   const [playerGems, setPlayerGems] = useState<PlayerGemsState>(() => loadPlayerGems());
@@ -498,7 +503,10 @@ const GameScreen: React.FC = () => {
     resetForNewIslandPlay(); setQuestionsForCurrentIsland([]); setCurrentIslandId(null); setSelectedIslandDifficulty(null); setShowDifficultySelectionModalForIslandId(null); setLoadingError(null);
     if (grade !== null) { setOverallScore(loadOverallScoreFromStorage(grade)); setIslandProgress(loadIslandProgressFromStorage(grade)); setIslandStarRatings(loadIslandStarRatingsFromStorage(grade)); }
     else { setOverallScore(0); setIslandProgress({}); setIslandStarRatings({}); }
-    setPreloadedQuestionsCache({}); setTransitionDetails(null); setThemeChangedForAchievement(false); setShowTreasureModalForIslandId(null); setShowBottleModalForIslandId(null); setActiveNPCData(null); saveActiveNPCToStorage(null); setActiveCollectible({}); saveActiveCollectibleToStorage({}); setCurrentEndlessGrade(null); setEndlessModeLives(ENDLESS_MODE_LIVES); setEndlessModeScore(0); setEndlessQuestionsAnswered(0); setEndlessQuestionBatch([]); setCurrentEndlessQuestionIndex(0);
+    setPreloadedQuestionsCache({}); setTransitionDetails(null); setThemeChangedForAchievement(false); setShowTreasureModalForIslandId(null); setShowBottleModalForIslandId(null); setActiveNPCData(null); saveActiveNPCToStorage(null); setActiveCollectible({}); saveActiveCollectibleToStorage({}); setCurrentEndlessGrade(null); setEndlessModeLives(ENDLESS_MODE_LIVES); setEndlessModeScore(0); setEndlessQuestionsAnswered(0); setEndlessQuestionBatch([]); setCurrentEndlessQuestionIndex(0); setPreloadedEndlessBatch([]); setIsPreloadingEndlessBatch(false);
+    setEndlessDifficultyLevel(ENDLESS_MODE_STARTING_DIFFICULTY);
+    setEndlessCorrectStreak(0);
+    setEndlessIncorrectStreak(0);
     resetStreakChallengesIfNeeded(true);
   }, [resetForNewIslandPlay, resetStreakChallengesIfNeeded]);
 
@@ -853,7 +861,7 @@ const GameScreen: React.FC = () => {
     if (apiKeyMissing) { setLoadingError(API_KEY_ERROR_MESSAGE); setGameState('Error'); return; }
     setGameState('EndlessLoading'); setLoadingError(null);
     try {
-      const questions = await generateEndlessMathQuestions(gradeToFetch, ENDLESS_MODE_DIFFICULTY);
+      const questions = await generateEndlessMathQuestions(gradeToFetch, endlessDifficultyLevel);
       if (questions && questions.length > 0) {
         setEndlessQuestionBatch(questions);
         setCurrentEndlessQuestionIndex(0);
@@ -867,14 +875,39 @@ const GameScreen: React.FC = () => {
       setLoadingError(ENDLESS_MODE_ERROR_TEXT);
       setGameState('Error');
     }
-  }, [apiKeyMissing, resetForNewQuestion]);
+  }, [apiKeyMissing, resetForNewQuestion, endlessDifficultyLevel]);
+
+  const preloadNextEndlessBatch = useCallback(async (gradeToFetch: GradeLevel) => {
+    if (apiKeyMissing || isPreloadingEndlessBatch || preloadedEndlessBatch.length > 0) {
+        return;
+    }
+    setIsPreloadingEndlessBatch(true);
+    try {
+        const questions = await generateEndlessMathQuestions(gradeToFetch, endlessDifficultyLevel);
+        if (questions && questions.length > 0) {
+            setPreloadedEndlessBatch(questions);
+        }
+    } catch (error) {
+        console.warn("Background preloading for endless mode failed:", error);
+        // Fail silently. The regular fetch will handle user-facing errors if needed.
+    } finally {
+        setIsPreloadingEndlessBatch(false);
+    }
+  }, [apiKeyMissing, isPreloadingEndlessBatch, preloadedEndlessBatch.length, endlessDifficultyLevel]);
 
   const handleNextEndlessQuestion = useCallback(() => {
     resetForNewQuestion();
     if (currentEndlessQuestionIndex < endlessQuestionBatch.length - 1) {
       setCurrentEndlessQuestionIndex(prev => prev + 1);
     } else {
-      if (currentEndlessGrade !== null) {
+      // End of batch. Check for preloaded questions.
+      if (preloadedEndlessBatch.length > 0) {
+        // Seamless transition
+        setEndlessQuestionBatch(preloadedEndlessBatch);
+        setPreloadedEndlessBatch([]);
+        setCurrentEndlessQuestionIndex(0);
+      } else if (currentEndlessGrade !== null) {
+        // Fallback to fetching with loading screen
         fetchNextEndlessBatch(currentEndlessGrade);
       } else {
         console.error("Endless Mode: `currentEndlessGrade` is null when trying to fetch the next batch.");
@@ -882,7 +915,7 @@ const GameScreen: React.FC = () => {
         setGameState('Error');
       }
     }
-  }, [currentEndlessQuestionIndex, endlessQuestionBatch.length, fetchNextEndlessBatch, resetForNewQuestion, currentEndlessGrade]);
+  }, [currentEndlessQuestionIndex, endlessQuestionBatch.length, fetchNextEndlessBatch, resetForNewQuestion, currentEndlessGrade, preloadedEndlessBatch]);
 
   const handleAnswerSubmit = useCallback(() => {
     unlockAudioContext();
@@ -911,6 +944,25 @@ const GameScreen: React.FC = () => {
             case 'EndlessPlaying':
                 setEndlessModeScore(prev => prev + pointsEarned);
                 setEndlessQuestionsAnswered(prev => prev + 1);
+                setEndlessIncorrectStreak(0);
+                
+                const newStreak = endlessCorrectStreak + 1;
+                setEndlessCorrectStreak(newStreak);
+                if (newStreak > 0 && newStreak % ENDLESS_MODE_STREAK_TO_CHANGE_DIFFICULTY === 0) {
+                    setEndlessDifficultyLevel(prev => {
+                        const newDifficulty = Math.min(prev + 1, ENDLESS_MODE_MAX_DIFFICULTY);
+                        if (newDifficulty !== prev) {
+                            setPreloadedEndlessBatch([]);
+                        }
+                        return newDifficulty;
+                    });
+                }
+
+                // Preload on the 3rd question of a 5-question batch (index 2)
+                if (currentEndlessQuestionIndex === 2 && currentEndlessGrade) {
+                    preloadNextEndlessBatch(currentEndlessGrade);
+                }
+
                 setTimeout(() => handleNextEndlessQuestion(), 1500);
                 break;
             case 'IslandPlaying':
@@ -928,6 +980,20 @@ const GameScreen: React.FC = () => {
         
         switch (gameState) {
             case 'EndlessPlaying':
+                setEndlessCorrectStreak(0);
+
+                const newIncorrectStreak = endlessIncorrectStreak + 1;
+                setEndlessIncorrectStreak(newIncorrectStreak);
+                if (newIncorrectStreak > 0 && newIncorrectStreak % ENDLESS_MODE_STREAK_TO_CHANGE_DIFFICULTY === 0) {
+                    setEndlessDifficultyLevel(prev => {
+                        const newDifficulty = Math.max(prev - 1, ENDLESS_MODE_MIN_DIFFICULTY);
+                        if (newDifficulty !== prev) {
+                           setPreloadedEndlessBatch([]);
+                        }
+                        return newDifficulty;
+                    });
+                }
+                
                 const newEndlessLives = endlessModeLives - 1;
                 setEndlessModeLives(newEndlessLives);
                 if (newEndlessLives <= 0) {
@@ -960,7 +1026,9 @@ const GameScreen: React.FC = () => {
       updateWeeklyChallengeProgress, activeWeeklyChallenge, handleNextEndlessQuestion,
       setFeedback, setRevealSolution, setEndlessModeScore, setEndlessQuestionsAnswered,
       saveOverallScoreToStorage, setIslandScore, setEndlessModeLives, setGameState,
-      setSelectedAnswer, setUserAttemptShown, setPlayerLives
+      setSelectedAnswer, setUserAttemptShown, setPlayerLives,
+      currentEndlessQuestionIndex, currentEndlessGrade, preloadNextEndlessBatch,
+      endlessCorrectStreak, endlessIncorrectStreak
     ]);
 
 
@@ -1103,7 +1171,12 @@ const GameScreen: React.FC = () => {
     setEndlessModeLives(ENDLESS_MODE_LIVES);
     setEndlessModeScore(0);
     setEndlessQuestionsAnswered(0);
+    setEndlessDifficultyLevel(ENDLESS_MODE_STARTING_DIFFICULTY);
+    setEndlessCorrectStreak(0);
+    setEndlessIncorrectStreak(0);
     setEndlessQuestionBatch([]);
+    setPreloadedEndlessBatch([]);
+    setIsPreloadingEndlessBatch(false);
     setCurrentEndlessQuestionIndex(0);
     const startFetch = () => fetchNextEndlessBatch(grade);
     setTransitionDetails({ message: ENDLESS_MODE_LOADING_TEXT, onComplete: startFetch });
@@ -1186,7 +1259,7 @@ const GameScreen: React.FC = () => {
       
         case 'EndlessPlaying':
              if (!currentQuestion || currentEndlessGrade === null) return <IslandLoadingScreen message="Đang tải câu hỏi Vô tận..." />;
-             return <EndlessPlayingScreen currentQuestion={currentQuestion} currentEndlessGrade={currentEndlessGrade} endlessModeLives={endlessModeLives} endlessModeScore={endlessModeScore} endlessQuestionsAnswered={endlessQuestionsAnswered} selectedAnswer={selectedAnswer} userAttemptShown={userAttemptShown} feedback={feedback} revealSolution={revealSolution} isHintModalOpen={isHintModalOpen} hintButtonUsed={hintButtonUsed} onAnswerSelect={(answer) => { setSelectedAnswer(answer); playSound(ANSWER_SELECT_SOUND_URL, 0.4); }} onAnswerSubmit={handleAnswerSubmit} onHintRequest={handleHintRequest} onBackToMap={handleBackToMap} playSound={playSound} />;
+             return <EndlessPlayingScreen currentQuestion={currentQuestion} currentEndlessGrade={currentEndlessGrade} endlessModeLives={endlessModeLives} endlessModeScore={endlessModeScore} endlessQuestionsAnswered={endlessQuestionsAnswered} selectedAnswer={selectedAnswer} userAttemptShown={userAttemptShown} feedback={feedback} revealSolution={revealSolution} isHintModalOpen={isHintModalOpen} hintButtonUsed={hintButtonUsed} endlessDifficultyLevel={endlessDifficultyLevel} onAnswerSelect={(answer) => { setSelectedAnswer(answer); playSound(ANSWER_SELECT_SOUND_URL, 0.4); }} onAnswerSubmit={handleAnswerSubmit} onHintRequest={handleHintRequest} onBackToMap={handleBackToMap} playSound={playSound} />;
         
         case 'IslandComplete':
             if (!currentIslandConfig || selectedGrade === null || selectedIslandDifficulty === null || currentIslandId === null) return <ErrorScreen loadingError="Lỗi khi hiển thị kết quả." handleReturnToGradeSelection={handleReturnToGradeSelection} handleRetryFetchIsland={handleRetryFetchIsland} />;

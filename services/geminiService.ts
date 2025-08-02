@@ -351,7 +351,7 @@ Chỉ trả về phần văn bản gợi ý, không thêm bất kỳ lời chào
 
 export const generateEndlessMathQuestions = async (
   targetGradeLevel: GradeLevel,
-  difficulty: IslandDifficulty
+  difficultyLevel: number
 ): Promise<Question[] | null> => {
   const currentAi = initializeAi();
   if (!currentAi) {
@@ -360,29 +360,48 @@ export const generateEndlessMathQuestions = async (
   }
 
   const gradeDescription = GRADE_LEVEL_TEXT_MAP[targetGradeLevel] || `cấp độ ${targetGradeLevel}`;
-  const difficultyName = ISLAND_DIFFICULTY_TEXT_MAP[difficulty];
   
   const gradeIslands = ISLAND_CONFIGS.filter(island => island.targetGradeLevel === targetGradeLevel);
   const allTopicsForGrade = [...new Set(gradeIslands.flatMap(island => island.topics))];
   
   let topicInstruction = "";
   if (allTopicsForGrade.length > 0) {
-    topicInstruction = `Các câu hỏi nên bao quát ngẫu nhiên các chủ đề thuộc chương trình ${gradeDescription}, ví dụ như: ${allTopicsForGrade.slice(0, 5).join(', ')} và các chủ đề tương tự khác.`;
+    topicInstruction = `Các câu hỏi phải bao quát toàn bộ kiến thức của ${gradeDescription}, ngẫu nhiên trong các chủ đề như: ${allTopicsForGrade.slice(0, 5).join(', ')}, và các chủ đề khác thuộc chương trình lớp học.`;
   } else {
-    topicInstruction = `Các câu hỏi nên phù hợp với chương trình học chung của ${gradeDescription}.`;
+    topicInstruction = `Các câu hỏi phải phù hợp với toàn bộ chương trình học chung của ${gradeDescription}.`;
   }
 
+  let difficultyDescription = "";
+  switch (true) {
+      case difficultyLevel <= 2:
+          difficultyDescription = "Cực kỳ dễ, dành cho người mới bắt đầu, thường chỉ có một bước tính toán với các số rất nhỏ.";
+          break;
+      case difficultyLevel <= 4:
+          difficultyDescription = "Dễ đến trung bình, phù hợp với trình độ chuẩn của học sinh lớp này, có thể có 1-2 bước tính đơn giản.";
+          break;
+      case difficultyLevel <= 6:
+          difficultyDescription = "Khá thử thách, yêu cầu 2-3 bước suy luận, có thể là toán đố hoặc làm việc với số lớn hơn.";
+          break;
+      case difficultyLevel <= 8:
+          difficultyDescription = "Khó, là các bài toán đố phức tạp, yêu cầu tư duy logic, kết hợp nhiều kiến thức.";
+          break;
+      case difficultyLevel <= 10:
+          difficultyDescription = "Rất khó và lắt léo, đòi hỏi tư duy sáng tạo, có thể là các dạng toán lạ hoặc có yếu tố gây nhiễu để thử thách học sinh giỏi.";
+          break;
+  }
+
+
   const prompt = `Bạn là một giáo viên tiểu học chuyên ra đề toán bằng tiếng Việt cho Chế Độ Vô Tận.
-Học sinh đang chơi ở trình độ ${gradeDescription} với độ khó được thiết lập là "${difficultyName}".
+Học sinh đang chơi ở trình độ ${gradeDescription}.
 ${topicInstruction}
 
 Bạn cần tạo một BỘ GỒM CHÍNH XÁC ${ENDLESS_QUESTIONS_BATCH_SIZE} CÂU HỎI toán trắc nghiệm. Các câu hỏi này phải được trả về dưới dạng một MẢNG JSON.
+Độ khó của các câu hỏi trong bộ này phải tương đối đồng đều và phù hợp với độ khó được mô tả là: "${difficultyDescription}" (Cấp độ ${difficultyLevel}/10).
 Mỗi câu hỏi phải hoàn toàn dựa trên văn bản, không yêu cầu hình ảnh, và có 4 lựa chọn đáp án.
-Độ khó của các câu hỏi trong bộ này nên tương đối đồng đều và phù hợp với độ khó "${difficultyName}" đã chọn.
 
-Yêu cầu về tính chất chung cho TẤT CẢ câu hỏi:
-- Phù hợp với chương trình học ${gradeDescription}.
-- Độ khó nhất quán ở mức "${difficultyName}".
+YÊU CẦU QUAN TRỌNG:
+- Câu hỏi phải bao quát toàn bộ kiến thức của ${gradeDescription}.
+- Độ khó nhất quán ở mức đã mô tả.
 - Vui vẻ, thú vị, nhưng vẫn đảm bảo tính học thuật.
 - Ngắn gọn, dễ hiểu.
 
@@ -481,7 +500,7 @@ HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
       return processedQuestions;
 
     } catch (error) {
-      console.error(`Error generating endless question set (attempt ${retries + 1}/${MAX_QUESTION_GENERATION_RETRIES + 1}, grade ${gradeDescription}, difficulty ${difficultyName}):`, error);
+      console.error(`Error generating endless question set (attempt ${retries + 1}/${MAX_QUESTION_GENERATION_RETRIES + 1}, grade ${gradeDescription}, difficultyLevel ${difficultyLevel}):`, error);
       let isRateLimitError = false;
       let isApiKeyError = false;
       let isJsonParseOrFormatError = false;

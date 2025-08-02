@@ -103,8 +103,11 @@ export const CHOOSE_ISLAND_DIFFICULTY_TEXT = (islandName: string) => `Chọn đ�
 
 // Endless Mode
 export const ENDLESS_MODE_LIVES = 5;
-export const ENDLESS_QUESTIONS_BATCH_SIZE = 10; // Number of questions per batch
-export const ENDLESS_MODE_DIFFICULTY: IslandDifficulty = IslandDifficulty.MEDIUM;
+export const ENDLESS_QUESTIONS_BATCH_SIZE = 5; // Number of questions per batch
+export const ENDLESS_MODE_STARTING_DIFFICULTY = 4;
+export const ENDLESS_MODE_MIN_DIFFICULTY = 1;
+export const ENDLESS_MODE_MAX_DIFFICULTY = 10;
+export const ENDLESS_MODE_STREAK_TO_CHANGE_DIFFICULTY = 3;
 export const ENDLESS_MODE_GRADE_COMPLETE_MESSAGE = (grade: string) => `Chúc mừng! Bạn đã mở khóa Chế độ Vô tận cho ${grade}!`;
 export const ENDLESS_MODE_SUMMARY_TITLE = "Kết Quả Chế Độ Vô Tận";
 export const ENDLESS_MODE_SCORE_TEXT = "Điểm Vô Tận";
@@ -116,6 +119,19 @@ export const START_ENDLESS_MODE_TEXT = "Bắt Đầu Chế Độ Vô Tận";
 export const ENDLESS_MODE_LOADING_TEXT = "Đang tải câu hỏi Vô Tận...";
 export const ENDLESS_MODE_ERROR_TEXT = "Không thể tải câu hỏi cho Chế Độ Vô Tận.";
 export const ENDLESS_MODE_TITLE_TEXT = (gradeText: string): string => `Chế Độ Vô Tận - ${gradeText}`;
+export const ENDLESS_DIFFICULTY_LEVEL_TEXT_MAP: Record<number, string> = {
+    1: "Tân Binh",
+    2: "Dễ",
+    3: "Bình Thường",
+    4: "Thử Thách",
+    5: "Nâng Cao",
+    6: "Khó",
+    7: "Chuyên Gia",
+    8: "Bậc Thầy",
+    9: "Siêu Việt",
+    10: "Huyền Thoại",
+};
+
 
 
 // Final Island

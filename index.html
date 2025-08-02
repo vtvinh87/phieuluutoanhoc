@@ -124,11 +124,17 @@
     }
     
     @keyframes pulse-glow-soft {
-      0%, 100% { filter: brightness(1) drop-shadow(0 0 3px var(--accent-color)); }
-      50% { filter: brightness(1.1) drop-shadow(0 0 10px var(--accent-color)); }
+      0%, 100% {
+        box-shadow: 0 0 8px var(--correct-ring, #28a745), inset 0 0 8px var(--correct-ring, #28a745);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 16px 4px var(--correct-ring, #28a745), inset 0 0 12px 2px var(--correct-ring, #28a745);
+        transform: scale(1.02);
+      }
     }
     .animate-pulse-glow-soft {
-        animation: pulse-glow-soft 2.5s infinite ease-in-out;
+        animation: pulse-glow-soft 1.5s infinite ease-in-out;
     }
 
 
