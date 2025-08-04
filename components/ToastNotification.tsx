@@ -58,7 +58,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({ toast, onDismiss 
   return (
     <div
       className={`
-        fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[100] 
+        fixed top-5 right-5 sm:top-6 sm:right-6 z-[100] 
         flex items-center gap-3 p-3 sm:p-4 rounded-xl shadow-2xl 
         ${bgColor} ${textColor} 
         transition-all duration-500 ease-in-out transform 

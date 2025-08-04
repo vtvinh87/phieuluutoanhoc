@@ -26,8 +26,8 @@ interface GradeCompleteScreenProps extends SummaryScreenSharedProps {
 export const GradeCompleteScreen: React.FC<GradeCompleteScreenProps> = ({ selectedGrade, overallScore, isEndlessUnlockedForGrade, onPlayThisGradeAgain, onChooseAnotherGrade, onStartEndlessMode, playSound, showCustomFireworks, audioUnlocked }) => (
     <>
         {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>}
-        <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4">
-            <div className={`text-center max-w-lg md:max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] p-5 sm:p-6 md:p-8 rounded-xl relative z-10`}>
+        <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4 relative z-50">
+            <div className={`text-center max-w-lg md:max-w-2xl mx-auto bg-gradient-to-r from-[var(--title-text-gradient-from)] via-[var(--accent-color)] to-[var(--title-text-gradient-to)] text-[var(--accent-text)] p-5 sm:p-6 md:p-8 rounded-xl relative`}>
                 <SparklesIcon className="w-16 h-16 sm:w-20 md:w-24 mx-auto mb-4 sm:mb-6 text-white animate-subtle-shine"/>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 animate-subtle-shine">{GRADE_COMPLETE_TEXT}</h1>
                 <p className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">{GRADE_LEVEL_TEXT_MAP[selectedGrade]}</p>

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { Theme } from '../types';
-import { THEME_CONFIGS, ThemeConfig } from '../themes';
+import { Theme, ThemeConfig } from '../types';
+import { THEME_CONFIGS } from '../themes';
 import { HOVER_SOUND_URL } from '../constants';
 
 interface ThemeSelectionScreenProps {

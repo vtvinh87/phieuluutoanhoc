@@ -50,7 +50,7 @@ const DifficultySelectionModal: React.FC<DifficultySelectionModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-3 sm:p-4 z-50 transition-opacity duration-300 animate-fadeIn bg-[var(--modal-bg-backdrop)]`}
+      className={`fixed inset-0 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto transition-opacity duration-300 animate-fadeIn bg-[var(--modal-bg-backdrop)]`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"

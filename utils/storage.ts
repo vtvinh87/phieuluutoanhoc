@@ -2,7 +2,8 @@ import {
     GradeLevel, IslandProgressState, IslandStarRatingsState, AllGradesStarRatingsState, AchievedAchievementsState,
     ActiveTreasureChestsState, ActiveMessageBottlesState, StoredActiveNPCInfo, ActiveCollectibleState, CollectedItemsState,
     IsEndlessUnlockedForGradeState, ActiveDailyChallengeState, PlayerGemsState, CompletedDailyChallengesLogState,
-    ActiveWeeklyChallengeState, CompletedWeeklyChallengesLogState, PlayerOwnedAccessoriesState, PlayerActiveAccessoriesState, Theme
+    ActiveWeeklyChallengeState, CompletedWeeklyChallengesLogState, PlayerOwnedAccessoriesState, PlayerActiveAccessoriesState, Theme,
+    StudentActivityLogState, ParentGoalsState, StudentAssignmentsState
 } from '../types';
 import {
     LAST_SELECTED_GRADE_KEY, ISLAND_PROGRESS_KEY_PREFIX, OVERALL_SCORE_KEY_PREFIX, ISLAND_STAR_RATINGS_KEY_PREFIX,
@@ -10,7 +11,7 @@ import {
     ACTIVE_FRIENDLY_NPC_KEY, ACTIVE_COLLECTIBLE_KEY, COLLECTED_ITEMS_KEY, ENDLESS_UNLOCKED_KEY_PREFIX,
     FINAL_ISLAND_UNLOCKED_KEY, ACTIVE_DAILY_CHALLENGE_KEY, PLAYER_GEMS_KEY, COMPLETED_DAILY_CHALLENGES_LOG_KEY,
     ACTIVE_WEEKLY_CHALLENGE_KEY, COMPLETED_WEEKLY_CHALLENGES_LOG_KEY, PLAYER_OWNED_ACCESSORIES_KEY, PLAYER_ACTIVE_ACCESSORIES_KEY,
-    DEFAULT_THEME, SELECTED_THEME_KEY
+    DEFAULT_THEME, SELECTED_THEME_KEY, ACTIVITY_LOG_KEY, PARENT_GOALS_KEY, STUDENT_ASSIGNMENTS_KEY
 } from '../constants';
 
 const loadItem = <T,>(key: string, defaultValue: T): T => {
@@ -106,3 +107,13 @@ export const savePlayerActiveAccessoriesToStorage = (activeAccessories: PlayerAc
 
 export const loadTheme = (): Theme => loadItem(SELECTED_THEME_KEY, DEFAULT_THEME);
 export const saveTheme = (theme: Theme) => saveItem(SELECTED_THEME_KEY, theme);
+
+// For Parent Dashboard
+export const loadStudentActivityLog = (): StudentActivityLogState => loadItem(ACTIVITY_LOG_KEY, []);
+export const saveStudentActivityLog = (log: StudentActivityLogState) => saveItem(ACTIVITY_LOG_KEY, log);
+export const loadParentGoals = (): ParentGoalsState => loadItem(PARENT_GOALS_KEY, []);
+export const saveParentGoals = (goals: ParentGoalsState) => saveItem(PARENT_GOALS_KEY, goals);
+
+// For Teacher Dashboard
+export const loadStudentAssignments = (): StudentAssignmentsState => loadItem(STUDENT_ASSIGNMENTS_KEY, []);
+export const saveStudentAssignments = (assignments: StudentAssignmentsState) => saveItem(STUDENT_ASSIGNMENTS_KEY, assignments);

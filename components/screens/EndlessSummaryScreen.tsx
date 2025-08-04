@@ -25,8 +25,8 @@ interface EndlessSummaryScreenProps extends SummaryScreenSharedProps {
 export const EndlessSummaryScreen: React.FC<EndlessSummaryScreenProps> = ({ currentEndlessGrade, endlessModeScore, endlessQuestionsAnswered, onBackToMap, onPlayAgain, playSound, showCustomFireworks, audioUnlocked }) => (
     <>
         {showCustomFireworks && <FireworksCanvas isActive={showCustomFireworks} playSound={playSound} audioUnlocked={audioUnlocked}/>}
-        <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4">
-            <div className={`text-center max-w-md md:max-w-xl mx-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 text-white p-5 sm:p-6 md:p-8 rounded-xl relative z-10`}>
+        <div className="w-full h-full flex flex-col items-center justify-center animate-fadeInScale p-4 relative z-50">
+            <div className={`text-center max-w-md md:max-w-xl mx-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 text-white p-5 sm:p-6 md:p-8 rounded-xl relative`}>
                 <TrophyIcon className="w-16 h-16 sm:w-20 mx-auto mb-3 sm:mb-4 animate-subtle-shine"/>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">{ENDLESS_MODE_SUMMARY_TITLE}</h1>
                 <p className="text-base sm:text-lg md:text-xl mb-1">Lớp: {GRADE_LEVEL_TEXT_MAP[currentEndlessGrade]}</p>

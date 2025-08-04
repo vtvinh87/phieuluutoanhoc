@@ -273,7 +273,7 @@ const FireworksCanvas: React.FC<FireworksCanvasProps> = ({ isActive, playSound, 
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 99998, // Increased z-index
+        zIndex: 40, // Place on a dedicated effects layer below UI modals
         pointerEvents: 'none', 
       }}
     />
@@ -281,4 +281,3 @@ const FireworksCanvas: React.FC<FireworksCanvasProps> = ({ isActive, playSound, 
 };
 
 export default FireworksCanvas;
-

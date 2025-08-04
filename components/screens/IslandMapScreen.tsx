@@ -3,17 +3,18 @@ import {
     IslandConfig, IslandStatus, GradeLevel, IslandStarRatingsState,
     ActiveTreasureChestsState, ActiveMessageBottlesState,
     ShootingStarData, ActiveNPCInfo, ActiveCollectibleState,
-    ActiveDailyChallengeState, ActiveWeeklyChallengeState, IslandProgressState
+    ActiveDailyChallengeState, ActiveWeeklyChallengeState, IslandProgressState,
+    Assignment
 } from '../../types';
 import {
     GRADE_LEVEL_TEXT_MAP, CHOOSE_ISLAND_TEXT, HOVER_SOUND_URL, ACHIEVEMENT_BUTTON_ICON_URL, VIEW_ACHIEVEMENTS_BUTTON_TEXT,
     TREASURE_CHEST_ICON_EMOJI, MESSAGE_IN_BOTTLE_ICON_EMOJI, ENDLESS_MODE_BUTTON_TEXT, FINAL_ISLAND_GRADE_TITLE,
     CHOOSE_ANOTHER_GRADE_TEXT, NO_ISLANDS_FOR_GRADE_TEXT, DAILY_CHALLENGE_BUTTON_TEXT, PLAYER_GEMS_TEXT,
-    COLLECTIBLE_ITEMS, FINAL_TREASURE_ISLAND_ID
+    COLLECTIBLE_ITEMS, FINAL_TREASURE_ISLAND_ID, HOMEWORK_WIDGET_TITLE, GO_TO_ISLAND_BUTTON_TEXT
 } from '../../constants';
 import ShootingStar from '../ShootingStar';
 import {
-    GemIcon, CalendarCheckIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, PlayIcon
+    GemIcon, CalendarCheckIcon, XCircleIcon as LockIcon, StarIconFilled, StarIconOutline, PlayIcon, ClipboardCheckIcon
 } from '../icons';
 
 interface ScreenWithAudioProps {
@@ -42,6 +43,7 @@ interface IslandMapScreenProps extends ScreenWithAudioProps {
     playerGems: number;
     activeDailyChallenge: ActiveDailyChallengeState;
     activeWeeklyChallenge: ActiveWeeklyChallengeState;
+    studentAssignments: Assignment[];
 }
 
 const renderStars = (islandId: string, islandStarRatings: IslandStarRatingsState) => {
@@ -54,7 +56,7 @@ const renderStars = (islandId: string, islandStarRatings: IslandStarRatingsState
     );
 };
 
-export const IslandMapScreen: React.FC<IslandMapScreenProps> = ({ selectedGrade, islandsForCurrentGrade, islandProgress, overallScore, isEndlessUnlockedForGrade, onIslandSelect, onChooseAnotherGrade, onToggleAchievementsScreen, onToggleDailyChallengeModal, onStartEndlessMode, playSound, islandStarRatings, activeTreasureChests, activeMessageBottle, activeNPCData, activeCollectible, shootingStar, onShootingStarClick, setShootingStar, playerGems, activeDailyChallenge, activeWeeklyChallenge }) => (
+export const IslandMapScreen: React.FC<IslandMapScreenProps> = ({ selectedGrade, islandsForCurrentGrade, islandProgress, overallScore, isEndlessUnlockedForGrade, onIslandSelect, onChooseAnotherGrade, onToggleAchievementsScreen, onToggleDailyChallengeModal, onStartEndlessMode, playSound, islandStarRatings, activeTreasureChests, activeMessageBottle, activeNPCData, activeCollectible, shootingStar, onShootingStarClick, setShootingStar, playerGems, activeDailyChallenge, activeWeeklyChallenge, studentAssignments }) => (
     <div className="w-full h-full flex flex-col animate-fadeInScale relative">
         {shootingStar && shootingStar.visible && !shootingStar.clicked && (
             <ShootingStar starData={shootingStar} onClick={() => onShootingStarClick(shootingStar.id)} onDisappear={() => setShootingStar(prev => prev && prev.id === shootingStar.id ? null : prev)} />
@@ -97,6 +99,29 @@ export const IslandMapScreen: React.FC<IslandMapScreenProps> = ({ selectedGrade,
                     </div>
                 </div>
             )}
+            
+            {studentAssignments && studentAssignments.length > 0 && (
+              <div className="mb-3 sm:mb-4 p-3 rounded-lg bg-[var(--secondary-bg)] border-2 border-[var(--accent-color)] shadow-lg animate-fadeIn">
+                <h3 className="flex items-center text-md sm:text-lg font-bold text-[var(--primary-text)] mb-2">
+                  <ClipboardCheckIcon className="w-6 h-6 mr-2 text-[var(--accent-color)]" />
+                  {HOMEWORK_WIDGET_TITLE}
+                </h3>
+                <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                  {studentAssignments.map(assignment => (
+                    <div key={assignment.id} className="flex items-center justify-between p-2 bg-[var(--primary-bg)] rounded-md">
+                      <div>
+                        <p className="font-semibold text-sm text-[var(--primary-text)]">{assignment.islandName}</p>
+                        <p className="text-xs text-[var(--secondary-text)]">Hạn nộp: {new Date(assignment.dueDate).toLocaleDateString('vi-VN')}</p>
+                      </div>
+                      <button onClick={() => onIslandSelect(assignment.islandId)} className="bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] text-xs font-bold py-1.5 px-3 rounded-md hover:opacity-90">
+                        {GO_TO_ISLAND_BUTTON_TEXT}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <p className="text-center text-[var(--primary-text)] opacity-90 mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl">
                 {selectedGrade === GradeLevel.FINAL ? islandsForCurrentGrade[0]?.name : `Lớp: ${GRADE_LEVEL_TEXT_MAP[selectedGrade]}`}
             </p>

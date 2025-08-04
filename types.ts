@@ -26,6 +26,12 @@ export enum Theme {
   FRUTIGER_AERO = 'frutiger_aero',
 }
 
+export enum UserView {
+  STUDENT = 'student',
+  PARENT = 'parent',
+  TEACHER = 'teacher',
+}
+
 export interface Question {
   id: string;
   text: string;
@@ -129,9 +135,10 @@ export interface ThemeConfig {
   questionDisplayText: string;
   questionDisplayImageBorder: string;
   // Spinner Color
-  spinnerColor: string; 
-  // General UI elements
-  appContainerBg: string; 
+  spinnerColor: string;
+  // General UI elements - Refactored for modal positioning fix
+  appContainerLayout: string;   // For padding
+  appContainerVisuals: string;  // For background, blur, border, shadow, etc.
   // Special
   frostedGlassOpacity?: string; 
   fontFamily: string; 
@@ -432,3 +439,51 @@ export type PlayerOwnedAccessoriesState = Record<string, boolean>;
 
 // Structure: { [themeKey]: { [accessoryType]: accessoryId | null } }
 export type PlayerActiveAccessoriesState = Partial<Record<Theme, Partial<Record<AccessoryType, string | null>>>>;
+
+// --- Parent Dashboard Types ---
+export interface ActivityLogEntry {
+  timestamp: number;
+  islandId: string;
+  questionTopic: string;
+  isCorrect: boolean;
+  timeTaken: number; // in milliseconds
+  difficulty: IslandDifficulty;
+  hintUsed: boolean;
+  attempts: number;
+}
+export type StudentActivityLogState = ActivityLogEntry[];
+
+export enum GoalType {
+  COMPLETE_ISLANDS = 'COMPLETE_ISLANDS',
+  EARN_STARS = 'EARN_STARS',
+}
+export interface ParentGoal {
+  id: string;
+  type: GoalType;
+  target: number;
+  rewardGems: number;
+  createdAt: number;
+  isClaimed: boolean;
+}
+export type ParentGoalsState = ParentGoal[];
+
+// --- Teacher Dashboard Types ---
+export interface Assignment {
+  id: string;
+  islandId: string;
+  islandName: string;
+  grade: GradeLevel;
+  assignedDate: number;
+  dueDate: number;
+}
+export type StudentAssignmentsState = Assignment[];
+
+export interface StudentProfileData {
+  id: string;
+  name: string;
+  avatar: string; // emoji
+  totalStars: number;
+  islandsCompleted: number;
+  skillScores: Record<string, { score: number, count: number }>;
+  assignments: Assignment[];
+}

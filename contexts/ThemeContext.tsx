@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback, ReactNode, useContext } from 'react';
-import { Theme, PlayerActiveAccessoriesState, AccessoryType, UIAccentConfig, ThemeAccessory } from '../types';
-import { THEME_CONFIGS, ThemeConfig } from '../themes';
+import { Theme, PlayerActiveAccessoriesState, AccessoryType, UIAccentConfig, ThemeAccessory, ThemeConfig } from '../types';
+import { THEME_CONFIGS } from '../themes';
 import { DEFAULT_THEME, SELECTED_THEME_KEY, PLAYER_ACTIVE_ACCESSORIES_KEY, SHOP_ACCESSORIES } from '../constants';
 
 interface ThemeContextType {

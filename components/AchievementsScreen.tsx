@@ -197,7 +197,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-50 bg-[var(--modal-bg-backdrop)] animate-fadeIn"
+      className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-50 bg-[var(--modal-bg-backdrop)] animate-fadeIn overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

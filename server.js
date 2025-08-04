@@ -87,7 +87,7 @@ app.post('/progress', (req, res) => {
     [user_id, classLevel, island, question_index],
     (err) => {
       if (err) {
-        return res.status(500).json({指南: { error: 'Database error' });
+        return res.status(500).json({ error: 'Database error' });
       }
       res.json({ success: true });
     }

@@ -8,5 +8,5 @@ export * from './screens/IslandCompleteScreen';
 export * from './screens/IslandLoadingScreen';
 export * from './screens/IslandMapScreen';
 export * from './screens/IslandPlayingScreen';
-export * from './screens/StartScreen';
 export * from './screens/TransitionScreen';
+export * from './screens/RoleSelectionScreen';

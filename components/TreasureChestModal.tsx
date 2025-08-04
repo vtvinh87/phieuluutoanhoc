@@ -212,7 +212,7 @@ const TreasureChestModal: React.FC<TreasureChestModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-4 z-[70] transition-opacity duration-300 bg-[var(--modal-bg-backdrop)] animate-fadeIn`}
+      className={`fixed inset-0 flex items-center justify-center p-4 z-[70] overflow-y-auto transition-opacity duration-300 bg-[var(--modal-bg-backdrop)] animate-fadeIn`}
       onClick={handleCloseModal}
       role="dialog"
       aria-modal="true"

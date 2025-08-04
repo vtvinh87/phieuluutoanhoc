@@ -1,69 +1,6 @@
 
-import { Theme } from './types';
 
-export interface ThemeConfig {
-  name: string;
-  backgroundUrl: string; // General fallback remote URL
-  backgroundUrlSideBySideLayout?: string; // Specific remote URL for desktop/side-by-side
-  backgroundUrlStackedLayout?: string;    // Specific remote URL for mobile/stacked
-  localBackgroundUrlSideBySideLayout?: string; // Specific local path for desktop/side-by-side
-  localBackgroundUrlStackedLayout?: string;    // Specific local path for mobile/stacked
-  // Primary colors
-  primaryBg: string; 
-  primaryText: string;
-  secondaryBg: string; 
-  secondaryText: string;
-  // Accent colors
-  accent: string;
-  accentText: string;
-  // Button specific
-  buttonPrimaryBg: string;
-  buttonPrimaryText: string;
-  buttonSecondaryBg: string; 
-  buttonSecondaryText: string; 
-  buttonAnswerOptionBg: string; 
-  buttonAnswerOptionText: string;
-  buttonAnswerOptionRing: string;
-  buttonAnswerOptionSelectedBg: string;
-  buttonAnswerOptionSelectedText: string;
-  buttonAnswerOptionSelectedRing: string;
-  // Feedback colors
-  correctBg: string;
-  correctText: string;
-  correctRing: string;
-  incorrectBg: string;
-  incorrectText: string;
-  incorrectRing: string;
-  // Modal specific
-  modalBgBackdrop: string; 
-  modalContentBg: string;
-  modalHeaderText: string;
-  // Borders and Rings
-  borderColor: string;
-  ringColorFocus: string; 
-  // Text for titles, headers
-  titleTextGradientFrom: string;
-  titleTextGradientTo: string;
-  // Island Map Button Styles
-  islandButtonLockedBg: string;
-  islandButtonUnlockedBg: string;
-  islandButtonCompletedBg: string;
-  islandButtonLockedText: string;
-  islandButtonUnlockedText: string;
-  islandButtonCompletedText: string;
-  islandButtonRingColor: string;
-  // Question Display
-  questionDisplayBg: string;
-  questionDisplayText: string;
-  questionDisplayImageBorder: string;
-  // Spinner Color
-  spinnerColor: string; 
-  // General UI elements
-  appContainerBg: string; 
-  // Special
-  frostedGlassOpacity?: string; 
-  fontFamily: string; 
-}
+import { Theme, ThemeConfig } from './types';
 
 export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   [Theme.DEFAULT]: { 
@@ -113,7 +50,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     questionDisplayText: '#075985', 
     questionDisplayImageBorder: '#67e8f9', 
     spinnerColor: '#22d3ee', 
-    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50', 
+    appContainerLayout: 'p-2 sm:p-3 md:p-4',
+    appContainerVisuals: 'bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50',
     frostedGlassOpacity: 'bg-opacity-70 backdrop-blur-xl shadow-xl border border-white/20', 
     fontFamily: "'Inter', 'Arial', sans-serif",
   },
@@ -164,7 +102,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     questionDisplayText: '#075985', 
     questionDisplayImageBorder: '#67e8f9', 
     spinnerColor: '#22d3ee', 
-    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50',
+    appContainerLayout: 'p-2 sm:p-3 md:p-4',
+    appContainerVisuals: 'bg-slate-100/30 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/50',
     frostedGlassOpacity: 'bg-opacity-70 backdrop-blur-xl shadow-xl border border-white/20',
     fontFamily: "'Inter', 'Arial', sans-serif",
   },
@@ -215,7 +154,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     questionDisplayText: '#00f5d4',
     questionDisplayImageBorder: '#fa2772',
     spinnerColor: '#00f5d4',
-    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-black/80 backdrop-blur-lg rounded-[28px] shadow-2xl border-2 border-[var(--border-color)]',
+    appContainerLayout: 'p-2 sm:p-3 md:p-4',
+    appContainerVisuals: 'bg-black/80 backdrop-blur-lg rounded-[28px] shadow-2xl border-2 border-[var(--border-color)]',
     frostedGlassOpacity: 'bg-opacity-80 backdrop-blur-md shadow-xl border border-gray-700/70', 
     fontFamily: "'TH Morucas', 'Orbitron', sans-serif",
   },
@@ -266,7 +206,8 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     questionDisplayText: '#c026d3', 
     questionDisplayImageBorder: '#f472b6', 
     spinnerColor: '#ec4899', 
-    appContainerBg: 'p-2 sm:p-3 md:p-4 bg-pink-100/40 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/60',
+    appContainerLayout: 'p-2 sm:p-3 md:p-4',
+    appContainerVisuals: 'bg-pink-100/40 backdrop-blur-2xl rounded-[28px] shadow-2xl border-2 border-white/60',
     frostedGlassOpacity: 'bg-opacity-75 backdrop-blur-xl shadow-xl border border-white/30',
     fontFamily: "'SVN Skill', 'EB Garamond', serif",
   },

@@ -60,7 +60,9 @@ export const IslandPlayingScreen: React.FC<IslandPlayingScreenProps> = ({ curren
             <QuestionDisplay question={currentQuestion} />
         </div>
         
-        <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
+        <div className="min-h-24 flex items-center justify-center">
+            <FeedbackIndicator isCorrect={feedback.isCorrect} message={feedback.message} />
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 my-2 sm:my-3">
             {currentQuestion.options.map((option, index) => (

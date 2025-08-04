@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import {
   Theme,
@@ -94,7 +95,7 @@ const AccessoryCustomizationModal: React.FC<AccessoryCustomizationModalProps> = 
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-[70] bg-[var(--modal-bg-backdrop)] animate-fadeIn"
+      className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-[70] bg-[var(--modal-bg-backdrop)] animate-fadeIn overflow-y-auto"
       onClick={onClose} // Allow closing by clicking backdrop
       role="dialog"
       aria-modal="true"

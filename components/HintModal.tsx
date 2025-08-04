@@ -17,7 +17,7 @@ const HintModal: React.FC<HintModalProps> = ({ isOpen, onClose, hint, isLoading 
 
   return (
     <div 
-      className={`fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300 bg-[var(--modal-bg-backdrop)]`}
+      className={`fixed inset-0 flex items-center justify-center p-4 z-50 overflow-y-auto transition-opacity duration-300 bg-[var(--modal-bg-backdrop)]`}
       onClick={onClose}
     >
       <div 

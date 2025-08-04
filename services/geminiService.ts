@@ -535,3 +535,37 @@ HƯỚNG DẪN CỰC KỲ QUAN TRỌNG VỀ ĐỊNH DẠNG ĐẦU RA:
   }
   return null;
 };
+
+export const generateParentingTips = async (studentProfileSummary: string): Promise<string> => {
+  const currentAi = initializeAi();
+  if (!currentAi) {
+    return API_KEY_ERROR_MESSAGE;
+  }
+
+  const prompt = `Bạn là một chuyên gia giáo dục tiểu học, đưa ra lời khuyên cho phụ huynh bằng tiếng Việt.
+Dưới đây là hồ sơ học tập chi tiết của con họ, được tổng hợp từ dữ liệu trong trò chơi:
+${studentProfileSummary}
+
+Dựa vào hồ sơ này, hãy tạo một lời khuyên ngắn gọn (tối đa 3-4 câu), hữu ích, tích cực và dễ thực hiện. 
+- Tập trung vào 1-2 "Kỹ năng cần cải thiện nhất".
+- Đưa ra gợi ý cụ thể, mang tính xây dựng. Ví dụ, nếu bé yếu về "Phép chia", hãy gợi ý các hoạt động thực tế như chia bánh kẹo.
+- Liên kết với "thói quen học tập" của bé. Ví dụ: nếu bé trả lời nhanh nhưng hay sai, khuyên bé nên đọc kỹ đề hơn. Nếu bé hay dùng gợi ý, khuyên cách để tăng sự tự tin.
+- Lời khuyên phải mang tính khích lệ, không chỉ trích.
+
+Ví dụ: Nếu bé yếu phép chia và hay dùng gợi ý, bạn có thể nói: "Bé có vẻ cần thêm tự tin ở phần phép chia. Hãy thử dùng các viên kẹo hoặc đồ chơi để chia thành các phần bằng nhau, giúp bé hình dung khái niệm một cách trực quan. Thay vì hỏi đáp án, hãy cùng bé đặt câu hỏi 'Làm thế nào để chia đều số kẹo này cho 2 bạn nhỉ?' để khuyến khích tư duy nhé!".
+Chỉ trả về phần văn bản của lời khuyên, không thêm lời chào hay các câu dẫn dắt.`;
+
+  try {
+    const response: GenerateContentResponse = await currentAi.models.generateContent({
+      model: GEMINI_API_MODEL,
+      contents: prompt,
+       config: {
+        thinkingConfig: { thinkingBudget: 0 } 
+      }
+    });
+    return response.text.trim();
+  } catch (error) {
+    console.error("Error generating parenting tip:", error);
+    return "Đã xảy ra lỗi khi tạo gợi ý. Vui lòng thử lại.";
+  }
+};

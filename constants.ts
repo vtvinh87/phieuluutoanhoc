@@ -9,12 +9,13 @@ export const ISLANDS_PER_GRADE = 10;
 
 // Game Title
 export const GAME_TITLE_TEXT = "Cuộc Phiêu Lưu Toán Học Trên Đảo Kho Báu";
+export const STUDENT_NAME = "Bình Minh";
 
 
 // Error Messages
 export const API_KEY_ERROR_MESSAGE = "Lỗi: API Key cho Gemini chưa được cấu hình. Vui lòng kiểm tra biến môi trường process.env.API_KEY.";
 export const QUESTION_GENERATION_ERROR_MESSAGE = "Rất tiếc, không thể tạo đủ câu hỏi cho hòn đảo này vào lúc này. Nguyên nhân có thể do kết nối hoặc giới hạn truy cập. Vui lòng thử lại sau hoặc chọn một hòn đảo/độ khó khác.";
-export const HINT_GENERATION_ERROR_MESSAGE = "Rất tiếc, Thần Toán Học tạm thời không thể đưa ra gợi ý. Hãy thử tự suy nghĩ thêm nhé!";
+export const HINT_GENERATION_ERROR_MESSAGE = "Rất tiếc, Thần Toán Học tạm thời không thể đưa ra gợi ý. Hãy tự suy nghĩ thêm nhé!";
 export const HINT_API_KEY_ERROR_MESSAGE = "Lỗi: API Key không hợp lệ. Vui lòng kiểm tra lại.";
 export const HINT_LOADING_MESSAGE = "Thần Toán Học đang suy nghĩ...";
 export const HINT_UNAVAILABLE_MESSAGE = "Thần Toán Học đang suy nghĩ... Hãy thử lại sau giây lát nhé!";
@@ -78,10 +79,62 @@ export const MANAGE_ACCESSORIES_BUTTON_TEXT = "Tùy Chỉnh Giao Diện";
 export const ACCESSORY_CUSTOMIZATION_MODAL_TITLE = "Tùy Chỉnh Phụ Kiện Giao Diện";
 export const CHOOSE_THEME_TO_CUSTOMIZE_TEXT = "Chọn Giao Diện để Tùy Chỉnh";
 export const ACCESSORIES_FOR_THEME_TEXT = (themeName: string) => `Phụ kiện cho Giao Diện: ${themeName}`;
-export const ACTIVATE_FOR_THIS_THEME_TEXT = "Kích hoạt cho giao diện này";
 export const NO_OWNED_COMPATIBLE_ACCESSORIES_TEXT = "Bạn chưa sở hữu phụ kiện nào tương thích với giao diện này.";
 export const DEACTIVATE_TEXT = "Hủy Kích Hoạt";
 export const ACTIVATE_TEXT = "Kích Hoạt";
+
+// --- Role Selection Screen ---
+export const ROLE_SELECTION_SUBTITLE_TEXT = "Hoặc, truy cập với vai trò:";
+export const PARENT_ROLE_BUTTON_TEXT = "Dành cho Phụ huynh";
+export const TEACHER_ROLE_BUTTON_TEXT = "Dành cho Giáo viên";
+
+
+// --- Parent Dashboard Text ---
+export const PARENT_DASHBOARD_TITLE = "Bảng Điều Khiển Của Phụ Huynh";
+export const QUICK_OVERVIEW_WIDGET_TITLE = "Tổng Quan Nhanh";
+export const TOTAL_STARS_TEXT = "Tổng số Sao";
+export const ISLANDS_COMPLETED_TEXT = "Đảo đã hoàn thành";
+export const TIME_PLAYED_TEXT = "Thời gian chơi";
+export const SKILL_MAP_WIDGET_TITLE = "Bản Đồ Kỹ Năng";
+export const SKILL_MAP_NO_DATA_TEXT = "Chưa có đủ dữ liệu để hiển thị. Hãy để bé chơi thêm nhé!";
+export const PARENT_TIPS_WIDGET_TITLE = "Gợi Ý Cho Phụ Huynh";
+export const GET_NEW_TIP_BUTTON_TEXT = "Nhận Gợi Ý Mới";
+export const GENERATING_TIP_TEXT = "Đang tạo gợi ý...";
+export const GOALS_WIDGET_TITLE = "Mục Tiêu & Phần Thưởng";
+export const SET_NEW_GOAL_SECTION_TITLE = "Đặt Mục Tiêu Mới";
+export const GOAL_TYPE_PROMPT = "Bé cần...";
+export const GOAL_TYPE_ISLANDS = "Hoàn thành số đảo";
+export const GOAL_TYPE_STARS = "Đạt được số sao";
+export const GOAL_TARGET_PROMPT = "Số lượng";
+export const GOAL_REWARD_PROMPT = "Phần thưởng (Đá Quý)";
+export const SET_GOAL_BUTTON_TEXT = "Đặt Mục Tiêu";
+export const ACTIVE_GOALS_SECTION_TITLE = "Mục Tiêu Hiện Tại";
+export const NO_ACTIVE_GOALS_TEXT = "Chưa có mục tiêu nào được đặt.";
+export const GOAL_PROGRESS_TEXT = (current: number, target: number) => `Tiến độ: ${current}/${target}`;
+export const GOAL_CLAIMED_TEXT = "Đã nhận thưởng";
+export const GOAL_COMPLETED_TOAST_TEXT = (reward: number) => `Hoàn thành mục tiêu! Bạn nhận được ${reward} Đá Quý!`;
+
+// --- Teacher Dashboard Text ---
+export const TEACHER_DASHBOARD_TITLE = "Bảng Điều Khiển Của Giáo Viên";
+export const CLASS_OVERVIEW_WIDGET_TITLE = "Tổng Quan Lớp Học";
+export const CLASS_ROSTER_WIDGET_TITLE = "Danh Sách Lớp";
+export const STUDENT_DETAILS_WIDGET_TITLE = "Chi Tiết Học Sinh";
+export const ASSIGNMENTS_WIDGET_TITLE = "Bài Tập Đã Giao";
+export const NO_STUDENT_SELECTED_TEXT = "Chọn một học sinh từ danh sách để xem chi tiết.";
+export const CLASS_SIZE_TEXT = "Sĩ số";
+export const AVERAGE_STARS_TEXT = "Sao trung bình";
+export const AVERAGE_COMPLETION_TEXT = "Tỉ lệ hoàn thành trung bình";
+export const ASSIGN_HOMEWORK_BUTTON_TEXT = "Giao Bài";
+export const NO_ASSIGNMENTS_TEXT = "Chưa có bài tập nào được giao.";
+export const ASSIGNMENT_DUE_DATE_TEXT = (date: string) => `Hạn nộp: ${date}`;
+export const ASSIGN_HOMEWORK_MODAL_TITLE = (studentName: string) => `Giao Bài cho ${studentName}`;
+export const SELECT_GRADE_PROMPT = "Chọn Lớp";
+export const SELECT_ISLAND_PROMPT = "Chọn Đảo";
+export const SELECT_DUE_DATE_PROMPT = "Chọn Hạn Nộp";
+export const ASSIGN_BUTTON_TEXT = "Giao Bài";
+export const HOMEWORK_ASSIGNED_SUCCESS_TOAST = (islandName: string, studentName: string) => `Đã giao bài "${islandName}" cho ${studentName}.`;
+export const HOMEWORK_WIDGET_TITLE = "Bài Tập Về Nhà";
+export const GO_TO_ISLAND_BUTTON_TEXT = "Đến Đảo";
 
 
 // UI Text Constants - Dynamic (Functions)
@@ -190,6 +243,10 @@ export const ACTIVE_COLLECTIBLE_KEY = `${LOCAL_STORAGE_PREFIX}activeCollectible`
 export const COLLECTED_ITEMS_KEY = `${LOCAL_STORAGE_PREFIX}collectedItems`;
 export const ENDLESS_UNLOCKED_KEY_PREFIX = `${LOCAL_STORAGE_PREFIX}endlessUnlocked_`;
 export const FINAL_ISLAND_UNLOCKED_KEY = `${LOCAL_STORAGE_PREFIX}finalIslandUnlocked`;
+export const ACTIVITY_LOG_KEY = `${LOCAL_STORAGE_PREFIX}studentActivityLog`;
+export const PARENT_GOALS_KEY = `${LOCAL_STORAGE_PREFIX}parentGoals`;
+export const STUDENT_ASSIGNMENTS_KEY = `${LOCAL_STORAGE_PREFIX}studentAssignments`;
+
 
 // Daily Challenge Storage Keys
 export const ACTIVE_DAILY_CHALLENGE_KEY = `${LOCAL_STORAGE_PREFIX}activeDailyChallenge`;
@@ -385,81 +442,65 @@ export const WEEKLY_CHALLENGE_DEFINITIONS: WeeklyChallengeDefinition[] = [
 
 // Island Configurations
 export const ISLAND_CONFIGS: IslandConfig[] = [
-  // --- GRADE 1 --- (10 Islands)
-  {
-    islandId: "g1_island_01_counting_1_10",
-    islandNumber: 1,
-    name: "Đảo Số Đếm Ban Sơ (1-10)",
-    description: "Bé học đọc, viết, đếm và so sánh các số trong phạm vi 10.",
-    topics: ["đếm số lượng đồ vật trong phạm vi 10", "nhận biết mặt số từ 1 đến 10", "so sánh các số trong phạm vi 10 (lớn hơn, bé hơn, bằng nhau)", "sắp xếp các số theo thứ tự trong phạm vi 10"],
-    targetGradeLevel: GradeLevel.GRADE_1,
-    mapIcon: "1️⃣"
-  },
-  {
-    islandId: "g1_island_02_addition_subtraction_10",
-    islandNumber: 2,
-    name: "Vịnh Cộng Trừ Nhỏ (Phạm vi 10)",
-    description: "Làm quen với phép cộng, trừ đơn giản trong phạm vi 10.",
-    topics: ["phép cộng trong phạm vi 10", "phép trừ trong phạm vi 10", "tìm số còn thiếu trong phép cộng/trừ", "bài toán có lời văn về cộng/trừ (phạm vi 10)"],
-    targetGradeLevel: GradeLevel.GRADE_1,
-    mapIcon: "➕"
-  },
-  { islandId: "g1_island_03_shapes_basic", islandNumber: 3, name: "Làng Hình Học Vui", description: "Nhận biết các hình cơ bản.", topics: ["hình vuông", "hình tròn", "hình tam giác", "hình chữ nhật"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "📐" },
-  { islandId: "g1_island_04_counting_1_20", islandNumber: 4, name: "Rặng San Hô Số (1-20)", description: "Mở rộng đếm và so sánh số đến 20.", topics: ["đếm đến 20", "so sánh số trong phạm vi 20"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🐠" },
-  { islandId: "g1_island_05_time_days_week", islandNumber: 5, name: "Đồng Hồ Thời Gian", description: "Học về các ngày trong tuần.", topics: ["các ngày trong tuần", "thứ tự ngày trong tuần"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🗓️" },
-  { islandId: "g1_island_06_measurement_length_basic", islandNumber: 6, name: "Thung Lũng Đo Dài", description: "So sánh độ dài cơ bản.", topics: ["dài hơn", "ngắn hơn", "cao hơn", "thấp hơn"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "📏" },
-  { islandId: "g1_island_07_problem_solving_simple", islandNumber: 7, name: "Hang Toán Đố Nhỏ", description: "Giải toán đố đơn giản.", topics: ["toán đố cộng trừ phạm vi 10"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "💡" },
-  { islandId: "g1_island_08_patterns_simple", islandNumber: 8, name: "Suối Quy Luật Kỳ Diệu", description: "Tìm quy luật đơn giản.", topics: ["quy luật hình ảnh", "quy luật số đơn giản"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🎨" },
-  { islandId: "g1_island_09_money_coins_basic", islandNumber: 9, name: "Chợ Tiền Xu Ban Sơ", description: "Nhận biết tiền xu cơ bản.", topics: ["nhận biết mệnh giá tiền xu nhỏ"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "💰" },
-  { islandId: "g1_island_10_review_grade1", islandNumber: 10, name: "Đỉnh Tri Thức Lớp 1", description: "Ôn tập kiến thức lớp 1.", topics: ["cộng trừ phạm vi 20", "hình học cơ bản", "thời gian", "đo lường"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🌟" },
+  // --- GRADE 1 (Updated Curriculum) ---
+  { islandId: "g1_island_01_counting_1_100", islandNumber: 1, name: "Đảo Số Đếm (1-100)", description: "Làm quen, đọc, viết và so sánh các số trong phạm vi 100.", topics: ["đọc, viết, so sánh số trong phạm vi 100", "cấu tạo số (chục, đơn vị)", "tia số"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "1️⃣" },
+  { islandId: "g1_island_02_addition_subtraction_20_no_carry", islandNumber: 2, name: "Vịnh Cộng Trừ Không Nhớ (P.vi 20)", description: "Thực hiện phép cộng, trừ không nhớ trong phạm vi 20.", topics: ["cộng trừ không nhớ phạm vi 20", "tìm số hạng, số bị trừ, số trừ"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "➕" },
+  { islandId: "g1_island_03_geometry_points_lines", islandNumber: 3, name: "Làng Hình Học Cơ Bản", description: "Nhận biết điểm, đoạn thẳng và các hình học, hình khối quen thuộc.", topics: ["điểm, đoạn thẳng", "hình vuông, tròn, tam giác, chữ nhật", "hình khối lập phương, hộp chữ nhật"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "📐" },
+  { islandId: "g1_island_04_addition_subtraction_100_carry", islandNumber: 4, name: "Rặng San Hô Cộng Trừ Có Nhớ", description: "Thử thách với các phép cộng và trừ có nhớ trong phạm vi 100.", topics: ["phép cộng có nhớ trong phạm vi 100", "phép trừ có nhớ trong phạm vi 100"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🐠" },
+  { islandId: "g1_island_05_time_clock", islandNumber: 5, name: "Đồng Hồ Thời Gian", description: "Học cách xem giờ đúng và tìm hiểu về lịch tuần.", topics: ["xem giờ đúng trên đồng hồ", "các ngày trong tuần, lịch tuần"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🗓️" },
+  { islandId: "g1_island_06_measurement_cm", islandNumber: 6, name: "Thung Lũng Đo Độ Dài (cm)", description: "Sử dụng thước kẻ để đo và ước lượng độ dài bằng xăng-ti-mét.", topics: ["đo và ước lượng độ dài bằng xăng-ti-mét (cm)"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "📏" },
+  { islandId: "g1_island_07_problem_solving_1step", islandNumber: 7, name: "Hang Toán Đố (1 bước)", description: "Giải các bài toán có lời văn sử dụng một phép tính cộng hoặc trừ.", topics: ["giải bài toán có lời văn một bước tính (thêm/bớt)"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "💡" },
+  { islandId: "g1_island_08_patterns_simple", islandNumber: 8, name: "Suối Quy Luật Kỳ Diệu", description: "Tìm và hoàn thành các dãy hình, dãy số có quy luật đơn giản.", topics: ["nhận dạng quy luật của dãy hình, dãy số đơn giản"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🎨" },
+  { islandId: "g1_island_09_vietnamese_dong", islandNumber: 9, name: "Chợ Tiền Tệ Việt Nam", description: "Nhận biết và sử dụng các mệnh giá tiền Việt Nam (loại tiền giấy nhỏ).", topics: ["nhận biết các mệnh giá tiền Việt Nam (tiền giấy)"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "💰" },
+  { islandId: "g1_island_10_review_grade1", islandNumber: 10, name: "Đỉnh Tri Thức Lớp 1", description: "Ôn tập toàn bộ kiến thức quan trọng của chương trình lớp 1.", topics: ["ôn tập số đến 100", "cộng trừ trong phạm vi 100", "hình học và đo lường cơ bản"], targetGradeLevel: GradeLevel.GRADE_1, mapIcon: "🌟" },
 
-  // --- GRADE 2 --- (10 Islands)
-  { islandId: "g2_island_01_counting_1_100", islandNumber: 1, name: "Thảo Nguyên Trăm Số", description: "Đếm, đọc, viết, so sánh số trong phạm vi 100.", topics: ["số có hai chữ số", "so sánh số phạm vi 100", " cấu tạo số (chục, đơn vị)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "💯" },
-  { islandId: "g2_island_02_addition_subtraction_100_no_carry", islandNumber: 2, name: "Biển Cộng Trừ Không Nhớ (P.vi 100)", description: "Cộng, trừ không nhớ trong phạm vi 100.", topics: ["cộng không nhớ phạm vi 100", "trừ không nhớ phạm vi 100"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌊" },
-  { islandId: "g2_island_03_addition_subtraction_100_with_carry", islandNumber: 3, name: "Núi Cộng Trừ Có Nhớ (P.vi 100)", description: "Cộng, trừ có nhớ trong phạm vi 100.", topics: ["cộng có nhớ phạm vi 100", "trừ có nhớ phạm vi 100"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏔️" },
-  { islandId: "g2_island_04_multiplication_division_intro", islandNumber: 4, name: "Rừng Nhân Chia Bí Ẩn", description: "Làm quen phép nhân, chia.", topics: ["phép nhân (bảng 2, 5)", "phép chia (bảng 2, 5)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌳" },
-  { islandId: "g2_island_05_time_clock_hours_halfhours", islandNumber: 5, name: "Tháp Đồng Hồ Chính Xác", description: "Xem giờ đúng, giờ rưỡi.", topics: ["xem giờ đúng", "xem giờ rưỡi"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "⏰" },
-  { islandId: "g2_island_06_measurement_length_cm_m", islandNumber: 6, name: "Sông Đo Độ Dài (cm, m)", description: "Đo độ dài bằng cm, m.", topics: ["đơn vị đo độ dài cm, m", "ước lượng độ dài"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏞️" },
-  { islandId: "g2_island_07_shapes_3d_basic", islandNumber: 7, name: "Xưởng Hình Khối Kỳ Diệu", description: "Nhận biết hình khối cơ bản.", topics: ["hình lập phương", "hình hộp chữ nhật", "hình cầu", "hình trụ"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧊" },
-  { islandId: "g2_island_08_problem_solving_2step", islandNumber: 8, name: "Vực Thẳm Toán Đố (2 bước)", description: "Giải toán đố 2 bước tính.", topics: ["toán đố cộng trừ 2 bước"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧩" },
-  { islandId: "g2_island_09_geometry_perimeter_basic", islandNumber: 9, name: "Đầm Lầy Chu Vi", description: "Tính chu vi hình đơn giản.", topics: ["chu vi hình tam giác", "chu vi hình chữ nhật", "chu vi hình vuông"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌿" },
-  { islandId: "g2_island_10_review_grade2", islandNumber: 10, name: "Ngọn Hải Đăng Lớp 2", description: "Ôn tập kiến thức lớp 2.", topics: ["cộng trừ 100", "nhân chia cơ bản", "thời gian", "đo lường", "hình học"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌟" },
+  // --- GRADE 2 (Updated Curriculum) ---
+  { islandId: "g2_island_01_counting_1_1000", islandNumber: 1, name: "Thảo Nguyên Ngàn Số", description: "Khám phá các số có ba chữ số, so sánh và sắp xếp chúng.", topics: ["số có ba chữ số", "so sánh, sắp xếp số phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "💯" },
+  { islandId: "g2_island_02_addition_subtraction_1000", islandNumber: 2, name: "Biển Cộng Trừ (P.vi 1000)", description: "Thực hiện các phép cộng, trừ có nhớ và không nhớ trong phạm vi 1000.", topics: ["cộng trừ (có nhớ và không nhớ) trong phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌊" },
+  { islandId: "g2_island_03_multiplication_tables_2_5", islandNumber: 3, name: "Núi Bảng Nhân (2-5)", description: "Làm chủ các bảng nhân 2, 3, 4, 5 và khái niệm thừa số, tích.", topics: ["bảng nhân 2, 3, 4, 5", "thừa số, tích"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏔️" },
+  { islandId: "g2_island_04_division_tables_2_5", islandNumber: 4, name: "Rừng Bảng Chia (2-5)", description: "Chinh phục các bảng chia 2, 3, 4, 5 và các thành phần của phép chia.", topics: ["bảng chia 2, 3, 4, 5", "số bị chia, số chia, thương"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌳" },
+  { islandId: "g2_island_05_time_minutes_calendar", islandNumber: 5, name: "Tháp Đồng Hồ và Lịch", description: "Xem giờ chính xác đến từng phút và đọc lịch theo ngày, tháng.", topics: ["xem giờ đến từng phút", "xem lịch (ngày, tháng)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "⏰" },
+  { islandId: "g2_island_06_measurement_length_dm_m_km", islandNumber: 6, name: "Sông Đo Độ Dài (dm, m, km)", description: "Học về đề-xi-mét, mét, ki-lô-mét và cách đổi đơn vị.", topics: ["đề-xi-mét, mét, ki-lô-mét", "đổi đơn vị đo độ dài"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🏞️" },
+  { islandId: "g2_island_07_geometry_perimeter", islandNumber: 7, name: "Xưởng Hình Học Chu Vi", description: "Tính toán chu vi của các hình tam giác và hình tứ giác.", topics: ["chu vi hình tam giác", "chu vi hình tứ giác"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧊" },
+  { islandId: "g2_island_08_problem_solving_multi_div", islandNumber: 8, name: "Vực Thẳm Toán Đố Nhân Chia", description: "Giải các bài toán văn liên quan đến nhiều hơn, ít hơn, gấp, giảm.", topics: ["giải bài toán có lời văn (nhiều hơn, ít hơn, gấp lên, giảm đi)"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🧩" },
+  { islandId: "g2_island_09_measurement_kg_l", islandNumber: 9, name: "Đầm Lầy Cân Nặng và Dung Tích", description: "Làm quen với các đơn vị đo khối lượng và dung tích: ki-lô-gam, lít.", topics: ["ki-lô-gam", "lít"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌿" },
+  { islandId: "g2_island_10_review_grade2", islandNumber: 10, name: "Ngọn Hải Đăng Lớp 2", description: "Tổng ôn tập kiến thức lớp 2 về số học, đo lường và hình học.", topics: ["ôn tập số đến 1000", "bốn phép tính cơ bản", "đo lường", "hình học"], targetGradeLevel: GradeLevel.GRADE_2, mapIcon: "🌟" },
 
-  // --- GRADE 3 --- (10 Islands)
-  { islandId: "g3_island_01_counting_1_1000", islandNumber: 1, name: "Sa Mạc Ngàn Số", description: "Số trong phạm vi 1000.", topics: ["số có ba chữ số", "so sánh số phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🏜️" },
-  { islandId: "g3_island_02_addition_subtraction_1000", islandNumber: 2, name: "Hẻm Núi Cộng Trừ (P.vi 1000)", description: "Cộng trừ trong phạm vi 1000.", topics: ["cộng trừ phạm vi 1000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⛰️" },
-  { islandId: "g3_island_03_multiplication_division_tables", islandNumber: 3, name: "Thác Nước Bảng Cửu Chương", description: "Bảng nhân, chia (2-9).", topics: ["bảng nhân 2-9", "bảng chia 2-9"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌊" },
-  { islandId: "g3_island_04_fractions_intro", islandNumber: 4, name: "Vườn Phân Số Diệu Kỳ", description: "Làm quen phân số đơn giản.", topics: ["1/2", "1/3", "1/4", "so sánh phân số đơn giản"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🍓" },
-  { islandId: "g3_island_05_time_minutes", islandNumber: 5, name: "Đồng Hồ Tinh Xảo (phút)", description: "Xem giờ đến từng phút.", topics: ["xem giờ phút", "khoảng thời gian"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🕰️" },
-  { islandId: "g3_island_06_measurement_weight_g_kg", islandNumber: 6, name: "Cân Đo Trọng Lượng (g, kg)", description: "Đo trọng lượng bằng g, kg.", topics: ["đơn vị đo trọng lượng g, kg"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚖️" },
-  { islandId: "g3_island_07_geometry_area_basic", islandNumber: 7, name: "Cánh Đồng Diện Tích", description: "Tính diện tích hình chữ nhật.", topics: ["diện tích hình chữ nhật"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌾" },
-  { islandId: "g3_island_08_problem_solving_multi_step", islandNumber: 8, name: "Mê Cung Toán Đố Phức Tạp", description: "Giải toán đố nhiều bước.", topics: ["toán đố nhiều bước (cộng, trừ, nhân, chia)"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌀" },
-  { islandId: "g3_island_09_data_handling_bar_charts", islandNumber: 9, name: "Thống Kê Biểu Đồ Cột", description: "Đọc biểu đồ cột đơn giản.", topics: ["đọc biểu đồ cột"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "📊" },
-  { islandId: "g3_island_10_review_grade3", islandNumber: 10, name: "Cung Điện Tri Thức Lớp 3", description: "Ôn tập kiến thức lớp 3.", topics: ["số đến 1000", "4 phép tính", "phân số", "thời gian", "đo lường", "hình học"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌟" },
+  // --- GRADE 3 (Updated Curriculum) ---
+  { islandId: "g3_island_01_counting_100000", islandNumber: 1, name: "Sa Mạc Trăm Nghìn", description: "Khám phá các số trong phạm vi 100,000, so sánh và làm tròn số.", topics: ["số đến 100,000", "so sánh, làm tròn số"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🏜️" },
+  { islandId: "g3_island_02_add_sub_100000", islandNumber: 2, name: "Hẻm Núi Cộng Trừ (P.vi 100,000)", description: "Thực hiện phép cộng và trừ các số trong phạm vi 100,000.", topics: ["cộng trừ các số trong phạm vi 100,000"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⛰️" },
+  { islandId: "g3_island_03_multiplication_division_advanced", islandNumber: 3, name: "Thác Nước Nhân Chia Nâng Cao", description: "Nhân và chia số có nhiều chữ số với/cho số có một chữ số.", topics: ["nhân số có nhiều chữ số với số có một chữ số", "chia số có nhiều chữ số cho số có một chữ số"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌊" },
+  { islandId: "g3_island_04_fractions_compare", islandNumber: 4, name: "Vườn Phân Số Diệu Kỳ", description: "Bắt đầu làm quen với phân số và so sánh các phân số cùng mẫu số.", topics: ["làm quen phân số", "so sánh phân số cùng mẫu số"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🍓" },
+  { islandId: "g3_island_05_time_seconds_months", islandNumber: 5, name: "Đồng Hồ Tinh Xảo (giây, tháng)", description: "Tìm hiểu về giây, các tháng trong năm và giải các bài toán thời gian.", topics: ["giây, các tháng trong năm", "bài toán về thời gian"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🕰️" },
+  { islandId: "g3_island_06_measurement_units", islandNumber: 6, name: "Cân Đo Đơn Vị", description: "Học cách chuyển đổi các đơn vị đo khối lượng (tấn, tạ, yến) và độ dài.", topics: ["đổi các đơn vị đo khối lượng (tấn, tạ, yến)", "đổi đơn vị đo độ dài"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "⚖️" },
+  { islandId: "g3_island_07_geometry_area_perimeter_complex", islandNumber: 7, name: "Cánh Đồng Diện Tích & Chu Vi", description: "Tính diện tích hình chữ nhật, hình vuông và giải các bài toán phức tạp hơn.", topics: ["diện tích hình chữ nhật, hình vuông", "bài toán liên quan chu vi, diện tích"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌾" },
+  { islandId: "g3_island_08_problem_solving_money", islandNumber: 8, name: "Mê Cung Toán Đố Tiền Tệ", description: "Giải các bài toán thực tế liên quan đến tiền Việt Nam.", topics: ["bài toán liên quan đến tiền Việt Nam (mua bán, trả lại tiền)"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌀" },
+  { islandId: "g3_island_09_geometry_angles", islandNumber: 9, name: "Thung Lũng Góc Vuông", description: "Nhận biết góc vuông, góc không vuông và sử dụng ê-ke.", topics: ["góc vuông, góc không vuông", "sử dụng ê-ke"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "📐" },
+  { islandId: "g3_island_10_review_grade3", islandNumber: 10, name: "Cung Điện Tri Thức Lớp 3", description: "Tổng hợp kiến thức lớp 3, tập trung vào số học và diện tích.", topics: ["ôn tập số đến 100,000", "bốn phép tính nâng cao", "diện tích", "phân số"], targetGradeLevel: GradeLevel.GRADE_3, mapIcon: "🌟" },
 
-  // --- GRADE 4 --- (10 Islands)
-  { islandId: "g4_island_01_counting_1_1000000", islandNumber: 1, name: "Thiên Hà Triệu Số", description: "Số đến hàng triệu.", topics: ["số có nhiều chữ số", "lớp triệu", "so sánh số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌌" },
-  { islandId: "g4_island_02_arithmetic_large_numbers", islandNumber: 2, name: "Đại Dương Tính Toán Số Lớn", description: "Cộng, trừ, nhân, chia số lớn.", topics: ["cộng trừ nhân chia số tự nhiên"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🐳" },
-  { islandId: "g4_island_03_fractions_operations", islandNumber: 3, name: "Quần Đảo Phép Tính Phân Số", description: "Cộng, trừ phân số cùng mẫu.", topics: ["cộng phân số cùng mẫu", "trừ phân số cùng mẫu"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏝️" },
-  { islandId: "g4_island_04_decimals_intro", islandNumber: 4, name: "Hồ Thập Phân Huyền Bí", description: "Làm quen số thập phân.", topics: ["khái niệm số thập phân", "so sánh số thập phân đơn giản"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "💧" },
-  { islandId: "g4_island_05_geometry_angles", islandNumber: 5, name: "Thung Lũng Góc Nhọn Tù", description: "Nhận biết các loại góc.", topics: ["góc vuông", "góc nhọn", "góc tù", "góc bẹt"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📐" },
-  { islandId: "g4_island_06_measurement_volume_ml_l", islandNumber: 6, name: "Suối Nguồn Thể Tích (ml, l)", description: "Đo thể tích bằng ml, l.", topics: ["đơn vị đo thể tích ml, l"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧪" },
-  { islandId: "g4_island_07_problem_solving_average", islandNumber: 7, name: "Đồi Trung Bình Cộng Thông Thái", description: "Tính trung bình cộng.", topics: ["trung bình cộng"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧠" },
-  { islandId: "g4_island_08_geometry_parallel_perpendicular", islandNumber: 8, name: "Vách Đá Song Song Vuông Góc", description: "Đường thẳng song song, vuông góc.", topics: ["đường thẳng song song", "đường thẳng vuông góc"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏛️" },
-  { islandId: "g4_island_09_data_handling_pie_charts", islandNumber: 9, name: "Vòng Tròn Biểu Đồ Kỳ Thú", description: "Đọc biểu đồ hình tròn.", topics: ["đọc biểu đồ hình tròn"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🥧" },
-  { islandId: "g4_island_10_review_grade4", islandNumber: 10, name: "Kim Tự Tháp Lớp 4", description: "Ôn tập kiến thức lớp 4.", topics: ["số tự nhiên", "phân số", "số thập phân", "hình học", "đo lường"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌟" },
+  // --- GRADE 4 (Updated Curriculum) ---
+  { islandId: "g4_island_01_natural_numbers_millions", islandNumber: 1, name: "Thiên Hà Số Tự Nhiên (Lớp Triệu)", description: "Tìm hiểu về số tự nhiên, các lớp số lớn và tính chất của phép tính.", topics: ["số tự nhiên, dãy số tự nhiên", "số đến lớp triệu, lớp tỉ", "tính chất của phép cộng và phép nhân"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌌" },
+  { islandId: "g4_island_02_multiplication_division_multi_digit", islandNumber: 2, name: "Đại Dương Nhân Chia Số Lớn", description: "Thực hiện phép nhân và chia với các số có nhiều chữ số.", topics: ["nhân với số có nhiều chữ số", "chia cho số có hai, ba chữ số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🐳" },
+  { islandId: "g4_island_03_fractions_all_operations", islandNumber: 3, name: "Quần Đảo Phép Tính Phân Số", description: "Làm chủ 4 phép tính với phân số và làm quen hỗn số.", topics: ["quy đồng mẫu số", "cộng, trừ, nhân, chia phân số", "hỗn số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏝️" },
+  { islandId: "g4_island_04_ratios", islandNumber: 4, name: "Hồ Tỷ Số Huyền Bí", description: "Tìm hiểu về tỷ số và giải các bài toán dạng tổng-tỷ, hiệu-tỷ.", topics: ["khái niệm tỷ số", "bài toán tìm hai số khi biết tổng và tỷ số", "bài toán tìm hai số khi biết hiệu và tỷ số"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "💧" },
+  { islandId: "g4_island_05_geometry_parallel_perpendicular", islandNumber: 5, name: "Thung Lũng Song Song Vuông Góc", description: "Nhận biết và vẽ hai đường thẳng song song, vuông góc.", topics: ["hai đường thẳng song song, vuông góc", "vẽ hình"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🏛️" },
+  { islandId: "g4_island_06_measurement_area_advanced", islandNumber: 6, name: "Suối Nguồn Đo Lường (diện tích)", description: "Mở rộng bảng đơn vị đo khối lượng và diện tích.", topics: ["yến, tạ, tấn", "giây, thế kỷ", "đề-ca-mét vuông, héc-tô-mét vuông, mi-li-mét vuông"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧪" },
+  { islandId: "g4_island_07_problem_solving_average_charts", islandNumber: 7, name: "Đồi Trung Bình Cộng và Biểu Đồ", description: "Tính số trung bình cộng và đọc các loại biểu đồ.", topics: ["tìm số trung bình cộng", "biểu đồ cột, biểu đồ đường"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🧠" },
+  { islandId: "g4_island_08_geometry_area_parallelogram", islandNumber: 8, name: "Vách Đá Hình Bình Hành", description: "Học cách tính diện tích của hình bình hành và hình thoi.", topics: ["diện tích hình bình hành", "diện tích hình thoi"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📐" },
+  { islandId: "g4_island_09_expressions_with_variables", islandNumber: 9, name: "Thung lũng Biểu thức chứa chữ", description: "Làm quen với biểu thức chứa chữ và tính giá trị của chúng.", topics: ["biểu thức chứa một, hai, ba chữ", "tính giá trị của biểu thức"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "📝" },
+  { islandId: "g4_island_10_review_grade4", islandNumber: 10, name: "Kim Tự Tháp Lớp 4", description: "Tổng ôn tập kiến thức lớp 4, đặc biệt là phân số và các bài toán tỷ số.", topics: ["ôn tập số tự nhiên", "bốn phép tính với phân số", "bài toán tỷ số", "hình học và diện tích"], targetGradeLevel: GradeLevel.GRADE_4, mapIcon: "🌟" },
 
-  // --- GRADE 5 --- (10 Islands)
-  { islandId: "g5_island_01_decimals_operations", islandNumber: 1, name: "Vương Quốc Phép Tính Thập Phân", description: "Cộng, trừ, nhân, chia số thập phân.", topics: ["cộng trừ nhân chia số thập phân"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "👑" },
-  { islandId: "g5_island_02_percentages", islandNumber: 2, name: "Thị Trấn Tỷ Lệ Phần Trăm", description: "Làm quen tỷ số phần trăm.", topics: ["tỷ số phần trăm", "ứng dụng tỷ số phần trăm"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📈" },
-  { islandId: "g5_island_03_geometry_circle_area_circumference", islandNumber: 3, name: "Công Viên Hình Tròn Viên Mãn", description: "Chu vi, diện tích hình tròn.", topics: ["chu vi hình tròn", "diện tích hình tròn"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⭕" },
-  { islandId: "g5_island_04_motion_problems", islandNumber: 4, name: "Đường Đua Chuyển Động Thần Tốc", description: "Giải toán chuyển động đều.", topics: ["vận tốc", "quãng đường", "thời gian"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏎️" },
-  { islandId: "g5_island_05_geometry_3d_volume", islandNumber: 5, name: "Kho Tàng Hình Khối Ba Chiều", description: "Thể tích hình hộp chữ nhật, lập phương.", topics: ["thể tích hình hộp chữ nhật", "thể tích hình lập phương"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📦" },
-  { islandId: "g5_island_06_problem_solving_ratio_proportion", islandNumber: 6, name: "Cầu Tỷ Lệ Cân Bằng", description: "Bài toán về tỷ lệ.", topics: ["tỷ lệ thuận", "tỷ lệ nghịch (đơn giản)"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⚖️" },
-  { islandId: "g5_island_07_algebra_simple_equations", islandNumber: 7, name: "Hang Động Tìm X Bí Ẩn", description: "Giải phương trình đơn giản (tìm x).", topics: ["tìm x trong phép tính"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🔍" },
-  { islandId: "g5_island_08_data_handling_probability_intro", islandNumber: 8, name: "Sòng Bạc Xác Suất May Mắn", description: "Làm quen xác suất đơn giản.", topics: ["khả năng xảy ra của sự kiện"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🎲" },
-  { islandId: "g5_island_09_financial_math_interest_discount", islandNumber: 9, name: "Ngân Hàng Lãi Suất Thông Minh", description: "Toán lãi suất, giảm giá.", topics: ["tính lãi đơn giản", "tính giảm giá"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏦" },
-  { islandId: "g5_island_10_review_grade5", islandNumber: 10, name: "Đài Thiên Văn Lớp 5", description: "Ôn tập kiến thức lớp 5.", topics: ["số thập phân", "tỷ số phần trăm", "hình học không gian", "toán chuyển động"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🌟" },
+  // --- GRADE 5 (Updated Curriculum) ---
+  { islandId: "g5_island_01_decimals_concepts_operations", islandNumber: 1, name: "Vương Quốc Số Thập Phân", description: "Làm chủ khái niệm và 4 phép tính cơ bản với số thập phân.", topics: ["khái niệm số thập phân", "so sánh, cộng, trừ, nhân, chia số thập phân"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "👑" },
+  { islandId: "g5_island_02_percentages_applications", islandNumber: 2, name: "Thị Trấn Tỷ Số Phần Trăm", description: "Hiểu và giải quyết các bài toán về tỷ số phần trăm trong thực tế.", topics: ["tỷ số phần trăm", "giải toán về tỷ số phần trăm (tìm giá trị, tìm tỷ số, tìm một số)"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📈" },
+  { islandId: "g5_island_03_geometry_area_triangle_trapezoid", islandNumber: 3, name: "Công Viên Hình Học Phẳng", description: "Tính diện tích hình tam giác, hình thang và chu vi, diện tích hình tròn.", topics: ["diện tích hình tam giác", "diện tích hình thang", "chu vi và diện tích hình tròn"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "⭕" },
+  { islandId: "g5_island_04_motion_problems_uniform", islandNumber: 4, name: "Đường Đua Chuyển Động Đều", description: "Giải các bài toán về chuyển động đều, cùng chiều và ngược chiều.", topics: ["vận tốc, quãng đường, thời gian", "bài toán chuyển động cùng chiều, ngược chiều"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏎️" },
+  { islandId: "g5_island_05_geometry_volume", islandNumber: 5, name: "Kho Tàng Hình Khối Không Gian", description: "Tính thể tích hình hộp chữ nhật, hình lập phương và các đơn vị đo thể tích.", topics: ["thể tích hình hộp chữ nhật", "thể tích hình lập phương", "xăng-ti-mét khối, đề-xi-mét khối, mét khối"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "📦" },
+  { islandId: "g5_island_06_measurement_time_conversion", islandNumber: 6, name: "Đài thiên văn Thời gian", description: "Thực hành các phép tính với số đo thời gian và chuyển đổi đơn vị.", topics: ["bảng đơn vị đo thời gian", "cộng, trừ, nhân, chia số đo thời gian"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🕰️" },
+  { islandId: "g5_island_07_measurement_area_volume_conversion", islandNumber: 7, name: "Xưởng Chuyển đổi Đơn vị", description: "Luyện tập chuyển đổi các đơn vị đo diện tích và thể tích.", topics: ["bảng đơn vị đo diện tích", "héc-ta", "chuyển đổi các đơn vị đo lường"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🏗️" },
+  { islandId: "g5_island_08_number_sequences", islandNumber: 8, name: "Hang động Dãy số", description: "Tìm quy luật của các dãy số và tính tổng các dãy số cách đều.", topics: ["tìm quy luật của dãy số", "tính tổng dãy số cách đều"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🔍" },
+  { islandId: "g5_island_09_logic_puzzles", islandNumber: 9, name: "Mê cung Toán suy luận", description: "Thử thách tư duy với các bài toán logic như trồng cây, bài toán tuổi.", topics: ["bài toán suy luận logic", "bài toán trồng cây", "bài toán tuổi"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🧠" },
+  { islandId: "g5_island_10_review_grade5", islandNumber: 10, name: "Đài Thiên Văn Lớp 5", description: "Tổng ôn tập toàn bộ kiến thức lớp 5, chuẩn bị cho cấp học tiếp theo.", topics: ["ôn tập số thập phân, tỷ số phần trăm", "hình học và thể tích", "toán chuyển động đều", "số đo thời gian"], targetGradeLevel: GradeLevel.GRADE_5, mapIcon: "🌟" },
   
   // --- FINAL GRADE CHALLENGES ---
   {

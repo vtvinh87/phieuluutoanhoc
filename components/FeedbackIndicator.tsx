@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CheckCircleIcon, XCircleIcon } from './icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -18,7 +17,7 @@ const FeedbackIndicator: React.FC<FeedbackIndicatorProps> = ({ isCorrect, messag
   return (
     <div 
       className={`
-        flex items-center p-4 my-4 rounded-lg shadow-lg
+        flex items-center p-4 rounded-lg shadow-lg
         ${bgColorClass} ${textColorClass} 
         transition-all duration-300 ease-in-out transform scale-100 animate-fadeIn
         ${themeConfig.frostedGlassOpacity && isCorrect ? themeConfig.frostedGlassOpacity.replace('bg-opacity-70', 'bg-opacity-90') : ''}

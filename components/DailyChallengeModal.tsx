@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DailyChallenge, WeeklyChallenge, DailyChallengeType, WeeklyChallengeType } from '../types';
 import {
@@ -142,7 +143,7 @@ const DailyChallengeModal: React.FC<DailyChallengeModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-4 z-[70] transition-opacity duration-300 bg-[var(--modal-bg-backdrop)] animate-fadeIn`}
+      className={`fixed inset-0 flex items-center justify-center p-4 z-[70] transition-opacity duration-300 bg-[var(--modal-bg-backdrop)] animate-fadeIn overflow-y-auto`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
